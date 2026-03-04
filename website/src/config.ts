@@ -11,7 +11,7 @@ const defaultConfig: SiteConfig = {
   projectName: "ResearchClaw",
   projectTaglineEn: "Your AI Research Assistant",
   projectTaglineZh: "你的 AI 科研助手",
-  repoUrl: "https://github.com/your-org/ResearchClaw",
+  repoUrl: "https://github.com/ymx10086/ResearchClaw",
   docsPath: "/docs/",
   showTestimonials: true,
 };
