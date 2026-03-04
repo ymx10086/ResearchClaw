@@ -4,14 +4,14 @@ Channels bridge ResearchClaw to external IM platforms. By configuring channels, 
 
 ## Supported Channels
 
-| Channel | Description |
-|---------|-------------|
-| DingTalk | Enterprise IM, supports group and private chat |
-| Feishu | Bytedance IM, supports group and private chat |
-| QQ | Based on QQ Open Platform, supports channels and DMs |
-| Discord | Popular overseas IM, supports bot integration |
-| iMessage | macOS native messaging, requires local deployment on Mac |
-| WeChat (WIP) | WeChat integration (in development) |
+| Channel      | Description                                              |
+| ------------ | -------------------------------------------------------- |
+| DingTalk     | Enterprise IM, supports group and private chat           |
+| Feishu       | Bytedance IM, supports group and private chat            |
+| QQ           | Based on QQ Open Platform, supports channels and DMs     |
+| Discord      | Popular overseas IM, supports bot integration            |
+| iMessage     | macOS native messaging, requires local deployment on Mac |
+| WeChat (WIP) | WeChat integration (in development)                      |
 
 ## Configuration
 

@@ -17,7 +17,7 @@ Configure heartbeat parameters in `config.yaml`:
 ```yaml
 heartbeat:
   enabled: true
-  interval: 60  # seconds
+  interval: 60 # seconds
 ```
 
 ## Cron Tasks
@@ -25,6 +25,7 @@ heartbeat:
 Heartbeat drives skill cron tasks. On each heartbeat, the system checks all skill cron expressions and executes due tasks.
 
 Example scenarios:
+
 - Push latest papers every morning at 9 AM
 - Generate literature tracking reports every Monday
 - Check ArXiv for new papers every hour

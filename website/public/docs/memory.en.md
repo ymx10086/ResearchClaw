@@ -23,5 +23,6 @@ working/
 Due to LLM context window limitations, the Memory system automatically manages message truncation and compression.
 
 Related:
+
 - [Compact](./compact.md) — Conversation compression
 - [Commands](./commands.md) — Memory management commands

@@ -4,15 +4,15 @@ ResearchClaw 支持在对话中使用命令来控制系统行为。
 
 ## 可用命令
 
-| 命令 | 说明 |
-|------|------|
-| `/help` | 显示帮助信息 |
-| `/compact` | 手动触发对话压缩 |
-| `/clear` | 清除当前会话的对话历史 |
-| `/reset` | 重置助手状态 |
-| `/skills` | 列出已安装的 Skills |
-| `/install <url>` | 从 GitHub 安装 Skill |
-| `/uninstall <name>` | 卸载 Skill |
+| 命令                | 说明                   |
+| ------------------- | ---------------------- |
+| `/help`             | 显示帮助信息           |
+| `/compact`          | 手动触发对话压缩       |
+| `/clear`            | 清除当前会话的对话历史 |
+| `/reset`            | 重置助手状态           |
+| `/skills`           | 列出已安装的 Skills    |
+| `/install <url>`    | 从 GitHub 安装 Skill   |
+| `/uninstall <name>` | 卸载 Skill             |
 
 ## 使用方式
 

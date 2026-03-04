@@ -4,15 +4,15 @@ ResearchClaw supports commands in chat to control system behavior.
 
 ## Available Commands
 
-| Command | Description |
-|---------|-------------|
-| `/help` | Show help information |
-| `/compact` | Manually trigger conversation compression |
-| `/clear` | Clear current session's conversation history |
-| `/reset` | Reset assistant state |
-| `/skills` | List installed skills |
-| `/install <url>` | Install a skill from GitHub |
-| `/uninstall <name>` | Uninstall a skill |
+| Command             | Description                                  |
+| ------------------- | -------------------------------------------- |
+| `/help`             | Show help information                        |
+| `/compact`          | Manually trigger conversation compression    |
+| `/clear`            | Clear current session's conversation history |
+| `/reset`            | Reset assistant state                        |
+| `/skills`           | List installed skills                        |
+| `/install <url>`    | Install a skill from GitHub                  |
+| `/uninstall <name>` | Uninstall a skill                            |
 
 ## Usage
 

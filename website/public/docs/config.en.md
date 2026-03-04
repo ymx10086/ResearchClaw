@@ -53,11 +53,11 @@ Defines the AI assistant's persona and behavior style. You can customize the ass
 
 Sensitive configurations can be set via environment variables:
 
-| Variable | Description |
-|----------|-------------|
+| Variable                   | Description            |
+| -------------------------- | ---------------------- |
 | `RESEARCHCLAW_WORKING_DIR` | Working directory path |
-| `OPENAI_API_KEY` | OpenAI API Key |
-| `ANTHROPIC_API_KEY` | Anthropic API Key |
+| `OPENAI_API_KEY`           | OpenAI API Key         |
+| `ANTHROPIC_API_KEY`        | Anthropic API Key      |
 
 ## CLI Configuration
 

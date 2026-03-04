@@ -16,9 +16,24 @@ const ITEMS: Array<{
   labelZh: string;
   labelEn: string;
 }> = [
-  { key: "imessage", icon: MessageSquare, labelZh: "iMessage", labelEn: "iMessage" },
-  { key: "discord", icon: MessageSquare, labelZh: "Discord", labelEn: "Discord" },
-  { key: "dingtalk", icon: MessageSquare, labelZh: "钉钉", labelEn: "DingTalk" },
+  {
+    key: "imessage",
+    icon: MessageSquare,
+    labelZh: "iMessage",
+    labelEn: "iMessage",
+  },
+  {
+    key: "discord",
+    icon: MessageSquare,
+    labelZh: "Discord",
+    labelEn: "Discord",
+  },
+  {
+    key: "dingtalk",
+    icon: MessageSquare,
+    labelZh: "钉钉",
+    labelEn: "DingTalk",
+  },
   { key: "feishu", icon: MessageSquare, labelZh: "飞书", labelEn: "Feishu" },
   { key: "qq", icon: MessageSquare, labelZh: "QQ", labelEn: "QQ" },
   { key: "python", icon: Code2, labelZh: "Python", labelEn: "Python" },

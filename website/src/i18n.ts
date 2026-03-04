@@ -47,24 +47,20 @@ export const i18n: Record<Lang, Record<string, string>> = {
       "每日自动追踪 ArXiv、Semantic Scholar 上你关注领域的新论文，生成摘要并推送到飞书、钉钉等频道。",
     "usecases.literature.2":
       "批量搜索论文、下载 PDF、自动提取元数据并加入 BibTeX 文献库。",
-    "usecases.literature.3":
-      "对已有文献进行批量分析，发现引用关系和研究趋势。",
+    "usecases.literature.3": "对已有文献进行批量分析，发现引用关系和研究趋势。",
     "usecases.writing.1":
       "自动格式化引用、生成参考文献列表，支持多种引用格式。",
     "usecases.writing.2":
       "阅读论文并生成结构化摘要，提取方法论、关键发现和局限性。",
     "usecases.experiment.1":
       "记录实验参数与结果，支持自然语言查询历史实验数据。",
-    "usecases.experiment.2":
-      "定期提醒论文投稿 DDL、项目里程碑和待办事项。",
+    "usecases.experiment.2": "定期提醒论文投稿 DDL、项目里程碑和待办事项。",
     "usecases.tracking.1":
       "追踪特定作者、会议、期刊的最新发表，及时获取领域动态。",
-    "usecases.tracking.2":
-      "自动监控竞品或相关研究的进展，生成竞争分析报告。",
+    "usecases.tracking.2": "自动监控竞品或相关研究的进展，生成竞争分析报告。",
     "usecases.collaboration.1":
       "通过频道将论文摘要、实验进展分享给团队成员，促进协作。",
-    "usecases.explore.1":
-      "用 Skills 与定时任务打造你专属的科研自动化工作流。",
+    "usecases.explore.1": "用 Skills 与定时任务打造你专属的科研自动化工作流。",
     "quickstart.title": "快速开始",
     "quickstart.hintBefore": "安装 → 初始化 → 启动；频道配置见 ",
     "quickstart.hintLink": "文档",

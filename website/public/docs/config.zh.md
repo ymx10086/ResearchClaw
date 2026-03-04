@@ -53,11 +53,11 @@ server:
 
 部分敏感配置可通过环境变量设置：
 
-| 变量名 | 说明 |
-|--------|------|
-| `RESEARCHCLAW_WORKING_DIR` | 工作目录路径 |
-| `OPENAI_API_KEY` | OpenAI API Key |
-| `ANTHROPIC_API_KEY` | Anthropic API Key |
+| 变量名                     | 说明              |
+| -------------------------- | ----------------- |
+| `RESEARCHCLAW_WORKING_DIR` | 工作目录路径      |
+| `OPENAI_API_KEY`           | OpenAI API Key    |
+| `ANTHROPIC_API_KEY`        | Anthropic API Key |
 
 ## CLI 配置
 

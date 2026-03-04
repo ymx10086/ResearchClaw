@@ -58,8 +58,8 @@ researchclaw version
 
 ## Global Options
 
-| Option | Description |
-|--------|-------------|
+| Option          | Description               |
+| --------------- | ------------------------- |
 | `--working-dir` | Specify working directory |
-| `--verbose` | Show verbose logging |
-| `--help` | Show help |
+| `--verbose`     | Show verbose logging      |
+| `--help`        | Show help                 |

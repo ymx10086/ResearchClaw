@@ -21,7 +21,8 @@ export const MOCK_TESTIMONIALS: TestimonialItem[] = [
     quoteEn:
       "ResearchClaw tracks new ArXiv papers in my field every day and pushes " +
       "summaries to Feishu. Saves me hours of manual browsing.",
-    quoteZh: "ResearchClaw 每天自动追踪我关注领域的 ArXiv 新论文，推摘要到飞书，省了大量手动浏览时间。",
+    quoteZh:
+      "ResearchClaw 每天自动追踪我关注领域的 ArXiv 新论文，推摘要到飞书，省了大量手动浏览时间。",
     username: "@researcher_a",
     url: "#",
   },
@@ -39,7 +40,8 @@ export const MOCK_TESTIMONIALS: TestimonialItem[] = [
     quoteEn:
       "Set up in 5 minutes with pip install. The Skills system lets me " +
       "customize workflows for my lab's needs.",
-    quoteZh: "pip install 五分钟搞定，Skills 系统让我按实验室需求定制自动化工作流。",
+    quoteZh:
+      "pip install 五分钟搞定，Skills 系统让我按实验室需求定制自动化工作流。",
     username: "@lab_lead_c",
     url: "#",
   },
@@ -48,7 +50,8 @@ export const MOCK_TESTIMONIALS: TestimonialItem[] = [
     quoteEn:
       "Multi-channel support is brilliant. I get paper alerts on Discord " +
       "and deadline reminders on DingTalk.",
-    quoteZh: "多频道支持太赞了，Discord 收论文提醒，钉钉收 DDL 通知，各司其职。",
+    quoteZh:
+      "多频道支持太赞了，Discord 收论文提醒，钉钉收 DDL 通知，各司其职。",
     username: "@postdoc_d",
     url: "#",
   },

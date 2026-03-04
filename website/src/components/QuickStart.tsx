@@ -6,7 +6,11 @@ import type { SiteConfig } from "../config";
 import { t, type Lang } from "../i18n";
 
 const COMMANDS = {
-  pip: ["pip install researchclaw", "researchclaw init --defaults", "researchclaw app"],
+  pip: [
+    "pip install researchclaw",
+    "researchclaw init --defaults",
+    "researchclaw app",
+  ],
   unix: [
     "curl -fsSL https://researchclaw.dev/install.sh | bash",
     "researchclaw init --defaults",

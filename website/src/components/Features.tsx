@@ -1,5 +1,12 @@
 import type { LucideProps } from "lucide-react";
-import { Search, BookMarked, FlaskConical, MessageSquare, Puzzle, Lock } from "lucide-react";
+import {
+  Search,
+  BookMarked,
+  FlaskConical,
+  MessageSquare,
+  Puzzle,
+  Lock,
+} from "lucide-react";
 import { motion } from "motion/react";
 import { t, type Lang } from "../i18n";
 

@@ -23,5 +23,6 @@ working/
 由于 LLM 的上下文窗口有限，Memory 系统会自动管理消息的截取和压缩。
 
 相关功能：
+
 - [Compact 压缩](./compact.md) — 对话压缩机制
 - [命令系统](./commands.md) — 管理 Memory 的命令
