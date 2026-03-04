@@ -189,11 +189,14 @@ try:
         skills,
         workspace,
     )
+    from .crons.api import router as cron_router
+    from .runner.api import router as runner_router
 
     app.include_router(agent.router, prefix="/api/agent", tags=["Agent"])
     app.include_router(config.router, prefix="/api/config", tags=["Config"])
     app.include_router(console.router, prefix="/api/console", tags=["Console"])
     app.include_router(control.router, prefix="/api/control", tags=["Control"])
+    app.include_router(cron_router, prefix="/api/crons", tags=["Crons"])
     app.include_router(envs.router, prefix="/api/envs", tags=["Environments"])
     app.include_router(mcp.router, prefix="/api/mcp", tags=["MCP"])
     app.include_router(papers.router, prefix="/api/papers", tags=["Papers"])
@@ -202,6 +205,7 @@ try:
         prefix="/api/providers",
         tags=["Providers"],
     )
+    app.include_router(runner_router, prefix="/api/runner", tags=["Runner"])
     app.include_router(skills.router, prefix="/api/skills", tags=["Skills"])
     app.include_router(
         workspace.router,
