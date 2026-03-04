@@ -51,6 +51,7 @@ export type McpClientItem = {
   command?: string;
   args?: string[];
   url?: string;
+  env?: Record<string, string>;
 };
 
 export type AgentRunningConfig = {
