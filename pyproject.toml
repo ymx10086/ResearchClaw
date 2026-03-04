@@ -101,6 +101,14 @@ ollama = [
 all = [
     "researchclaw[latex,local]",
 ]
+dev = [
+    "pre-commit>=3.0",
+    "pytest>=7.0",
+    "black>=23.0",
+    "flake8>=6.0",
+    "pylint>=3.0",
+    "mypy>=1.0",
+]
 
 [project.scripts]
 researchclaw = "researchclaw.cli.main:cli"
