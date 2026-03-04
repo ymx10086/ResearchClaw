@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Cron jobs package – scheduled research tasks.
 
 Provides:

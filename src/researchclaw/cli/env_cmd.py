@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """CLI commands for environment variable management."""
 from __future__ import annotations
 
@@ -42,7 +41,12 @@ def list_cmd() -> None:
 @env_group.command("set")
 @click.argument("key")
 @click.argument("value")
-@click.option("--profile", default="default", show_default=True, help="Profile name")
+@click.option(
+    "--profile",
+    default="default",
+    show_default=True,
+    help="Profile name",
+)
 def set_cmd(key: str, value: str, profile: str) -> None:
     """Set an environment variable (KEY VALUE)."""
     store = EnvStore()
@@ -59,13 +63,23 @@ def set_cmd(key: str, value: str, profile: str) -> None:
 
 @env_group.command("delete")
 @click.argument("key")
-@click.option("--profile", default="default", show_default=True, help="Profile name")
+@click.option(
+    "--profile",
+    default="default",
+    show_default=True,
+    help="Profile name",
+)
 def delete_cmd(key: str, profile: str) -> None:
     """Delete an environment variable."""
     store = EnvStore()
     item = store.get(profile)
     if not item or key not in item.get("vars", {}):
-        click.echo(click.style(f"Env var '{key}' not found in profile '{profile}'.", fg="red"))
+        click.echo(
+            click.style(
+                f"Env var '{key}' not found in profile '{profile}'.",
+                fg="red",
+            ),
+        )
         raise SystemExit(1)
     del item["vars"][key]
     store.save(item)

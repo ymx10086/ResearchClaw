@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Chat models for runner with UUID management.
 
 Provides Pydantic models for chat specifications, history, and persistence.

@@ -35,7 +35,11 @@ async def list_providers(req):
         # Mask API keys
         for p in providers:
             if p.get("api_key"):
-                p["api_key"] = p["api_key"][:8] + "..." if len(p["api_key"]) > 8 else "***"
+                p["api_key"] = (
+                    p["api_key"][:8] + "..."
+                    if len(p["api_key"]) > 8
+                    else "***"
+                )
         return {"providers": providers}
     except ImportError:
         return {"providers": [], "note": "Provider store not yet initialized"}
@@ -51,7 +55,10 @@ async def add_provider(config: ProviderConfig):
         store.save_provider(config.model_dump())
         return {"status": "ok", "provider": config.name}
     except ImportError:
-        raise HTTPException(status_code=500, detail="Provider store not available")
+        raise HTTPException(
+            status_code=500,
+            detail="Provider store not available",
+        )
 
 
 @router.delete("/{name}")
@@ -64,9 +71,15 @@ async def remove_provider(name: str):
         store.remove_provider(name)
         return {"status": "deleted", "provider": name}
     except ImportError:
-        raise HTTPException(status_code=500, detail="Provider store not available")
+        raise HTTPException(
+            status_code=500,
+            detail="Provider store not available",
+        )
     except KeyError:
-        raise HTTPException(status_code=404, detail=f"Provider {name} not found")
+        raise HTTPException(
+            status_code=404,
+            detail=f"Provider {name} not found",
+        )
 
 
 @router.get("/models")

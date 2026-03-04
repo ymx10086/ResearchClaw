@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Chat repository for storing chat/session specs."""
 from __future__ import annotations
 

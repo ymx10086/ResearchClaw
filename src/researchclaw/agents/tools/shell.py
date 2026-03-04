@@ -127,8 +127,12 @@ async def execute_shell_command(
             await asyncio.wait_for(proc.wait(), timeout=timeout)
             stdout_bytes, stderr_bytes = await proc.communicate()
             encoding = locale.getpreferredencoding(False) or "utf-8"
-            stdout_str = stdout_bytes.decode(encoding, errors="replace").strip("\n")
-            stderr_str = stderr_bytes.decode(encoding, errors="replace").strip("\n")
+            stdout_str = stdout_bytes.decode(encoding, errors="replace").strip(
+                "\n",
+            )
+            stderr_str = stderr_bytes.decode(encoding, errors="replace").strip(
+                "\n",
+            )
             returncode = proc.returncode
 
         except asyncio.TimeoutError:
@@ -149,8 +153,14 @@ async def execute_shell_command(
 
                 stdout_bytes, stderr_bytes = await proc.communicate()
                 encoding = locale.getpreferredencoding(False) or "utf-8"
-                stdout_str = stdout_bytes.decode(encoding, errors="replace").strip("\n")
-                stderr_str = stderr_bytes.decode(encoding, errors="replace").strip("\n")
+                stdout_str = stdout_bytes.decode(
+                    encoding,
+                    errors="replace",
+                ).strip("\n")
+                stderr_str = stderr_bytes.decode(
+                    encoding,
+                    errors="replace",
+                ).strip("\n")
                 if stderr_str:
                     stderr_str += f"\n{timeout_msg}"
                 else:

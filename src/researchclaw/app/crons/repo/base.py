@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Abstract repository for cron job specs persistence."""
 from __future__ import annotations
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Runner package – manages agent lifecycle, chat sessions, and chat CRUD.
 
 Provides:

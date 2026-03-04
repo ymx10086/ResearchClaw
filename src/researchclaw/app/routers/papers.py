@@ -10,7 +10,12 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
-from researchclaw.constant import WORKING_DIR, PAPERS_DIR, REFERENCES_DIR, DEFAULT_BIB_FILE
+from researchclaw.constant import (
+    WORKING_DIR,
+    PAPERS_DIR,
+    REFERENCES_DIR,
+    DEFAULT_BIB_FILE,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +25,7 @@ router = APIRouter()
 # ---------------------------------------------------------------------------
 # Request / Response schemas
 # ---------------------------------------------------------------------------
+
 
 class PaperSearchRequest(BaseModel):
     """Paper search query."""
@@ -44,6 +50,7 @@ class PaperDownloadRequest(BaseModel):
 # Search
 # ---------------------------------------------------------------------------
 
+
 @router.post("/search")
 async def search_papers(request: PaperSearchRequest):
     """Search papers from external sources."""
@@ -63,24 +70,32 @@ async def search_papers(request: PaperSearchRequest):
 
     elif request.source == "semantic_scholar":
         try:
-            from researchclaw.agents.tools.semantic_scholar import semantic_scholar_search
+            from researchclaw.agents.tools.semantic_scholar import (
+                semantic_scholar_search,
+            )
 
             results = semantic_scholar_search(
                 query=request.query,
                 max_results=request.max_results,
-                year_range=f"{request.year_from}-{request.year_to}" if request.year_from else "",
+                year_range=f"{request.year_from}-{request.year_to}"
+                if request.year_from
+                else "",
             )
             return {"source": "semantic_scholar", "results": results}
         except Exception as e:
             logger.exception("Semantic Scholar search failed")
             raise HTTPException(status_code=500, detail=str(e))
     else:
-        raise HTTPException(status_code=400, detail=f"Unknown source: {request.source}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown source: {request.source}",
+        )
 
 
 # ---------------------------------------------------------------------------
 # Download
 # ---------------------------------------------------------------------------
+
 
 @router.post("/download")
 async def download_paper(request: PaperDownloadRequest):
@@ -105,6 +120,7 @@ async def download_paper(request: PaperDownloadRequest):
 # Library
 # ---------------------------------------------------------------------------
 
+
 @router.get("/library")
 async def list_papers():
     """List papers in the local library."""
@@ -115,11 +131,13 @@ async def list_papers():
     papers = []
     for f in sorted(papers_path.iterdir()):
         if f.suffix.lower() == ".pdf":
-            papers.append({
-                "filename": f.name,
-                "path": str(f),
-                "size_mb": round(f.stat().st_size / (1024 * 1024), 2),
-            })
+            papers.append(
+                {
+                    "filename": f.name,
+                    "path": str(f),
+                    "size_mb": round(f.stat().st_size / (1024 * 1024), 2),
+                },
+            )
     return {"papers": papers}
 
 
@@ -137,6 +155,7 @@ async def delete_paper(filename: str):
 # References (BibTeX)
 # ---------------------------------------------------------------------------
 
+
 @router.get("/references")
 async def list_references():
     """List references in the BibTeX library."""
@@ -148,7 +167,10 @@ async def list_references():
         from researchclaw.agents.tools.bibtex_manager import bibtex_search
 
         results = bibtex_search(query="", bib_file=str(bib_path))
-        return {"references": results, "total": len(results) if isinstance(results, list) else 0}
+        return {
+            "references": results,
+            "total": len(results) if isinstance(results, list) else 0,
+        }
     except Exception as e:
         logger.exception("Failed to list references")
         return {"references": [], "total": 0, "error": str(e)}

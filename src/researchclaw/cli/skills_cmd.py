@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """CLI skill: list and interactively enable/disable skills."""
 from __future__ import annotations
 
@@ -53,11 +52,17 @@ def configure_skills_interactive() -> None:
     click.echo()
     if to_enable:
         click.echo(
-            click.style(f"  + Enable:  {', '.join(sorted(to_enable))}", fg="green"),
+            click.style(
+                f"  + Enable:  {', '.join(sorted(to_enable))}",
+                fg="green",
+            ),
         )
     if to_disable:
         click.echo(
-            click.style(f"  - Disable: {', '.join(sorted(to_disable))}", fg="red"),
+            click.style(
+                f"  - Disable: {', '.join(sorted(to_disable))}",
+                fg="red",
+            ),
         )
 
     save = prompt_confirm("Apply changes?", default=True)

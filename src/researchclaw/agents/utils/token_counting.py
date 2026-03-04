@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Token counting utilities for managing context windows.
 
 This module provides token counting functionality for estimating
@@ -76,7 +75,7 @@ def _get_token_counter() -> Any:
         logger.debug("HuggingFace tokenizer init failed: %s", e)
 
     logger.warning(
-        "No tokenizer available. Token counts will use character estimation."
+        "No tokenizer available. Token counts will use character estimation.",
     )
     return None
 

@@ -87,7 +87,7 @@ def _create_remote_model(llm_cfg: dict[str, Any]) -> tuple[Any, Any]:
     except ImportError:
         logger.error(
             "agentscope is required for model creation. "
-            "Install it with: pip install agentscope"
+            "Install it with: pip install agentscope",
         )
         raise
 
@@ -113,7 +113,9 @@ def _create_local_model(llm_cfg: dict[str, Any]) -> tuple[Any, Any]:
             return model, formatter
 
         except ImportError:
-            logger.error("Ollama support requires agentscope with ollama extras")
+            logger.error(
+                "Ollama support requires agentscope with ollama extras",
+            )
             raise
 
     # Fallback: treat as OpenAI-compatible
@@ -147,7 +149,9 @@ def _create_formatter(model: Any) -> Any:
                         return f"📄 {title} ({authors}, {year})"
 
                 if isinstance(result, list):
-                    parts = [self.convert_tool_result_to_string(r) for r in result]
+                    parts = [
+                        self.convert_tool_result_to_string(r) for r in result
+                    ]
                     return "\n".join(parts)
 
                 return str(result)
@@ -155,5 +159,7 @@ def _create_formatter(model: Any) -> Any:
         return ResearchFormatter()
 
     except ImportError:
-        logger.debug("Using default formatter (agentscope formatters not available)")
+        logger.debug(
+            "Using default formatter (agentscope formatters not available)",
+        )
         return None

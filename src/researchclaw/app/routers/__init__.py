@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """App routers package — aggregates all API routers."""
 from fastapi import APIRouter
 
@@ -29,12 +28,14 @@ router.include_router(workspace_router)
 # Include research-specific routers if available
 try:
     from .papers import router as papers_router
+
     router.include_router(papers_router)
 except ImportError:
     pass
 
 try:
     from .control import router as control_router
+
     router.include_router(control_router)
 except ImportError:
     pass

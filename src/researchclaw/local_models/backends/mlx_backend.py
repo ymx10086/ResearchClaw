@@ -61,7 +61,7 @@ class MlxBackend(LocalBackend):
         except ImportError as exc:
             raise ImportError(
                 "mlx-lm is required for MLX inference.  "
-                "Install with:  pip install 'researchclaw[mlx]'"
+                "Install with:  pip install 'researchclaw[mlx]'",
             ) from exc
 
         model_dir = _resolve_model_dir(model_info)

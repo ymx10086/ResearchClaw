@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Build role snapshot + refs from Playwright aria_snapshot.
 
 Provides structured accessibility tree parsing for browser automation,

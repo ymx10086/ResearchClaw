@@ -44,13 +44,15 @@ async def deadline_reminder():
         days_remaining = (deadline_ts - now) / 86400
 
         if 0 < days_remaining <= 30:  # Alert for deadlines within 30 days
-            reminders.append({
-                "name": dl.get("name", "Unknown"),
-                "venue": dl.get("venue", ""),
-                "days_remaining": round(days_remaining, 1),
-                "deadline": dl.get("deadline", ""),
-                "url": dl.get("url", ""),
-            })
+            reminders.append(
+                {
+                    "name": dl.get("name", "Unknown"),
+                    "venue": dl.get("venue", ""),
+                    "days_remaining": round(days_remaining, 1),
+                    "deadline": dl.get("deadline", ""),
+                    "url": dl.get("url", ""),
+                },
+            )
 
     if reminders:
         # Save reminders for the console or notification system

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=too-many-branches
 """Console Channel: pretty-prints agent responses to stdout.
 
@@ -126,7 +125,8 @@ class ConsoleChannel(BaseChannel):
                     getattr(request.input[0], "content", None) or [],
                 )
                 should_process, merged = self._apply_no_text_debounce(
-                    session_id, contents,
+                    session_id,
+                    contents,
                 )
                 if not should_process:
                     return
@@ -147,7 +147,10 @@ class ConsoleChannel(BaseChannel):
 
                 logger.debug(
                     "console event #%s: obj=%s status=%s type=%s",
-                    event_count, obj, status, ev_type,
+                    event_count,
+                    obj,
+                    status,
+                    ev_type,
                 )
 
                 # Completed message → print parts
@@ -166,12 +169,14 @@ class ConsoleChannel(BaseChannel):
 
             logger.info(
                 "console stream done: events=%s response=%s",
-                event_count, last_response is not None,
+                event_count,
+                last_response is not None,
             )
 
             if last_response and getattr(last_response, "error", None):
                 err = getattr(
-                    last_response.error, "message",
+                    last_response.error,
+                    "message",
                     str(last_response.error),
                 )
                 self._print_error(err)
@@ -205,7 +210,9 @@ class ConsoleChannel(BaseChannel):
 
         for p in parts:
             t = getattr(p, "type", None)
-            t_val = t.value if isinstance(t, ContentType) else str(t) if t else ""
+            t_val = (
+                t.value if isinstance(t, ContentType) else str(t) if t else ""
+            )
 
             if t_val == ContentType.TEXT.value:
                 text = getattr(p, "text", None) or ""
@@ -248,7 +255,9 @@ class ConsoleChannel(BaseChannel):
         text_parts: List[str] = []
         for p in parts:
             t = getattr(p, "type", None)
-            t_val = t.value if isinstance(t, ContentType) else str(t) if t else ""
+            t_val = (
+                t.value if isinstance(t, ContentType) else str(t) if t else ""
+            )
             if t_val == ContentType.TEXT.value:
                 text_parts.append(getattr(p, "text", "") or "")
             elif t_val == ContentType.REFUSAL.value:
@@ -281,6 +290,7 @@ class ConsoleChannel(BaseChannel):
         if sid and text.strip():
             try:
                 from ..console_push_store import append as push_store_append
+
                 await push_store_append(sid, text.strip())
             except Exception:
                 logger.debug("push_store_append not available")
@@ -298,7 +308,10 @@ class ConsoleChannel(BaseChannel):
             body = self._parts_to_text(parts, meta)
             if body.strip():
                 try:
-                    from ..console_push_store import append as push_store_append
+                    from ..console_push_store import (
+                        append as push_store_append,
+                    )
+
                     await push_store_append(sid, body.strip())
                 except Exception:
                     logger.debug("push_store_append not available")

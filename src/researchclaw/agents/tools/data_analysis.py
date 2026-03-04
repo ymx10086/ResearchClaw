@@ -131,8 +131,13 @@ def data_query(
             # Allow more complex expressions
             local_vars = {"df": df, "pd": pd}
             import numpy as np
+
             local_vars["np"] = np
-            result = eval(query, {"__builtins__": {}}, local_vars)  # noqa: S307
+            result = eval(
+                query,
+                {"__builtins__": {}},
+                local_vars,
+            )  # noqa: S307
             if isinstance(result, pd.DataFrame):
                 result_df = result
             elif isinstance(result, pd.Series):
@@ -141,9 +146,15 @@ def data_query(
                 return {"data": str(result), "type": type(result).__name__}
 
         if output_format == "csv":
-            return {"data": result_df.to_csv(index=False), "shape": list(result_df.shape)}
+            return {
+                "data": result_df.to_csv(index=False),
+                "shape": list(result_df.shape),
+            }
         elif output_format == "json":
-            return {"data": result_df.to_json(orient="records"), "shape": list(result_df.shape)}
+            return {
+                "data": result_df.to_json(orient="records"),
+                "shape": list(result_df.shape),
+            }
         else:
             return {
                 "data": result_df.to_string(),
@@ -209,6 +220,7 @@ def plot_chart(
     """
     try:
         import matplotlib
+
         matplotlib.use("Agg")  # Non-interactive backend
         import matplotlib.pyplot as plt
         import numpy as np
@@ -217,6 +229,7 @@ def plot_chart(
         df = None
         if file_path:
             import pandas as pd
+
             ext = Path(file_path).suffix.lower()
             if ext == ".csv":
                 df = pd.read_csv(file_path)
@@ -224,10 +237,13 @@ def plot_chart(
                 df = pd.read_excel(file_path)
         elif data:
             import pandas as pd
+
             df = pd.DataFrame(data)
 
         if df is None:
-            return {"error": "No data provided. Specify 'data' or 'file_path'."}
+            return {
+                "error": "No data provided. Specify 'data' or 'file_path'.",
+            }
 
         # Set style
         try:
@@ -264,7 +280,9 @@ def plot_chart(
         elif chart_type == "pie":
             if y_column:
                 df.set_index(x_column or df.columns[0])[y_column].plot.pie(
-                    ax=ax, autopct="%1.1f%%", **kwargs
+                    ax=ax,
+                    autopct="%1.1f%%",
+                    **kwargs,
                 )
         elif chart_type == "heatmap":
             numeric_df = df.select_dtypes(include="number")
@@ -300,7 +318,9 @@ def plot_chart(
             return {"base64_png": b64, "status": "generated"}
 
     except ImportError as e:
-        return {"error": f"Missing dependency: {e}. Run: pip install matplotlib pandas"}
+        return {
+            "error": f"Missing dependency: {e}. Run: pip install matplotlib pandas",
+        }
     except Exception as e:
         logger.exception("Chart generation failed")
         return {"error": f"Chart generation failed: {e}"}

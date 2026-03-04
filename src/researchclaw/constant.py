@@ -76,16 +76,16 @@ CUSTOM_CHANNELS_DIR: str = os.environ.get(
 # ── Memory compaction ──────────────────────────────────────────────────────
 
 MEMORY_COMPACT_KEEP_RECENT: int = int(
-    os.environ.get("RESEARCHCLAW_MEMORY_COMPACT_KEEP_RECENT", "3")
+    os.environ.get("RESEARCHCLAW_MEMORY_COMPACT_KEEP_RECENT", "3"),
 )
 MEMORY_COMPACT_RATIO: float = float(
-    os.environ.get("RESEARCHCLAW_MEMORY_COMPACT_RATIO", "0.7")
+    os.environ.get("RESEARCHCLAW_MEMORY_COMPACT_RATIO", "0.7"),
 )
 
 # ── Heartbeat / Cron defaults ──────────────────────────────────────────────
 
 HEARTBEAT_INTERVAL_MINUTES: int = int(
-    os.environ.get("RESEARCHCLAW_HEARTBEAT_INTERVAL", "60")
+    os.environ.get("RESEARCHCLAW_HEARTBEAT_INTERVAL", "60"),
 )
 HEARTBEAT_ENABLED: bool = (
     os.environ.get("RESEARCHCLAW_HEARTBEAT_ENABLED", "true").lower() == "true"
@@ -94,10 +94,11 @@ HEARTBEAT_ENABLED: bool = (
 # ── Paper digest defaults ──────────────────────────────────────────────────
 
 PAPER_DIGEST_HOUR: int = int(
-    os.environ.get("RESEARCHCLAW_PAPER_DIGEST_HOUR", "8")
+    os.environ.get("RESEARCHCLAW_PAPER_DIGEST_HOUR", "8"),
 )
 PAPER_DIGEST_ENABLED: bool = (
-    os.environ.get("RESEARCHCLAW_PAPER_DIGEST_ENABLED", "false").lower() == "true"
+    os.environ.get("RESEARCHCLAW_PAPER_DIGEST_ENABLED", "false").lower()
+    == "true"
 )
 
 # ── Server configuration ──────────────────────────────────────────────────
@@ -119,7 +120,8 @@ DEFAULT_MAX_INPUT_TOKENS: int = 128_000
 # ── Default LLM ───────────────────────────────────────────────────────────
 
 DEFAULT_MODEL_NAME: str = os.environ.get(
-    "RESEARCHCLAW_DEFAULT_MODEL", "gpt-4o"
+    "RESEARCHCLAW_DEFAULT_MODEL",
+    "gpt-4o",
 )
 
 # ── Skills Hub ─────────────────────────────────────────────────────────────
@@ -129,10 +131,10 @@ SKILLS_HUB_URL: str = os.environ.get(
     "https://hub.researchclaw.io",
 )
 SKILLS_HUB_TIMEOUT: int = int(
-    os.environ.get("RESEARCHCLAW_SKILLS_HUB_TIMEOUT", "15")
+    os.environ.get("RESEARCHCLAW_SKILLS_HUB_TIMEOUT", "15"),
 )
 SKILLS_HUB_RETRIES: int = int(
-    os.environ.get("RESEARCHCLAW_SKILLS_HUB_RETRIES", "3")
+    os.environ.get("RESEARCHCLAW_SKILLS_HUB_RETRIES", "3"),
 )
 
 # ── Reference file defaults ───────────────────────────────────────────────

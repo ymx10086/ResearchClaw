@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Request/response schemas for config API endpoints.
 
 Provides Pydantic models used by the config router for structured

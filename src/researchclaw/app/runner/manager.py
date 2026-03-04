@@ -37,18 +37,20 @@ class AgentRunnerManager:
     async def start(self):
         """Start the agent runner with persisted config."""
         self._model_config = self._load_model_config()
-        if self._model_config.get("model_name") or self._model_config.get("api_key"):
+        if self._model_config.get("model_name") or self._model_config.get(
+            "api_key",
+        ):
             try:
                 await self.runner.start(self._model_config)
             except Exception:
                 logger.warning(
                     "Failed to auto-start agent. "
-                    "Configure model via CLI or API and restart."
+                    "Configure model via CLI or API and restart.",
                 )
         else:
             logger.info(
                 "No model configured. Use 'researchclaw init' or the "
-                "API to set up a model before chatting."
+                "API to set up a model before chatting.",
             )
 
     async def stop(self):

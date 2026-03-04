@@ -49,7 +49,10 @@ async def update_config(updates: dict[str, Any]):
 
     config.update(updates)
     config_path.parent.mkdir(parents=True, exist_ok=True)
-    config_path.write_text(json.dumps(config, indent=2, ensure_ascii=False), encoding="utf-8")
+    config_path.write_text(
+        json.dumps(config, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
     return {"status": "ok", "config": config}
 
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Built-in tools for ResearchClaw.
 
 Includes all core tools (file I/O, shell, browser, search) plus

@@ -23,7 +23,10 @@ _DEFAULT_PROFILE = "default"
 
 def _load_default_vars() -> dict[str, str]:
     store = EnvStore()
-    profile = store.get(_DEFAULT_PROFILE) or {"name": _DEFAULT_PROFILE, "vars": {}}
+    profile = store.get(_DEFAULT_PROFILE) or {
+        "name": _DEFAULT_PROFILE,
+        "vars": {},
+    }
     return dict(profile.get("vars", {}))
 
 
@@ -43,7 +46,10 @@ async def put_envs(body: Dict[str, str]) -> List[EnvVar]:
     cleaned = {}
     for key, value in body.items():
         if not key.strip():
-            raise HTTPException(status_code=400, detail="Env key cannot be empty")
+            raise HTTPException(
+                status_code=400,
+                detail="Env key cannot be empty",
+            )
         cleaned[key.strip()] = value
 
     _save_default_vars(cleaned)
@@ -58,7 +64,10 @@ async def put_envs(body: Dict[str, str]) -> List[EnvVar]:
 async def delete_env(key: str) -> List[EnvVar]:
     envs = _load_default_vars()
     if key not in envs:
-        raise HTTPException(status_code=404, detail=f"Env var '{key}' not found")
+        raise HTTPException(
+            status_code=404,
+            detail=f"Env var '{key}' not found",
+        )
 
     envs.pop(key)
     _save_default_vars(envs)

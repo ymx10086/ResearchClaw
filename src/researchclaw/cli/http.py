@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Lightweight HTTP helpers for CLI commands that talk to the running API."""
 from __future__ import annotations
 
@@ -25,7 +24,7 @@ def client(base_url: str) -> "httpx.Client":
     if httpx is None:
         raise ImportError(
             "httpx is required for CLI HTTP commands.  "
-            "Install with:  pip install httpx"
+            "Install with:  pip install httpx",
         )
     base = base_url.rstrip("/")
     if not base.endswith("/api"):

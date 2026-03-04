@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Message processing utilities for agent communication.
 
 This module handles:
@@ -60,7 +59,10 @@ async def _process_single_file_block(
     Returns:
         The local file path if successful, None otherwise.
     """
-    from .file_handling import download_file_from_base64, download_file_from_url
+    from .file_handling import (
+        download_file_from_base64,
+        download_file_from_url,
+    )
 
     if isinstance(source, dict) and source.get("type") == "base64":
         if "data" in source:
@@ -281,7 +283,9 @@ async def process_file_and_media_blocks_in_message(msg: Any) -> None:
                 continue
 
             local_path = await _process_single_block(
-                message.content, i, block
+                message.content,
+                i,
+                block,
             )
             if local_path:
                 downloaded_files.append((i, local_path))
@@ -310,7 +314,9 @@ def is_first_user_interaction(messages: list) -> bool:
     non_system_messages = messages[system_prompt_count:]
 
     user_msg_count = sum(
-        1 for msg in non_system_messages if getattr(msg, "role", None) == "user"
+        1
+        for msg in non_system_messages
+        if getattr(msg, "role", None) == "user"
     )
     assistant_msg_count = sum(
         1

@@ -136,7 +136,9 @@ class CommandHandler:
             from pathlib import Path
 
             refs_dir = Path(REFERENCES_DIR)
-            bib_files = list(refs_dir.glob("*.bib")) if refs_dir.exists() else []
+            bib_files = (
+                list(refs_dir.glob("*.bib")) if refs_dir.exists() else []
+            )
 
             if not bib_files:
                 return (

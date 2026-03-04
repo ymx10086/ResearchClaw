@@ -52,16 +52,26 @@ def read_paper(
 
     # Try pdfplumber first (better table/layout extraction)
     try:
-        return _extract_with_pdfplumber(filepath, extract_references, max_pages, sections)
+        return _extract_with_pdfplumber(
+            filepath,
+            extract_references,
+            max_pages,
+            sections,
+        )
     except ImportError:
         pass
 
     # Fallback to PyPDF2
     try:
-        return _extract_with_pypdf2(filepath, extract_references, max_pages, sections)
+        return _extract_with_pypdf2(
+            filepath,
+            extract_references,
+            max_pages,
+            sections,
+        )
     except ImportError:
         return {
-            "error": "No PDF library available. Install: pip install pdfplumber PyPDF2"
+            "error": "No PDF library available. Install: pip install pdfplumber PyPDF2",
         }
 
 
@@ -107,7 +117,12 @@ def _resolve_source(source: str) -> Optional[str]:
                 filename += ".pdf"
             filepath = Path(PAPERS_DIR) / filename
 
-            with httpx.stream("GET", source, timeout=60, follow_redirects=True) as resp:
+            with httpx.stream(
+                "GET",
+                source,
+                timeout=60,
+                follow_redirects=True,
+            ) as resp:
                 resp.raise_for_status()
                 with open(filepath, "wb") as f:
                     for chunk in resp.iter_bytes():
@@ -151,7 +166,7 @@ def _extract_with_pdfplumber(
             for table in tables:
                 if table:
                     result["tables"].append(
-                        {"page": i + 1, "data": table}
+                        {"page": i + 1, "data": table},
                     )
 
         result["text"] = "\n\n".join(all_text_parts)
@@ -210,7 +225,10 @@ def _extract_with_pypdf2(
     return result
 
 
-def _extract_sections(full_text: str, section_names: list[str]) -> dict[str, str]:
+def _extract_sections(
+    full_text: str,
+    section_names: list[str],
+) -> dict[str, str]:
     """Attempt to extract named sections from paper text."""
     import re
 
@@ -225,7 +243,9 @@ def _extract_sections(full_text: str, section_names: list[str]) -> dict[str, str
         for pattern in patterns:
             match = re.search(pattern, full_text, re.DOTALL | re.IGNORECASE)
             if match:
-                sections[name] = match.group(1).strip()[:5000]  # Cap at 5000 chars
+                sections[name] = match.group(1).strip()[
+                    :5000
+                ]  # Cap at 5000 chars
                 break
 
     return sections

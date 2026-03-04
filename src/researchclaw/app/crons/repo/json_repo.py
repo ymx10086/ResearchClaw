@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """JSON-based cron job repository with atomic writes."""
 from __future__ import annotations
 

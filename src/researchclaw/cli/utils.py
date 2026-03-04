@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Shared interactive prompt helpers used by CLI commands.
 
 All terminal interaction with *questionary* is centralised here so that
@@ -146,7 +145,9 @@ def prompt_checkbox(
         )
         if raw.strip().lower() == "all":
             return [v for _, v in options]
-        indices = [int(x.strip()) - 1 for x in raw.split(",") if x.strip().isdigit()]
+        indices = [
+            int(x.strip()) - 1 for x in raw.split(",") if x.strip().isdigit()
+        ]
         return [options[i][1] for i in indices if 0 <= i < len(options)]
 
     _SELECT_ALL = "__select_all__"
@@ -154,7 +155,9 @@ def prompt_checkbox(
     current_checked = set(checked or set()) & all_values
 
     while True:
-        all_currently_checked = current_checked == all_values and len(all_values) > 0
+        all_currently_checked = (
+            current_checked == all_values and len(all_values) > 0
+        )
         items: list[questionary.Choice] = []
         if select_all_option:
             items.append(
@@ -166,12 +169,22 @@ def prompt_checkbox(
             )
         for label, value in options:
             items.append(
-                questionary.Choice(label, value=value, checked=value in current_checked),
+                questionary.Choice(
+                    label,
+                    value=value,
+                    checked=value in current_checked,
+                ),
             )
-        result = questionary.checkbox(question, choices=items, use_jk_keys=False).ask()
+        result = questionary.checkbox(
+            question,
+            choices=items,
+            use_jk_keys=False,
+        ).ask()
         if result is None:
             return None
         if _SELECT_ALL in result:
-            current_checked = set() if all_currently_checked else set(all_values)
+            current_checked = (
+                set() if all_currently_checked else set(all_values)
+            )
             continue
         return [r for r in result if r != _SELECT_ALL]

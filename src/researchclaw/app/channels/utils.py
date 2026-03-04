@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Channel utilities – helpers shared across channel implementations.
 
 Key improvements over CoPaw:
@@ -129,9 +128,16 @@ async def download_media_file(
     own_session = http_session is None
     session = http_session or aiohttp.ClientSession()
     try:
-        async with session.get(url, timeout=aiohttp.ClientTimeout(total=120)) as resp:
+        async with session.get(
+            url,
+            timeout=aiohttp.ClientTimeout(total=120),
+        ) as resp:
             if resp.status != 200:
-                logger.warning("download_media_file: HTTP %s for %s", resp.status, url)
+                logger.warning(
+                    "download_media_file: HTTP %s for %s",
+                    resp.status,
+                    url,
+                )
                 return None
             data = await resp.read()
             local_path.write_bytes(data)
@@ -224,7 +230,7 @@ def sanitize_markdown_for_channel(
         m = re.match(r"^(#{1,6})\s", line)
         if m:
             level = min(len(m.group(1)), max_heading_level)
-            line = "#" * level + line[len(m.group(1)):]
+            line = "#" * level + line[len(m.group(1)) :]
 
         # Strip HTML
         if strip_html:

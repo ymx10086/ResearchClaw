@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Channel registry: built-in + custom channels from working dir.
 
 Key improvements over CoPaw:
@@ -98,4 +97,3 @@ def register_default_channels(manager: "ChannelManager") -> None:  # noqa: F821
         return
     # Only register console by default (other channels need config)
     logger.debug("register_default_channels: console only (legacy)")
-

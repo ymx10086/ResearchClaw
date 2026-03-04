@@ -71,8 +71,11 @@ class LocalChatModel(ChatModelBase):
 
         if self.stream and not structured_model:
             return self._stream_response(
-                messages, tools, tool_choice,
-                start_datetime, **merged_kwargs,
+                messages,
+                tools,
+                tool_choice,
+                start_datetime,
+                **merged_kwargs,
             )
 
         # Non-streaming or structured output: run in thread
@@ -88,7 +91,9 @@ class LocalChatModel(ChatModelBase):
             ),
         )
         return self._parse_completion_response(
-            response, start_datetime, structured_model,
+            response,
+            start_datetime,
+            structured_model,
         )
 
     async def _stream_response(
@@ -155,9 +160,9 @@ class LocalChatModel(ChatModelBase):
                         "name": (tc.get("function") or {}).get("name", ""),
                         "arguments": "",
                     }
-                tool_calls[idx]["arguments"] += (
-                    (tc.get("function") or {}).get("arguments") or ""
-                )
+                tool_calls[idx]["arguments"] += (tc.get("function") or {}).get(
+                    "arguments",
+                ) or ""
 
             # Build content blocks
             contents: list = []
@@ -178,7 +183,10 @@ class LocalChatModel(ChatModelBase):
 
             if effective_thinking:
                 contents.append(
-                    ThinkingBlock(type="thinking", thinking=effective_thinking),
+                    ThinkingBlock(
+                        type="thinking",
+                        thinking=effective_thinking,
+                    ),
                 )
 
             # Parse <tool_call> tags if backend didn't provide structured calls
@@ -192,7 +200,8 @@ class LocalChatModel(ChatModelBase):
                 if parsed.text_after:
                     display_text = (
                         f"{display_text}\n{parsed.text_after}".strip()
-                        if display_text else parsed.text_after
+                        if display_text
+                        else parsed.text_after
                     )
                 if display_text:
                     contents.append(TextBlock(type="text", text=display_text))
@@ -228,7 +237,8 @@ class LocalChatModel(ChatModelBase):
                     output_tokens=usage_raw.get("completion_tokens", 0),
                     time=elapsed,
                 )
-                if usage_raw else None
+                if usage_raw
+                else None
             )
 
             if contents:
@@ -273,10 +283,13 @@ class LocalChatModel(ChatModelBase):
                 if parsed.text_after:
                     clean_text = (
                         f"{clean_text}\n{parsed.text_after}".strip()
-                        if clean_text else parsed.text_after
+                        if clean_text
+                        else parsed.text_after
                     )
                 if clean_text:
-                    content_blocks.append(TextBlock(type="text", text=clean_text))
+                    content_blocks.append(
+                        TextBlock(type="text", text=clean_text),
+                    )
                     if structured_model:
                         metadata = _json_loads_safe(clean_text)
                 for tc in parsed.tool_calls:
@@ -301,7 +314,9 @@ class LocalChatModel(ChatModelBase):
                             type="tool_use",
                             id=tc.get("id", ""),
                             name=func.get("name", ""),
-                            input=_json_loads_safe(func.get("arguments", "{}")),
+                            input=_json_loads_safe(
+                                func.get("arguments", "{}"),
+                            ),
                             raw_input=func.get("arguments", ""),
                         ),
                     )
@@ -314,7 +329,8 @@ class LocalChatModel(ChatModelBase):
                 output_tokens=usage_raw.get("completion_tokens", 0),
                 time=elapsed,
             )
-            if usage_raw else None
+            if usage_raw
+            else None
         )
 
         return ChatResponse(

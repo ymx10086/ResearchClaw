@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """CLI channel: list and interactively configure channels in config.json."""
 from __future__ import annotations
 
@@ -14,8 +13,11 @@ from .utils import prompt_confirm, prompt_select
 
 # Fields that contain secrets — display masked in ``list``
 _SECRET_FIELDS = {
-    "bot_token", "client_secret", "app_secret",
-    "http_proxy_auth", "api_key",
+    "bot_token",
+    "client_secret",
+    "app_secret",
+    "http_proxy_auth",
+    "api_key",
 }
 
 _ALL_CHANNEL_NAMES = {
@@ -117,14 +119,33 @@ def _configure_generic(name: str, current: dict) -> dict:
 
 def _configure_discord(current: dict) -> dict:
     click.echo("\n=== Configure Discord Channel ===")
-    current["enabled"] = prompt_confirm("Enable Discord?", default=current.get("enabled", False))
+    current["enabled"] = prompt_confirm(
+        "Enable Discord?",
+        default=current.get("enabled", False),
+    )
     if not current["enabled"]:
         return current
-    current["bot_prefix"] = click.prompt("Bot prefix", default=current.get("bot_prefix", "[BOT]"), type=str)
-    current["bot_token"] = click.prompt("Discord Bot Token", default=current.get("bot_token", ""), hide_input=True, type=str)
-    use_proxy = prompt_confirm("Use HTTP proxy?", default=bool(current.get("http_proxy")))
+    current["bot_prefix"] = click.prompt(
+        "Bot prefix",
+        default=current.get("bot_prefix", "[BOT]"),
+        type=str,
+    )
+    current["bot_token"] = click.prompt(
+        "Discord Bot Token",
+        default=current.get("bot_token", ""),
+        hide_input=True,
+        type=str,
+    )
+    use_proxy = prompt_confirm(
+        "Use HTTP proxy?",
+        default=bool(current.get("http_proxy")),
+    )
     if use_proxy:
-        current["http_proxy"] = click.prompt("HTTP proxy address", default=current.get("http_proxy", ""), type=str)
+        current["http_proxy"] = click.prompt(
+            "HTTP proxy address",
+            default=current.get("http_proxy", ""),
+            type=str,
+        )
     else:
         current["http_proxy"] = ""
     return current
@@ -132,36 +153,87 @@ def _configure_discord(current: dict) -> dict:
 
 def _configure_dingtalk(current: dict) -> dict:
     click.echo("\n=== Configure DingTalk Channel ===")
-    current["enabled"] = prompt_confirm("Enable DingTalk?", default=current.get("enabled", False))
+    current["enabled"] = prompt_confirm(
+        "Enable DingTalk?",
+        default=current.get("enabled", False),
+    )
     if not current["enabled"]:
         return current
-    current["bot_prefix"] = click.prompt("Bot prefix", default=current.get("bot_prefix", "[BOT]"), type=str)
-    current["client_id"] = click.prompt("DingTalk Client ID", default=current.get("client_id", ""), type=str)
-    current["client_secret"] = click.prompt("DingTalk Client Secret", default=current.get("client_secret", ""), hide_input=True, type=str)
+    current["bot_prefix"] = click.prompt(
+        "Bot prefix",
+        default=current.get("bot_prefix", "[BOT]"),
+        type=str,
+    )
+    current["client_id"] = click.prompt(
+        "DingTalk Client ID",
+        default=current.get("client_id", ""),
+        type=str,
+    )
+    current["client_secret"] = click.prompt(
+        "DingTalk Client Secret",
+        default=current.get("client_secret", ""),
+        hide_input=True,
+        type=str,
+    )
     return current
 
 
 def _configure_feishu(current: dict) -> dict:
     click.echo("\n=== Configure Feishu Channel ===")
-    current["enabled"] = prompt_confirm("Enable Feishu?", default=current.get("enabled", False))
+    current["enabled"] = prompt_confirm(
+        "Enable Feishu?",
+        default=current.get("enabled", False),
+    )
     if not current["enabled"]:
         return current
-    current["bot_prefix"] = click.prompt("Bot prefix", default=current.get("bot_prefix", "[BOT]"), type=str)
-    current["app_id"] = click.prompt("Feishu App ID", default=current.get("app_id", ""), type=str)
-    current["app_secret"] = click.prompt("Feishu App Secret", default=current.get("app_secret", ""), hide_input=True, type=str)
+    current["bot_prefix"] = click.prompt(
+        "Bot prefix",
+        default=current.get("bot_prefix", "[BOT]"),
+        type=str,
+    )
+    current["app_id"] = click.prompt(
+        "Feishu App ID",
+        default=current.get("app_id", ""),
+        type=str,
+    )
+    current["app_secret"] = click.prompt(
+        "Feishu App Secret",
+        default=current.get("app_secret", ""),
+        hide_input=True,
+        type=str,
+    )
     return current
 
 
 def _configure_telegram(current: dict) -> dict:
     click.echo("\n=== Configure Telegram Channel ===")
-    current["enabled"] = prompt_confirm("Enable Telegram?", default=current.get("enabled", False))
+    current["enabled"] = prompt_confirm(
+        "Enable Telegram?",
+        default=current.get("enabled", False),
+    )
     if not current["enabled"]:
         return current
-    current["bot_prefix"] = click.prompt("Bot prefix", default=current.get("bot_prefix", "[BOT]"), type=str)
-    current["bot_token"] = click.prompt("Telegram Bot Token", default=current.get("bot_token", ""), hide_input=True, type=str)
-    use_proxy = prompt_confirm("Use HTTP proxy?", default=bool(current.get("http_proxy")))
+    current["bot_prefix"] = click.prompt(
+        "Bot prefix",
+        default=current.get("bot_prefix", "[BOT]"),
+        type=str,
+    )
+    current["bot_token"] = click.prompt(
+        "Telegram Bot Token",
+        default=current.get("bot_token", ""),
+        hide_input=True,
+        type=str,
+    )
+    use_proxy = prompt_confirm(
+        "Use HTTP proxy?",
+        default=bool(current.get("http_proxy")),
+    )
     if use_proxy:
-        current["http_proxy"] = click.prompt("HTTP proxy address", default=current.get("http_proxy", ""), type=str)
+        current["http_proxy"] = click.prompt(
+            "HTTP proxy address",
+            default=current.get("http_proxy", ""),
+            type=str,
+        )
     else:
         current["http_proxy"] = ""
     return current
@@ -200,7 +272,10 @@ def configure_channels_interactive(config: dict) -> None:
         channel_choices.append(("Save and exit", "exit"))
 
         click.echo()
-        choice = prompt_select("Select a channel to configure:", options=channel_choices)
+        choice = prompt_select(
+            "Select a channel to configure:",
+            options=channel_choices,
+        )
 
         if choice is None or choice == "exit":
             break
@@ -208,11 +283,16 @@ def configure_channels_interactive(config: dict) -> None:
         name, configure_func = _CHANNEL_CONFIGURATORS[choice]
         current = channels.get(choice) or {"enabled": False, "bot_prefix": ""}
         if not isinstance(current, dict):
-            current = dict(current) if hasattr(current, "__iter__") else {"enabled": False, "bot_prefix": ""}
+            current = (
+                dict(current)
+                if hasattr(current, "__iter__")
+                else {"enabled": False, "bot_prefix": ""}
+            )
         channels[choice] = configure_func(current)
 
     enabled = [
-        name for key, (name, _) in _CHANNEL_CONFIGURATORS.items()
+        name
+        for key, (name, _) in _CHANNEL_CONFIGURATORS.items()
         if _channel_enabled(channels.get(key))
     ]
     if enabled:
@@ -236,7 +316,9 @@ def list_cmd() -> None:
     channels = config.get("channels", {})
 
     if not channels:
-        click.echo("No channels configured. Run 'researchclaw channels config' to add one.")
+        click.echo(
+            "No channels configured. Run 'researchclaw channels config' to add one.",
+        )
         return
 
     for key, ch in channels.items():
@@ -254,7 +336,9 @@ def list_cmd() -> None:
         for field_name, value in ch.items():
             if field_name == "enabled":
                 continue
-            display = _mask(str(value)) if field_name in _SECRET_FIELDS else value
+            display = (
+                _mask(str(value)) if field_name in _SECRET_FIELDS else value
+            )
             click.echo(f"  {field_name:20s}: {display}")
     click.echo()
 
@@ -265,20 +349,33 @@ def configure_cmd() -> None:
     config = load_config()
     configure_channels_interactive(config)
     save_config(config)
-    click.echo(f"\n✓ Configuration saved.")
+    click.echo("\n✓ Configuration saved.")
 
 
 @channels_group.command("install")
 @click.argument("key", required=True)
-@click.option("--path", "from_path", type=click.Path(exists=True), help="Copy channel from local path")
-@click.option("--url", "from_url", type=str, help="Download channel module from URL")
+@click.option(
+    "--path",
+    "from_path",
+    type=click.Path(exists=True),
+    help="Copy channel from local path",
+)
+@click.option(
+    "--url",
+    "from_url",
+    type=str,
+    help="Download channel module from URL",
+)
 def install_cmd(key: str, from_path: str | None, from_url: str | None) -> None:
     """Install a channel into the working dir (custom_channels/)."""
     custom_dir = Path(CUSTOM_CHANNELS_DIR)
     custom_dir.mkdir(parents=True, exist_ok=True)
 
     if not key.isidentifier():
-        click.echo(f"Key must be a valid Python identifier, got: {key}", err=True)
+        click.echo(
+            f"Key must be a valid Python identifier, got: {key}",
+            err=True,
+        )
         raise SystemExit(1)
 
     dest_file = custom_dir / f"{key}.py"
@@ -311,11 +408,16 @@ def install_cmd(key: str, from_path: str | None, from_url: str | None) -> None:
         return
 
     if dest_file.exists():
-        click.echo(f"Channel '{key}' already exists. Use --path or --url to overwrite.", err=True)
+        click.echo(
+            f"Channel '{key}' already exists. Use --path or --url to overwrite.",
+            err=True,
+        )
         raise SystemExit(1)
 
     dest_file.write_text(CHANNEL_TEMPLATE.format(key=key), encoding="utf-8")
-    click.echo(f"✓ Created {dest_file}. Edit and add config with 'researchclaw channels config'.")
+    click.echo(
+        f"✓ Created {dest_file}. Edit and add config with 'researchclaw channels config'.",
+    )
 
 
 @channels_group.command("remove")
@@ -325,7 +427,10 @@ def remove_cmd(key: str) -> None:
     from ..app.channels.registry import BUILTIN_CHANNEL_KEYS
 
     if key in BUILTIN_CHANNEL_KEYS:
-        click.echo(f"'{key}' is a built-in channel. Disable it in config instead.", err=True)
+        click.echo(
+            f"'{key}' is a built-in channel. Disable it in config instead.",
+            err=True,
+        )
         raise SystemExit(1)
 
     custom_dir = Path(CUSTOM_CHANNELS_DIR)

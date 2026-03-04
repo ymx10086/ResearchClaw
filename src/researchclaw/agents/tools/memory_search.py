@@ -109,7 +109,11 @@ def memory_search(
         from ...constant import WORKING_DIR
 
         memory = ResearchMemory(working_dir=WORKING_DIR)
-        return memory.search(query, search_type=search_type, max_results=max_results)
+        return memory.search(
+            query,
+            search_type=search_type,
+            max_results=max_results,
+        )
     except Exception as e:
         logger.exception("Memory search failed")
         return [{"error": f"Memory search failed: {e}"}]

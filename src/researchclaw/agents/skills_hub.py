@@ -100,13 +100,15 @@ def _compute_backoff_seconds(attempt: int) -> float:
 
 def _hub_base_url() -> str:
     return os.environ.get(
-        "RESEARCHCLAW_SKILLS_HUB_BASE_URL", "https://hub.researchclaw.com"
+        "RESEARCHCLAW_SKILLS_HUB_BASE_URL",
+        "https://hub.researchclaw.com",
     )
 
 
 def _hub_search_path() -> str:
     return os.environ.get(
-        "RESEARCHCLAW_SKILLS_HUB_SEARCH_PATH", "/api/v1/search"
+        "RESEARCHCLAW_SKILLS_HUB_SEARCH_PATH",
+        "/api/v1/search",
     )
 
 
@@ -119,13 +121,15 @@ def _hub_version_path() -> str:
 
 def _hub_detail_path() -> str:
     return os.environ.get(
-        "RESEARCHCLAW_SKILLS_HUB_DETAIL_PATH", "/api/v1/skills/{slug}"
+        "RESEARCHCLAW_SKILLS_HUB_DETAIL_PATH",
+        "/api/v1/skills/{slug}",
     )
 
 
 def _hub_file_path() -> str:
     return os.environ.get(
-        "RESEARCHCLAW_SKILLS_HUB_FILE_PATH", "/api/v1/skills/{slug}/file"
+        "RESEARCHCLAW_SKILLS_HUB_FILE_PATH",
+        "/api/v1/skills/{slug}/file",
     )
 
 
@@ -177,16 +181,23 @@ def _http_get(
                     body = e.read().decode("utf-8", errors="ignore")
                 except Exception:
                     pass
-                if "rate limit" in body.lower() or "rate limit" in str(e).lower():
+                if (
+                    "rate limit" in body.lower()
+                    or "rate limit" in str(e).lower()
+                ):
                     raise RuntimeError(
                         "GitHub API rate limit exceeded. Set GITHUB_TOKEN "
-                        "(or GH_TOKEN) to increase the limit, then retry."
+                        "(or GH_TOKEN) to increase the limit, then retry.",
                     ) from e
             if attempt < attempts and status in RETRYABLE_HTTP_STATUS:
                 delay = _compute_backoff_seconds(attempt)
                 logger.warning(
                     "Hub HTTP %s on %s (attempt %d/%d), retrying in %.2fs",
-                    status, full_url, attempt, attempts, delay,
+                    status,
+                    full_url,
+                    attempt,
+                    attempts,
+                    delay,
                 )
                 time.sleep(delay)
                 continue
@@ -197,7 +208,11 @@ def _http_get(
                 delay = _compute_backoff_seconds(attempt)
                 logger.warning(
                     "Hub URL error on %s (attempt %d/%d), retrying in %.2fs: %s",
-                    full_url, attempt, attempts, delay, e,
+                    full_url,
+                    attempt,
+                    attempts,
+                    delay,
+                    e,
                 )
                 time.sleep(delay)
                 continue
@@ -208,7 +223,10 @@ def _http_get(
                 delay = _compute_backoff_seconds(attempt)
                 logger.warning(
                     "Hub timeout on %s (attempt %d/%d), retrying in %.2fs",
-                    full_url, attempt, attempts, delay,
+                    full_url,
+                    attempt,
+                    attempts,
+                    delay,
                 )
                 time.sleep(delay)
                 continue
@@ -225,7 +243,11 @@ def _http_json_get(url: str, params: dict[str, Any] | None = None) -> Any:
 
 
 def _http_text_get(url: str, params: dict[str, Any] | None = None) -> str:
-    return _http_get(url, params=params, accept="text/plain, text/markdown, */*")
+    return _http_get(
+        url,
+        params=params,
+        accept="text/plain, text/markdown, */*",
+    )
 
 
 # ── Search result normalization ────────────────────────────────────
@@ -313,7 +335,11 @@ def _sanitize_tree(tree: Any) -> dict[str, Any]:
 def _bundle_has_content(payload: Any) -> bool:
     if not isinstance(payload, dict):
         return False
-    content = payload.get("content") or payload.get("skill_md") or payload.get("skillMd")
+    content = (
+        payload.get("content")
+        or payload.get("skill_md")
+        or payload.get("skillMd")
+    )
     if isinstance(content, str) and content.strip():
         return True
     files = payload.get("files")
@@ -322,7 +348,10 @@ def _bundle_has_content(payload: Any) -> bool:
     return False
 
 
-def _extract_version_hint(detail: dict[str, Any], requested_version: str) -> str:
+def _extract_version_hint(
+    detail: dict[str, Any],
+    requested_version: str,
+) -> str:
     if requested_version:
         return requested_version
     latest = detail.get("latestVersion")
@@ -341,7 +370,10 @@ def _extract_version_hint(detail: dict[str, Any], requested_version: str) -> str
 
 
 def _hydrate_hub_payload(
-    data: Any, *, slug: str, requested_version: str,
+    data: Any,
+    *,
+    slug: str,
+    requested_version: str,
 ) -> Any:
     """Convert hub metadata into bundle-like payload with file contents."""
     if _bundle_has_content(data):
@@ -359,7 +391,8 @@ def _hydrate_hub_payload(
 
     version_obj = data.get("version")
     if not isinstance(version_obj, dict) or not isinstance(
-        version_obj.get("files"), list
+        version_obj.get("files"),
+        list,
     ):
         version_hint = _extract_version_hint(data, requested_version)
         if not version_hint:
@@ -371,7 +404,9 @@ def _hydrate_hub_payload(
         )
         version_data = _http_json_get(version_url)
         version_obj = (
-            version_data.get("version") if isinstance(version_data, dict) else None
+            version_data.get("version")
+            if isinstance(version_data, dict)
+            else None
         )
 
     if not isinstance(version_obj, dict):
@@ -381,7 +416,7 @@ def _hydrate_hub_payload(
         return data
 
     version_str = str(
-        version_obj.get("version") or requested_version or ""
+        version_obj.get("version") or requested_version or "",
     ).strip()
     base = _hub_base_url()
     file_url = _join_url(base, _hub_file_path().format(slug=skill_slug))
@@ -609,7 +644,9 @@ def _normalize_skill_key(text: str) -> str:
 
 
 def _github_list_skill_md_roots(
-    owner: str, repo: str, ref: str,
+    owner: str,
+    repo: str,
+    ref: str,
 ) -> list[str]:
     """Find all directories containing SKILL.md in a GitHub repo."""
     tree_url = _github_api_url(owner, repo, f"git/trees/{ref}")
@@ -641,7 +678,10 @@ def _github_list_skill_md_roots(
 
 
 def _github_get_content_entry(
-    owner: str, repo: str, path: str, ref: str,
+    owner: str,
+    repo: str,
+    path: str,
+    ref: str,
 ) -> dict[str, Any]:
     content_url = _github_api_url(owner, repo, f"contents/{path}")
     data = _http_json_get(content_url, {"ref": ref})
@@ -651,7 +691,10 @@ def _github_get_content_entry(
 
 
 def _github_get_dir_entries(
-    owner: str, repo: str, path: str, ref: str,
+    owner: str,
+    repo: str,
+    path: str,
+    ref: str,
 ) -> list[dict[str, Any]]:
     content_url = _github_api_url(owner, repo, f"contents/{path}")
     data = _http_json_get(content_url, {"ref": ref})
@@ -690,7 +733,11 @@ def _relative_from_root(full_path: str, root: str) -> str:
 
 
 def _github_collect_tree_files(
-    owner: str, repo: str, ref: str, root: str, subdir: str,
+    owner: str,
+    repo: str,
+    ref: str,
+    root: str,
+    subdir: str,
     max_files: int = 200,
 ) -> dict[str, str]:
     """Recursively collect files under a skill's references/ or scripts/ dir."""
@@ -711,12 +758,17 @@ def _github_collect_tree_files(
             if entry_type != "file":
                 continue
             rel = _relative_from_root(entry_path, root)
-            if not (rel.startswith("references/") or rel.startswith("scripts/")):
+            if not (
+                rel.startswith("references/") or rel.startswith("scripts/")
+            ):
                 continue
             files[rel] = _github_read_file(entry)
             visited += 1
             if visited >= max_files:
-                logger.warning("Hub file collection capped at %d files", max_files)
+                logger.warning(
+                    "Hub file collection capped at %d files",
+                    max_files,
+                )
                 return files
     return files
 
@@ -725,14 +777,16 @@ def _github_collect_tree_files(
 
 
 def _fetch_bundle_from_skills_sh_url(
-    bundle_url: str, requested_version: str,
+    bundle_url: str,
+    requested_version: str,
 ) -> tuple[Any, str]:
     spec = _extract_skills_sh_spec(bundle_url)
     if spec is None:
         raise ValueError("Invalid skills.sh URL format")
     owner, repo, skill = spec
     branch_candidates = (
-        [requested_version.strip()] if requested_version.strip()
+        [requested_version.strip()]
+        if requested_version.strip()
         else ["main", "master"]
     )
 
@@ -745,7 +799,12 @@ def _fetch_bundle_from_skills_sh_url(
         for root in roots:
             skill_md_path = _join_repo_path(root, "SKILL.md")
             try:
-                entry = _github_get_content_entry(owner, repo, skill_md_path, branch)
+                entry = _github_get_content_entry(
+                    owner,
+                    repo,
+                    skill_md_path,
+                    branch,
+                )
             except HTTPError as e:
                 if getattr(e, "code", 0) == 404:
                     continue
@@ -777,7 +836,10 @@ def _fetch_bundle_from_skills_sh_url(
                     skill_md_path = _join_repo_path(root, "SKILL.md")
                     try:
                         entry = _github_get_content_entry(
-                            owner, repo, skill_md_path, branch,
+                            owner,
+                            repo,
+                            skill_md_path,
+                            branch,
                         )
                     except HTTPError:
                         continue
@@ -790,7 +852,7 @@ def _fetch_bundle_from_skills_sh_url(
     if skill_md_entry is None:
         raise ValueError(
             "Could not find SKILL.md from skills.sh source. "
-            "This skill may not expose SKILL.md in the repository."
+            "This skill may not expose SKILL.md in the repository.",
         )
 
     files: dict[str, str] = {"SKILL.md": _github_read_file(skill_md_entry)}
@@ -798,9 +860,12 @@ def _fetch_bundle_from_skills_sh_url(
         try:
             files.update(
                 _github_collect_tree_files(
-                    owner=owner, repo=repo, ref=branch,
-                    root=selected_root, subdir=subdir,
-                )
+                    owner=owner,
+                    repo=repo,
+                    ref=branch,
+                    root=selected_root,
+                    subdir=subdir,
+                ),
             )
         except HTTPError as e:
             if getattr(e, "code", 0) != 404:
@@ -811,10 +876,15 @@ def _fetch_bundle_from_skills_sh_url(
 
 
 def _fetch_bundle_from_repo_and_skill_hint(
-    *, owner: str, repo: str, skill_hint: str, requested_version: str,
+    *,
+    owner: str,
+    repo: str,
+    skill_hint: str,
+    requested_version: str,
 ) -> tuple[Any, str]:
     branch_candidates = (
-        [requested_version.strip()] if requested_version.strip()
+        [requested_version.strip()]
+        if requested_version.strip()
         else ["main", "master"]
     )
     skill = skill_hint.strip()
@@ -829,7 +899,12 @@ def _fetch_bundle_from_repo_and_skill_hint(
         for root in roots:
             skill_md_path = _join_repo_path(root, "SKILL.md")
             try:
-                entry = _github_get_content_entry(owner, repo, skill_md_path, branch)
+                entry = _github_get_content_entry(
+                    owner,
+                    repo,
+                    skill_md_path,
+                    branch,
+                )
             except HTTPError as e:
                 if getattr(e, "code", 0) == 404:
                     continue
@@ -860,7 +935,10 @@ def _fetch_bundle_from_repo_and_skill_hint(
                     skill_md_path = _join_repo_path(root, "SKILL.md")
                     try:
                         entry = _github_get_content_entry(
-                            owner, repo, skill_md_path, branch,
+                            owner,
+                            repo,
+                            skill_md_path,
+                            branch,
                         )
                     except HTTPError:
                         continue
@@ -878,8 +956,11 @@ def _fetch_bundle_from_repo_and_skill_hint(
         try:
             files.update(
                 _github_collect_tree_files(
-                    owner=owner, repo=repo, ref=branch,
-                    root=selected_root, subdir=subdir,
+                    owner=owner,
+                    repo=repo,
+                    ref=branch,
+                    root=selected_root,
+                    subdir=subdir,
                 ),
             )
         except HTTPError as e:
@@ -891,7 +972,8 @@ def _fetch_bundle_from_repo_and_skill_hint(
 
 
 def _fetch_bundle_from_github_url(
-    bundle_url: str, requested_version: str,
+    bundle_url: str,
+    requested_version: str,
 ) -> tuple[Any, str]:
     spec = _extract_github_spec(bundle_url)
     if spec is None:
@@ -904,26 +986,32 @@ def _fetch_bundle_from_github_url(
         path_hint = ""
     branch = requested_version.strip() or branch_in_url.strip()
     return _fetch_bundle_from_repo_and_skill_hint(
-        owner=owner, repo=repo,
-        skill_hint=path_hint, requested_version=branch,
+        owner=owner,
+        repo=repo,
+        skill_hint=path_hint,
+        requested_version=branch,
     )
 
 
 def _fetch_bundle_from_skillsmp_url(
-    bundle_url: str, requested_version: str,
+    bundle_url: str,
+    requested_version: str,
 ) -> tuple[Any, str]:
     spec = _extract_skillsmp_spec(bundle_url)
     if spec is None:
         raise ValueError("Invalid SkillsMP URL format")
     owner, repo, skill_hint = spec
     return _fetch_bundle_from_repo_and_skill_hint(
-        owner=owner, repo=repo,
-        skill_hint=skill_hint, requested_version=requested_version,
+        owner=owner,
+        repo=repo,
+        skill_hint=skill_hint,
+        requested_version=requested_version,
     )
 
 
 def _fetch_bundle_from_hub_slug(
-    slug: str, version: str,
+    slug: str,
+    version: str,
 ) -> tuple[Any, str]:
     if not slug:
         raise ValueError("slug is required for hub install")
@@ -941,7 +1029,7 @@ def _fetch_bundle_from_hub_slug(
             errors.append(f"{candidate}: {e}")
     if data is None:
         raise RuntimeError(
-            "Unable to fetch skill from hub endpoints: " + "; ".join(errors)
+            "Unable to fetch skill from hub endpoints: " + "; ".join(errors),
         )
     return (
         _hydrate_hub_payload(data, slug=slug, requested_version=version),
@@ -967,7 +1055,9 @@ def search_hub_skills(query: str, limit: int = 20) -> list[HubSkillResult]:
             HubSkillResult(
                 slug=slug,
                 name=str(item.get("name") or item.get("displayName") or slug),
-                description=str(item.get("description") or item.get("summary") or ""),
+                description=str(
+                    item.get("description") or item.get("summary") or "",
+                ),
                 version=str(item.get("version") or ""),
                 source_url=str(item.get("url") or ""),
             ),
@@ -995,24 +1085,30 @@ def install_skill_from_hub(
     skills_spec = _extract_skills_sh_spec(bundle_url)
     if skills_spec is not None:
         data, source_url = _fetch_bundle_from_skills_sh_url(
-            bundle_url, requested_version=version,
+            bundle_url,
+            requested_version=version,
         )
     else:
         github_spec = _extract_github_spec(bundle_url)
         if github_spec is not None:
             data, source_url = _fetch_bundle_from_github_url(
-                bundle_url, requested_version=version,
+                bundle_url,
+                requested_version=version,
             )
         else:
             skillsmp_slug = _extract_skillsmp_slug(bundle_url)
             if skillsmp_slug:
                 data, source_url = _fetch_bundle_from_skillsmp_url(
-                    bundle_url, requested_version=version,
+                    bundle_url,
+                    requested_version=version,
                 )
             else:
                 hub_slug = _extract_hub_slug_from_url(bundle_url)
                 if hub_slug:
-                    data, source_url = _fetch_bundle_from_hub_slug(hub_slug, version)
+                    data, source_url = _fetch_bundle_from_hub_slug(
+                        hub_slug,
+                        version,
+                    )
                 else:
                     # Fallback: direct bundle JSON URL
                     data = _http_json_get(bundle_url)
@@ -1033,7 +1129,7 @@ def install_skill_from_hub(
     if not created:
         raise RuntimeError(
             f"Failed to create skill '{name}'. "
-            "Try overwrite=true if it already exists."
+            "Try overwrite=true if it already exists.",
         )
 
     enabled = False
@@ -1052,18 +1148,24 @@ class SkillsHubClient:
     """Class-based interface for the skills hub (backward compatible)."""
 
     def search(
-        self, query: str = "", category: str = "research", max_results: int = 20,
+        self,
+        query: str = "",
+        category: str = "research",
+        max_results: int = 20,
     ) -> list[HubSkillResult]:
         return search_hub_skills(query, limit=max_results)
 
     def install(
-        self, slug: str, version: str = "latest",
+        self,
+        slug: str,
+        version: str = "latest",
     ) -> Optional[HubInstallResult]:
         try:
             base = _hub_base_url()
             url = _join_url(base, f"skills/{slug}")
             return install_skill_from_hub(
-                bundle_url=url, version=version if version != "latest" else "",
+                bundle_url=url,
+                version=version if version != "latest" else "",
             )
         except Exception:
             logger.exception("Hub install failed for %s", slug)

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Heartbeat: run agent with HEARTBEAT.md as query at scheduled intervals.
 
 Uses config functions for paths and settings. Supports active hours

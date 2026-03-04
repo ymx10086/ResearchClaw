@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """App/server related CLI commands."""
 
 from __future__ import annotations
@@ -26,10 +25,27 @@ class _SuppressPathAccessLogFilter(logging.Filter):
 
 
 @click.command("app")
-@click.option("--host", default=DEFAULT_HOST, show_default=True, help="Bind host")
-@click.option("--port", default=DEFAULT_PORT, type=int, show_default=True, help="Bind port")
+@click.option(
+    "--host",
+    default=DEFAULT_HOST,
+    show_default=True,
+    help="Bind host",
+)
+@click.option(
+    "--port",
+    default=DEFAULT_PORT,
+    type=int,
+    show_default=True,
+    help="Bind port",
+)
 @click.option("--reload", is_flag=True, help="Enable auto-reload (dev only)")
-@click.option("--workers", default=1, type=int, show_default=True, help="Worker processes")
+@click.option(
+    "--workers",
+    default=1,
+    type=int,
+    show_default=True,
+    help="Worker processes",
+)
 @click.option(
     "--log-level",
     default="info",

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Desktop/screen screenshot tool.
 
 Captures screenshots of the entire desktop or individual windows.

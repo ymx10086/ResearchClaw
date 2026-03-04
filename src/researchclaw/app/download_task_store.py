@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """In-memory store for tracking background model download tasks.
 
 Multiple downloads can run concurrently. Completed/failed results are retained

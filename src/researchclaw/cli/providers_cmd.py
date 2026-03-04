@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """CLI commands for managing LLM providers and local models."""
 from __future__ import annotations
 
@@ -42,7 +41,9 @@ def configure_provider_api_key_interactive(
     )
     current_key = existing.get("api_key", "") if existing else ""
     current_url = existing.get("base_url", "") if existing else ""
-    current_type = existing.get("provider_type", "openai") if existing else "openai"
+    current_type = (
+        existing.get("provider_type", "openai") if existing else "openai"
+    )
 
     provider_type = click.prompt(
         "Provider type (openai/anthropic/dashscope/deepseek/ollama/custom)",
@@ -71,14 +72,16 @@ def configure_provider_api_key_interactive(
         default=(existing or {}).get("model_name", ""),
     ).strip()
 
-    store.save_provider({
-        "name": provider_name,
-        "provider_type": provider_type,
-        "model_name": model_name,
-        "api_key": api_key,
-        "base_url": base_url,
-        "extra": {},
-    })
+    store.save_provider(
+        {
+            "name": provider_name,
+            "provider_type": provider_type,
+            "model_name": model_name,
+            "api_key": api_key,
+            "base_url": base_url,
+            "extra": {},
+        },
+    )
 
     click.echo(
         f"✓ {provider_name} — API Key: {_mask_api_key(api_key)}"
@@ -90,7 +93,9 @@ def configure_provider_api_key_interactive(
 def configure_providers_interactive(*, use_defaults: bool = False) -> None:
     """Full interactive flow: configure provider → set active."""
     if use_defaults:
-        click.echo("Using default provider settings. Run 'researchclaw models config' to change.")
+        click.echo(
+            "Using default provider settings. Run 'researchclaw models config' to change.",
+        )
         return
 
     click.echo("\n--- Provider Configuration ---")
@@ -150,14 +155,16 @@ def add_cmd(
 ) -> None:
     """Add or update a provider."""
     store = ProviderStore()
-    store.save_provider({
-        "name": name,
-        "provider_type": provider_type,
-        "model_name": model_name,
-        "api_key": api_key,
-        "base_url": base_url,
-        "extra": {},
-    })
+    store.save_provider(
+        {
+            "name": name,
+            "provider_type": provider_type,
+            "model_name": model_name,
+            "api_key": api_key,
+            "base_url": base_url,
+            "extra": {},
+        },
+    )
     click.echo(f"✓ Provider '{name}' saved.")
 
 
@@ -185,20 +192,33 @@ def remove_cmd(name: str, yes: bool) -> None:
 
 @models_group.command("download")
 @click.argument("repo_id")
-@click.option("--file", "-f", "filename", default=None, help="Specific file to download")
 @click.option(
-    "--backend", "-b",
+    "--file",
+    "-f",
+    "filename",
+    default=None,
+    help="Specific file to download",
+)
+@click.option(
+    "--backend",
+    "-b",
     type=click.Choice(["llamacpp", "mlx"]),
     default="llamacpp",
     help="Target backend",
 )
 @click.option(
-    "--source", "-s",
+    "--source",
+    "-s",
     type=click.Choice(["huggingface", "modelscope"]),
     default="huggingface",
     help="Download source",
 )
-def download_cmd(repo_id: str, filename: str | None, backend: str, source: str) -> None:
+def download_cmd(
+    repo_id: str,
+    filename: str | None,
+    backend: str,
+    source: str,
+) -> None:
     """Download a model from Hugging Face Hub or ModelScope.
 
     \b
@@ -207,13 +227,19 @@ def download_cmd(repo_id: str, filename: str | None, backend: str, source: str) 
       researchclaw models download Qwen/Qwen3-8B-GGUF -f qwen3-8b.Q4_K_M.gguf
     """
     try:
-        from ..local_models import LocalModelManager, BackendType, DownloadSource
+        from ..local_models import (
+            LocalModelManager,
+            BackendType,
+            DownloadSource,
+        )
     except ImportError as exc:
-        click.echo(click.style(
-            "Local model dependencies not installed. "
-            "Install with: pip install 'researchclaw[local]'",
-            fg="red",
-        ))
+        click.echo(
+            click.style(
+                "Local model dependencies not installed. "
+                "Install with: pip install 'researchclaw[local]'",
+                fg="red",
+            ),
+        )
         raise SystemExit(1) from exc
 
     backend_type = BackendType(backend)
@@ -241,7 +267,8 @@ def download_cmd(repo_id: str, filename: str | None, backend: str, source: str) 
 
 @models_group.command("local")
 @click.option(
-    "--backend", "-b",
+    "--backend",
+    "-b",
     type=click.Choice(["llamacpp", "mlx"]),
     default=None,
     help="Filter by backend",
@@ -251,7 +278,9 @@ def list_local_cmd(backend: str | None) -> None:
     try:
         from ..local_models import list_local_models, BackendType
     except ImportError:
-        click.echo("Local model support not installed. Install with: pip install 'researchclaw[local]'")
+        click.echo(
+            "Local model support not installed. Install with: pip install 'researchclaw[local]'",
+        )
         return
 
     backend_type = BackendType(backend) if backend else None
@@ -259,7 +288,9 @@ def list_local_cmd(backend: str | None) -> None:
 
     if not models:
         click.echo("No local models downloaded.")
-        click.echo("Use 'researchclaw models download <repo_id>' to download one.")
+        click.echo(
+            "Use 'researchclaw models download <repo_id>' to download one.",
+        )
         return
 
     click.echo(f"\n=== Local Models ({len(models)}) ===")
@@ -283,10 +314,12 @@ def remove_local_cmd(model_id: str, yes: bool) -> None:
     try:
         from ..local_models import delete_local_model
     except ImportError as exc:
-        click.echo(click.style(
-            "Local model support not installed.",
-            fg="red",
-        ))
+        click.echo(
+            click.style(
+                "Local model support not installed.",
+                fg="red",
+            ),
+        )
         raise SystemExit(1) from exc
 
     if not yes:

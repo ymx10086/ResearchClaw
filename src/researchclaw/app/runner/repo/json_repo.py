@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """JSON-based chat repository with atomic writes."""
 from __future__ import annotations
 

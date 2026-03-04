@@ -141,7 +141,7 @@ def bibtex_search(
                         entry.get("author", ""),
                         str(entry.get("year", "")),
                         entry.get("cite_key", ""),
-                    ]
+                    ],
                 ).lower()
 
                 if query_lower in searchable:
@@ -193,7 +193,9 @@ def bibtex_export(
                 all_entries.extend(_parse_bib_file(bf))
 
         if cite_keys:
-            all_entries = [e for e in all_entries if e.get("cite_key") in cite_keys]
+            all_entries = [
+                e for e in all_entries if e.get("cite_key") in cite_keys
+            ]
 
         if output_format == "plain":
             lines = []
@@ -302,7 +304,7 @@ def bibtex_from_paper_info(paper: dict[str, Any]) -> str:
         lines.append(f"  {field} = {{{venue}}},")
     if arxiv_id:
         lines.append(f"  eprint = {{{arxiv_id}}},")
-        lines.append(f"  archiveprefix = {{arXiv}},")
+        lines.append("  archiveprefix = {arXiv},")
     doi = paper.get("doi", "")
     if doi:
         lines.append(f"  doi = {{{doi}}},")

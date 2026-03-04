@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Chat manager for managing chat specifications (CRUD operations)."""
 from __future__ import annotations
 
@@ -72,7 +71,9 @@ class ChatManager:
             )
             await self._repo.upsert_chat(spec)
             logger.debug(
-                "Auto-registered new chat: %s -> %s", spec.id, session_id,
+                "Auto-registered new chat: %s -> %s",
+                spec.id,
+                session_id,
             )
             return spec
 

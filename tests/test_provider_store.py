@@ -14,7 +14,7 @@ def test_provider_store_save_list_remove(tmp_path: Path):
             "api_key": "sk-test",
             "base_url": "",
             "extra": {},
-        }
+        },
     )
 
     items = store.list_providers()

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=too-many-branches,too-many-statements
 """Discord channel: discord.py bot with gateway intents.
 
@@ -157,7 +156,10 @@ class DiscordChannel(BaseChannel):
             if ch is None:
                 ch = await self._client.fetch_channel(int(discord_channel_id))
         except Exception:
-            logger.exception("discord: could not fetch channel %s", discord_channel_id)
+            logger.exception(
+                "discord: could not fetch channel %s",
+                discord_channel_id,
+            )
             return
 
         chunks = split_long_message(text, DISCORD_SEND_CHUNK_SIZE)
@@ -165,7 +167,10 @@ class DiscordChannel(BaseChannel):
             try:
                 await ch.send(chunk)
             except Exception:
-                logger.exception("discord: send failed to channel %s", discord_channel_id)
+                logger.exception(
+                    "discord: send failed to channel %s",
+                    discord_channel_id,
+                )
 
     async def send_media(
         self,
@@ -187,14 +192,20 @@ class DiscordChannel(BaseChannel):
                 ch = await self._client.fetch_channel(int(discord_channel_id))
 
             t = getattr(part, "type", None)
-            t_val = t.value if isinstance(t, ContentType) else str(t) if t else ""
+            t_val = (
+                t.value if isinstance(t, ContentType) else str(t) if t else ""
+            )
             url = ""
             if t_val == ContentType.IMAGE.value:
                 url = getattr(part, "image_url", "")
             elif t_val == ContentType.VIDEO.value:
                 url = getattr(part, "video_url", "")
             elif t_val == ContentType.FILE.value:
-                url = getattr(part, "file_url", "") or getattr(part, "file_id", "")
+                url = getattr(part, "file_url", "") or getattr(
+                    part,
+                    "file_id",
+                    "",
+                )
             elif t_val == ContentType.AUDIO.value:
                 url = getattr(part, "data", "")
 
@@ -218,7 +229,7 @@ class DiscordChannel(BaseChannel):
             import aiohttp
         except ImportError:
             logger.warning(
-                "discord.py not installed. Install with: pip install discord.py"
+                "discord.py not installed. Install with: pip install discord.py",
             )
             return
 
@@ -257,13 +268,13 @@ class DiscordChannel(BaseChannel):
                 ctype = (getattr(att, "content_type", "") or "").lower()
 
                 is_image = ctype.startswith("image/") or file_name.endswith(
-                    (".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp")
+                    (".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp"),
                 )
                 is_video = ctype.startswith("video/") or file_name.endswith(
-                    (".mp4", ".mov", ".mkv", ".webm", ".avi")
+                    (".mp4", ".mov", ".mkv", ".webm", ".avi"),
                 )
                 is_audio = ctype.startswith("audio/") or file_name.endswith(
-                    (".mp3", ".wav", ".m4a", ".aac", ".ogg", ".flac")
+                    (".mp3", ".wav", ".m4a", ".aac", ".ogg", ".flac"),
                 )
 
                 if is_image:

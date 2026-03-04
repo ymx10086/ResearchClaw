@@ -352,7 +352,7 @@ def latex_compile_check(latex_source: str) -> dict[str, Any]:
     close_braces = latex_source.count("}")
     if open_braces != close_braces:
         errors.append(
-            f"Mismatched braces: {open_braces} opening, {close_braces} closing"
+            f"Mismatched braces: {open_braces} opening, {close_braces} closing",
         )
 
     # Check matching environments
@@ -371,7 +371,7 @@ def latex_compile_check(latex_source: str) -> dict[str, Any]:
         e = end_counts.get(env, 0)
         if b != e:
             errors.append(
-                f"Environment '{env}': {b} \\begin vs {e} \\end"
+                f"Environment '{env}': {b} \\begin vs {e} \\end",
             )
 
     # Check for document class

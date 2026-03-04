@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Main CLI entry for ResearchClaw."""
 
 from __future__ import annotations

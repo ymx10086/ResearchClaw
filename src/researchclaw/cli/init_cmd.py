@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # flake8: noqa: E501
 """CLI init: interactively create working_dir config and research profile."""
 from __future__ import annotations
@@ -69,9 +68,23 @@ def _echo_security_warning() -> None:
 
 
 @click.command("init")
-@click.option("--force", is_flag=True, help="Overwrite existing config if present.")
-@click.option("--defaults", "use_defaults", is_flag=True, help="Use defaults only, no interactive prompts.")
-@click.option("--accept-security", "accept_security", is_flag=True, help="Skip security confirmation.")
+@click.option(
+    "--force",
+    is_flag=True,
+    help="Overwrite existing config if present.",
+)
+@click.option(
+    "--defaults",
+    "use_defaults",
+    is_flag=True,
+    help="Use defaults only, no interactive prompts.",
+)
+@click.option(
+    "--accept-security",
+    "accept_security",
+    is_flag=True,
+    help="Skip security confirmation.",
+)
 def init_cmd(force: bool, use_defaults: bool, accept_security: bool) -> None:
     """Create working dir with config and research profile (interactive)."""
     wd = Path(WORKING_DIR)
@@ -83,7 +96,9 @@ def init_cmd(force: bool, use_defaults: bool, accept_security: bool) -> None:
     # --- Security warning ---
     _echo_security_warning()
     if use_defaults and accept_security:
-        click.echo("Security acceptance assumed (--accept-security with --defaults).")
+        click.echo(
+            "Security acceptance assumed (--accept-security with --defaults).",
+        )
     else:
         accepted = prompt_confirm(
             "Have you read and accepted the security notice above?",
@@ -94,7 +109,13 @@ def init_cmd(force: bool, use_defaults: bool, accept_security: bool) -> None:
             raise click.Abort()
 
     # --- Create directories ---
-    for rel in [PAPERS_DIR, REFERENCES_DIR, EXPERIMENTS_DIR, MD_FILES_DIR, EXAMPLES_DIR]:
+    for rel in [
+        PAPERS_DIR,
+        REFERENCES_DIR,
+        EXPERIMENTS_DIR,
+        MD_FILES_DIR,
+        EXAMPLES_DIR,
+    ]:
         (wd / rel).mkdir(parents=True, exist_ok=True)
 
     # --- Research profile ---
@@ -111,7 +132,10 @@ def init_cmd(force: bool, use_defaults: bool, accept_security: bool) -> None:
             click.echo("\n=== Research Profile ===")
             name = click.prompt("Your name", default="").strip()
             institution = click.prompt("Institution", default="").strip()
-            areas = click.prompt("Research areas (comma-separated)", default="").strip()
+            areas = click.prompt(
+                "Research areas (comma-separated)",
+                default="",
+            ).strip()
             content = (
                 "# Research Profile\n\n"
                 f"- Name: {name}\n"
@@ -187,12 +211,16 @@ def init_cmd(force: bool, use_defaults: bool, accept_security: bool) -> None:
 
     # --- LLM provider ---
     from ..providers import ProviderStore
+
     store = ProviderStore()
     has_provider = bool(store.list_providers())
 
     if has_provider:
         click.echo("\n✓ LLM provider(s) already configured.")
-        if not use_defaults and prompt_confirm("Reconfigure LLM provider?", default=False):
+        if not use_defaults and prompt_confirm(
+            "Reconfigure LLM provider?",
+            default=False,
+        ):
             configure_providers_interactive(use_defaults=False)
     else:
         click.echo("\n=== LLM Provider Configuration (required) ===")
@@ -239,13 +267,17 @@ def init_cmd(force: bool, use_defaults: bool, accept_security: bool) -> None:
             click.echo(f"\nChecking MD files [language: {language}]...")
             copied = copy_md_files(language, skip_existing=True)
             if copied:
-                click.echo(f"✓ Copied {len(copied)} md file(s): {', '.join(copied)}")
+                click.echo(
+                    f"✓ Copied {len(copied)} md file(s): {', '.join(copied)}",
+                )
             else:
                 click.echo("✓ MD files already present, skipped.")
         else:
             copied = copy_md_files(language)
             if copied:
-                click.echo(f"✓ Copied {len(copied)} md file(s): {', '.join(copied)}")
+                click.echo(
+                    f"✓ Copied {len(copied)} md file(s): {', '.join(copied)}",
+                )
     except (ImportError, Exception):
         pass  # copy_md_files may not exist yet
 
@@ -256,14 +288,27 @@ def init_cmd(force: bool, use_defaults: bool, accept_security: bool) -> None:
             click.echo("✓ HEARTBEAT.md already present, skipped.")
             write_heartbeat = False
         else:
-            write_heartbeat = prompt_confirm(f"{heartbeat_path} exists. Overwrite?", default=False)
+            write_heartbeat = prompt_confirm(
+                f"{heartbeat_path} exists. Overwrite?",
+                default=False,
+            )
 
     if write_heartbeat:
-        hb_content = DEFAULT_HEARTBEAT_MDS.get(language, DEFAULT_HEARTBEAT_MDS["en"])
+        hb_content = DEFAULT_HEARTBEAT_MDS.get(
+            language,
+            DEFAULT_HEARTBEAT_MDS["en"],
+        )
         if not use_defaults:
             click.echo("\n=== Heartbeat Query Configuration ===")
-            if prompt_confirm("Edit heartbeat query in your default editor?", default=True):
-                edited = click.edit(hb_content, extension=".md", require_save=False)
+            if prompt_confirm(
+                "Edit heartbeat query in your default editor?",
+                default=True,
+            ):
+                edited = click.edit(
+                    hb_content,
+                    extension=".md",
+                    require_save=False,
+                )
                 if edited is not None:
                     hb_content = edited
         heartbeat_path.write_text(hb_content.strip() + "\n", encoding="utf-8")

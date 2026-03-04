@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Cron job executor — runs text and agent tasks.
 
 Dispatches results to channels via the channel manager.

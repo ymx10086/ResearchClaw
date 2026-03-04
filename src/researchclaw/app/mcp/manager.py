@@ -17,7 +17,9 @@ class MCPManager:
 
     def __init__(self, file_path: str | None = None):
         self._clients: dict[str, dict[str, Any]] = {}
-        self.file_path = Path(file_path or (Path(WORKING_DIR) / "mcp_clients.json"))
+        self.file_path = Path(
+            file_path or (Path(WORKING_DIR) / "mcp_clients.json"),
+        )
         self.file_path.parent.mkdir(parents=True, exist_ok=True)
 
     def register(self, name: str, config: dict[str, Any]) -> None:
@@ -46,7 +48,10 @@ class MCPManager:
             if isinstance(data, dict):
                 self._clients = data
         except Exception:
-            logger.exception("Failed to load MCP clients from %s", self.file_path)
+            logger.exception(
+                "Failed to load MCP clients from %s",
+                self.file_path,
+            )
 
     async def save(self) -> None:
         try:
@@ -55,4 +60,7 @@ class MCPManager:
                 encoding="utf-8",
             )
         except Exception:
-            logger.exception("Failed to save MCP clients to %s", self.file_path)
+            logger.exception(
+                "Failed to save MCP clients to %s",
+                self.file_path,
+            )

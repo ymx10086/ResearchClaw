@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=too-many-branches,too-many-statements
 """Feishu (Lark) channel: WebSocket receive, Open API send.
 
@@ -140,7 +139,8 @@ class FeishuChannel(BaseChannel):
             bot_prefix=getattr(config, "bot_prefix", "[BOT] ") or "[BOT] ",
             encrypt_key=getattr(config, "encrypt_key", "") or "",
             verification_token=getattr(config, "verification_token", "") or "",
-            media_dir=getattr(config, "media_dir", "~/.researchclaw/media") or "~/.researchclaw/media",
+            media_dir=getattr(config, "media_dir", "~/.researchclaw/media")
+            or "~/.researchclaw/media",
             on_reply_sent=on_reply_sent,
             show_tool_details=show_tool_details,
         )
@@ -197,7 +197,9 @@ class FeishuChannel(BaseChannel):
             now = time.time()
             if (
                 self._tenant_access_token
-                and now < self._tenant_access_token_expire_at - FEISHU_TOKEN_REFRESH_BEFORE_SECONDS
+                and now
+                < self._tenant_access_token_expire_at
+                - FEISHU_TOKEN_REFRESH_BEFORE_SECONDS
             ):
                 return self._tenant_access_token
 
@@ -209,7 +211,10 @@ class FeishuChannel(BaseChannel):
 
                 async with self._http.post(
                     "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal",
-                    json={"app_id": self.app_id, "app_secret": self.app_secret},
+                    json={
+                        "app_id": self.app_id,
+                        "app_secret": self.app_secret,
+                    },
                     timeout=aiohttp.ClientTimeout(total=15),
                 ) as resp:
                     data = await resp.json()
@@ -225,7 +230,10 @@ class FeishuChannel(BaseChannel):
     # ── receive_id store ───────────────────────────────────────────
 
     async def _store_receive_id(
-        self, session_id: str, receive_id: str, receive_id_type: str,
+        self,
+        session_id: str,
+        receive_id: str,
+        receive_id_type: str,
     ) -> None:
         async with self._receive_id_lock:
             self._receive_id_store[session_id] = (receive_id, receive_id_type)
@@ -242,14 +250,19 @@ class FeishuChannel(BaseChannel):
             else request.get("channel_meta")
         ) or {}
         session_id = (
-            request.get("session_id") if isinstance(request, dict)
+            request.get("session_id")
+            if isinstance(request, dict)
             else getattr(request, "session_id", "")
         ) or ""
 
         receive_id = meta.get("feishu_receive_id", "")
         receive_id_type = meta.get("feishu_receive_id_type", "open_id")
         if receive_id and session_id:
-            await self._store_receive_id(session_id, receive_id, receive_id_type)
+            await self._store_receive_id(
+                session_id,
+                receive_id,
+                receive_id_type,
+            )
 
     # ── send ───────────────────────────────────────────────────────
 
@@ -297,7 +310,8 @@ class FeishuChannel(BaseChannel):
                     body = await resp.text()
                     logger.warning(
                         "feishu send failed: HTTP %s: %s",
-                        resp.status, body[:200],
+                        resp.status,
+                        body[:200],
                     )
         except Exception:
             logger.exception("feishu: send failed")
@@ -316,24 +330,27 @@ class FeishuChannel(BaseChannel):
             import lark_oapi as lark
         except ImportError:
             logger.warning(
-                "lark-oapi not installed. Install with: pip install lark-oapi"
+                "lark-oapi not installed. Install with: pip install lark-oapi",
             )
             return
 
         self._loop = asyncio.get_running_loop()
 
         # Build lark client
-        self._client = lark.Client.builder().app_id(
-            self.app_id
-        ).app_secret(self.app_secret).build()
-
-        # Build WebSocket client for event subscription
-        event_handler = (
-            lark.EventDispatcherHandler.builder(
-                self.encrypt_key, self.verification_token,
+        self._client = (
+            lark.Client.builder()
+            .app_id(
+                self.app_id,
             )
+            .app_secret(self.app_secret)
             .build()
         )
+
+        # Build WebSocket client for event subscription
+        event_handler = lark.EventDispatcherHandler.builder(
+            self.encrypt_key,
+            self.verification_token,
+        ).build()
 
         self._ws_client = lark.ws.Client(
             self.app_id,
@@ -349,7 +366,9 @@ class FeishuChannel(BaseChannel):
 
         self._stop_event.clear()
         self._ws_thread = threading.Thread(
-            target=_run_ws, daemon=True, name="feishu_ws",
+            target=_run_ws,
+            daemon=True,
+            name="feishu_ws",
         )
         self._ws_thread.start()
         logger.info("Feishu channel started")

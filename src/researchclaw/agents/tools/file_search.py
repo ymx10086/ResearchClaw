@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """File search tools: grep (content search) and glob (file discovery).
 
 Provides workspace-wide file search capabilities for the agent,

@@ -40,7 +40,9 @@ def browse_url(
             url,
             timeout=30,
             follow_redirects=True,
-            headers={"User-Agent": "ResearchClaw/1.0 (Academic Research Assistant)"},
+            headers={
+                "User-Agent": "ResearchClaw/1.0 (Academic Research Assistant)",
+            },
         )
         resp.raise_for_status()
 
@@ -75,8 +77,18 @@ def _extract_text_from_html(html: str) -> str:
     import re
 
     # Remove scripts and styles
-    text = re.sub(r"<script[^>]*>.*?</script>", "", html, flags=re.DOTALL | re.IGNORECASE)
-    text = re.sub(r"<style[^>]*>.*?</style>", "", text, flags=re.DOTALL | re.IGNORECASE)
+    text = re.sub(
+        r"<script[^>]*>.*?</script>",
+        "",
+        html,
+        flags=re.DOTALL | re.IGNORECASE,
+    )
+    text = re.sub(
+        r"<style[^>]*>.*?</style>",
+        "",
+        text,
+        flags=re.DOTALL | re.IGNORECASE,
+    )
     # Remove HTML tags
     text = re.sub(r"<[^>]+>", " ", text)
     # Clean up whitespace
@@ -91,5 +103,9 @@ def _extract_title_from_html(html: str) -> str:
     """Extract the page title from HTML."""
     import re
 
-    match = re.search(r"<title[^>]*>(.*?)</title>", html, re.DOTALL | re.IGNORECASE)
+    match = re.search(
+        r"<title[^>]*>(.*?)</title>",
+        html,
+        re.DOTALL | re.IGNORECASE,
+    )
     return match.group(1).strip() if match else ""

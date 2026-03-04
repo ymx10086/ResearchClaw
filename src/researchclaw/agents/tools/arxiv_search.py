@@ -60,7 +60,10 @@ def arxiv_search(
             "lastUpdatedDate": arxiv.SortCriterion.LastUpdatedDate,
             "submittedDate": arxiv.SortCriterion.SubmittedDate,
         }
-        sort_criterion = sort_mapping.get(sort_by, arxiv.SortCriterion.Relevance)
+        sort_criterion = sort_mapping.get(
+            sort_by,
+            arxiv.SortCriterion.Relevance,
+        )
 
         # Build the query with optional category filters
         full_query = query
@@ -96,13 +99,15 @@ def arxiv_search(
                     "doi": paper.doi or "",
                     "comment": paper.comment or "",
                     "primary_category": paper.primary_category,
-                }
+                },
             )
 
         return results
 
     except ImportError:
-        return [{"error": "arxiv package not installed. Run: pip install arxiv"}]
+        return [
+            {"error": "arxiv package not installed. Run: pip install arxiv"},
+        ]
     except Exception as e:
         logger.exception("ArXiv search failed")
         return [{"error": f"ArXiv search failed: {e}"}]

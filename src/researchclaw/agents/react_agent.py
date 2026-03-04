@@ -163,7 +163,10 @@ class ScholarAgent:
         skill_file = main_file if main_file.exists() else init_file
 
         if not skill_file.exists():
-            logger.warning("Skill %s has no entry point, skipping", skill_dir.name)
+            logger.warning(
+                "Skill %s has no entry point, skipping",
+                skill_dir.name,
+            )
             return
 
         try:
@@ -180,12 +183,20 @@ class ScholarAgent:
                 # Convention: skills expose a `tools` dict or `register` function
                 if hasattr(mod, "tools"):
                     self._tools.update(mod.tools)
-                    logger.info("Loaded skill: %s (%d tools)", skill_dir.name, len(mod.tools))
+                    logger.info(
+                        "Loaded skill: %s (%d tools)",
+                        skill_dir.name,
+                        len(mod.tools),
+                    )
                 elif hasattr(mod, "register"):
                     new_tools = mod.register()
                     if isinstance(new_tools, dict):
                         self._tools.update(new_tools)
-                        logger.info("Loaded skill: %s (%d tools)", skill_dir.name, len(new_tools))
+                        logger.info(
+                            "Loaded skill: %s (%d tools)",
+                            skill_dir.name,
+                            len(new_tools),
+                        )
         except Exception:
             logger.exception("Failed to load skill: %s", skill_dir.name)
 
@@ -286,8 +297,14 @@ class ScholarAgent:
                 # Check if the model wants to use a tool
                 if hasattr(response, "tool_calls") and response.tool_calls:
                     for tool_call in response.tool_calls:
-                        tool_name = tool_call.get("function", {}).get("name", "")
-                        tool_args = tool_call.get("function", {}).get("arguments", {})
+                        tool_name = tool_call.get("function", {}).get(
+                            "name",
+                            "",
+                        )
+                        tool_args = tool_call.get("function", {}).get(
+                            "arguments",
+                            {},
+                        )
 
                         if tool_name in self._tools:
                             try:
@@ -300,16 +317,22 @@ class ScholarAgent:
                                     {
                                         "role": "tool",
                                         "content": str(result),
-                                        "tool_call_id": tool_call.get("id", ""),
-                                    }
+                                        "tool_call_id": tool_call.get(
+                                            "id",
+                                            "",
+                                        ),
+                                    },
                                 )
                             except Exception as e:
                                 messages.append(
                                     {
                                         "role": "tool",
                                         "content": f"Tool error: {e}",
-                                        "tool_call_id": tool_call.get("id", ""),
-                                    }
+                                        "tool_call_id": tool_call.get(
+                                            "id",
+                                            "",
+                                        ),
+                                    },
                                 )
                         else:
                             messages.append(
@@ -317,7 +340,7 @@ class ScholarAgent:
                                     "role": "tool",
                                     "content": f"Unknown tool: {tool_name}",
                                     "tool_call_id": tool_call.get("id", ""),
-                                }
+                                },
                             )
                     continue
 
@@ -353,7 +376,7 @@ class ScholarAgent:
                 {
                     "role": "system",
                     "content": f"[Previous conversation summary]\n{self.memory.compact_summary}",
-                }
+                },
             )
 
         # Add recent messages

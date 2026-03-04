@@ -17,7 +17,11 @@ logger = logging.getLogger(__name__)
 class ChatSession:
     """Represents a single chat conversation session."""
 
-    def __init__(self, session_id: str | None = None, title: str = "New Research Chat"):
+    def __init__(
+        self,
+        session_id: str | None = None,
+        title: str = "New Research Chat",
+    ):
         self.session_id = session_id or str(uuid.uuid4())
         self.title = title
         self.created_at = time.time()
@@ -25,11 +29,13 @@ class ChatSession:
         self.messages: list[dict[str, Any]] = []
 
     def add_message(self, role: str, content: str):
-        self.messages.append({
-            "role": role,
-            "content": content,
-            "timestamp": time.time(),
-        })
+        self.messages.append(
+            {
+                "role": role,
+                "content": content,
+                "timestamp": time.time(),
+            },
+        )
         self.updated_at = time.time()
 
     def to_dict(self) -> dict[str, Any]:
@@ -43,7 +49,10 @@ class ChatSession:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "ChatSession":
-        session = cls(session_id=data["session_id"], title=data.get("title", ""))
+        session = cls(
+            session_id=data["session_id"],
+            title=data.get("title", ""),
+        )
         session.created_at = data.get("created_at", time.time())
         session.updated_at = data.get("updated_at", time.time())
         session.messages = data.get("messages", [])
@@ -54,7 +63,9 @@ class SessionManager:
     """Manages chat sessions with filesystem persistence."""
 
     def __init__(self, sessions_dir: str | None = None):
-        self.sessions_dir = Path(sessions_dir or (Path(WORKING_DIR) / "sessions"))
+        self.sessions_dir = Path(
+            sessions_dir or (Path(WORKING_DIR) / "sessions"),
+        )
         self.sessions_dir.mkdir(parents=True, exist_ok=True)
         self._sessions: dict[str, ChatSession] = {}
 
@@ -71,16 +82,22 @@ class SessionManager:
 
     def list_sessions(self) -> list[dict[str, Any]]:
         sessions = []
-        for f in sorted(self.sessions_dir.glob("*.json"), key=lambda x: x.stat().st_mtime, reverse=True):
+        for f in sorted(
+            self.sessions_dir.glob("*.json"),
+            key=lambda x: x.stat().st_mtime,
+            reverse=True,
+        ):
             try:
                 data = json.loads(f.read_text(encoding="utf-8"))
-                sessions.append({
-                    "session_id": data["session_id"],
-                    "title": data.get("title", ""),
-                    "created_at": data.get("created_at"),
-                    "updated_at": data.get("updated_at"),
-                    "message_count": len(data.get("messages", [])),
-                })
+                sessions.append(
+                    {
+                        "session_id": data["session_id"],
+                        "title": data.get("title", ""),
+                        "created_at": data.get("created_at"),
+                        "updated_at": data.get("updated_at"),
+                        "message_count": len(data.get("messages", [])),
+                    },
+                )
             except Exception:
                 continue
         return sessions

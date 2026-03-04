@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Chat management API — CRUD for chat sessions.
 
 Provides REST endpoints for listing, creating, updating, and deleting

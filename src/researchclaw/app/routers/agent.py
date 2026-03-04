@@ -13,7 +13,11 @@ from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from researchclaw.constant import DEFAULT_MAX_INPUT_TOKENS, DEFAULT_MAX_ITERS, WORKING_DIR
+from researchclaw.constant import (
+    DEFAULT_MAX_INPUT_TOKENS,
+    DEFAULT_MAX_ITERS,
+    WORKING_DIR,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +58,9 @@ def _load_running_config() -> AgentsRunningConfig:
 
     return AgentsRunningConfig(
         max_iters=int(data.get("max_iters", DEFAULT_MAX_ITERS)),
-        max_input_length=int(data.get("max_input_length", DEFAULT_MAX_INPUT_TOKENS)),
+        max_input_length=int(
+            data.get("max_input_length", DEFAULT_MAX_INPUT_TOKENS),
+        ),
     )
 
 
@@ -69,7 +75,10 @@ def _save_running_config(config: AgentsRunningConfig) -> AgentsRunningConfig:
 
     payload.update(config.model_dump())
     config_path.parent.mkdir(parents=True, exist_ok=True)
-    config_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    config_path.write_text(
+        json.dumps(payload, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
     return config
 
 
@@ -145,7 +154,9 @@ async def agent_status(req: Request):
     return {
         "running": runner is not None and runner.is_running,
         "agent_name": "Scholar",
-        "tool_count": len(runner.agent.tool_names) if runner and runner.agent else 0,
+        "tool_count": len(runner.agent.tool_names)
+        if runner and runner.agent
+        else 0,
     }
 
 

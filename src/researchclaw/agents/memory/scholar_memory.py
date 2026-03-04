@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Custom memory implementation with bugfixes and extensions.
 
 ScholarInMemoryMemory is the ResearchClaw equivalent of CoPaw's
@@ -119,14 +118,14 @@ Use it as context to maintain continuity in our research discussion.
     def state_dict(self) -> dict:
         """Get the state dictionary for serialization."""
         return {
-            "content": [
-                [msg.to_dict(), marks] for msg, marks in self.content
-            ],
+            "content": [[msg.to_dict(), marks] for msg, marks in self.content],
             "_compressed_summary": self._compressed_summary,
         }
 
     def load_state_dict(
-        self, state_dict: dict, strict: bool = True
+        self,
+        state_dict: dict,
+        strict: bool = True,
     ) -> None:
         """Load the state dictionary for deserialization."""
         if strict and "content" not in state_dict:
@@ -153,5 +152,6 @@ Use it as context to maintain continuity in our research discussion.
                 )
 
         self._compressed_summary = state_dict.get(
-            "_compressed_summary", ""
+            "_compressed_summary",
+            "",
         )

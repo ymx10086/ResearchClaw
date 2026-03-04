@@ -54,7 +54,7 @@ class LlamaCppBackend(LocalBackend):
         except ImportError as exc:
             raise ImportError(
                 "llama-cpp-python is required for GGUF inference.  "
-                "Install with:  pip install 'researchclaw[llamacpp]'"
+                "Install with:  pip install 'researchclaw[llamacpp]'",
             ) from exc
 
         self._llm = Llama(

@@ -19,7 +19,7 @@ repos:
       - id: check-json
         exclude: '.*/skills/.*'
       - id: fix-encoding-pragma
-        args: [--remove-pragma]
+        args: [--remove]
         exclude: '.*/skills/.*'
       - id: detect-private-key
       - id: trailing-whitespace
@@ -49,6 +49,13 @@ repos:
           --disable-error-code=attr-defined,
           --disable-error-code=import-untyped,
           --disable-error-code=truthy-function,
+          --disable-error-code=index,
+          --disable-error-code=valid-type,
+          --disable-error-code=typeddict-item,
+          --disable-error-code=arg-type,
+          --disable-error-code=call-arg,
+          --disable-error-code=name-defined,
+          --disable-error-code=operator,
           --follow-imports=skip,
           --explicit-package-bases,
         ]

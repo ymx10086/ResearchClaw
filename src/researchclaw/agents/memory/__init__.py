@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Memory management module for ResearchClaw agents.
 
 Provides:

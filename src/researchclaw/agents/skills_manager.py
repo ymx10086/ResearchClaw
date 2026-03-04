@@ -96,7 +96,9 @@ def _build_directory_tree(directory: Path) -> Dict[str, Any]:
 
 
 def _create_files_from_tree(
-    base_dir: Path, tree: Dict[str, Any], contents: Optional[Dict[str, str]] = None,
+    base_dir: Path,
+    tree: Dict[str, Any],
+    contents: Optional[Dict[str, str]] = None,
 ) -> None:
     """Create files/directories from a nested tree structure.
 
@@ -108,7 +110,11 @@ def _create_files_from_tree(
         path = base_dir / name
         if subtree is None:
             # File
-            rel = str(path.relative_to(base_dir)) if base_dir != path.parent else name
+            rel = (
+                str(path.relative_to(base_dir))
+                if base_dir != path.parent
+                else name
+            )
             text = contents.get(rel, "")
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(text, encoding="utf-8")
@@ -165,7 +171,9 @@ def list_available_skills() -> List[SkillInfo]:
     # 1. Built-in skills
     if _BUILTIN_SKILLS_DIR.is_dir():
         for skill_dir in sorted(_BUILTIN_SKILLS_DIR.iterdir()):
-            if skill_dir.is_dir() and not skill_dir.name.startswith((".", "_")):
+            if skill_dir.is_dir() and not skill_dir.name.startswith(
+                (".", "_"),
+            ):
                 info = _read_skill_info(skill_dir, source="builtin")
                 skills[info.name] = info
 
@@ -173,7 +181,9 @@ def list_available_skills() -> List[SkillInfo]:
     custom_dir = Path(CUSTOMIZED_SKILLS_DIR)
     if custom_dir.is_dir():
         for skill_dir in sorted(custom_dir.iterdir()):
-            if skill_dir.is_dir() and not skill_dir.name.startswith((".", "_")):
+            if skill_dir.is_dir() and not skill_dir.name.startswith(
+                (".", "_"),
+            ):
                 info = _read_skill_info(skill_dir, source="customized")
                 skills[info.name] = info
 
@@ -231,14 +241,18 @@ def sync_skills_to_working_dir(
 
     if _BUILTIN_SKILLS_DIR.is_dir():
         for skill_dir in _BUILTIN_SKILLS_DIR.iterdir():
-            if skill_dir.is_dir() and not skill_dir.name.startswith((".", "_")):
+            if skill_dir.is_dir() and not skill_dir.name.startswith(
+                (".", "_"),
+            ):
                 if skill_names is None or skill_dir.name in skill_names:
                     sources[skill_dir.name] = skill_dir
 
     custom_dir = Path(CUSTOMIZED_SKILLS_DIR)
     if custom_dir.is_dir():
         for skill_dir in custom_dir.iterdir():
-            if skill_dir.is_dir() and not skill_dir.name.startswith((".", "_")):
+            if skill_dir.is_dir() and not skill_dir.name.startswith(
+                (".", "_"),
+            ):
                 if skill_names is None or skill_dir.name in skill_names:
                     sources[skill_dir.name] = skill_dir  # override builtin
 
@@ -322,7 +336,7 @@ def create_skill(
 
     if dest.exists() and not overwrite:
         raise FileExistsError(
-            f"Skill '{name}' already exists. Use overwrite=True to replace."
+            f"Skill '{name}' already exists. Use overwrite=True to replace.",
         )
 
     if dest.exists():
@@ -391,7 +405,11 @@ def load_skill_file(
     # Must start with references/ or scripts/ or be SKILL.md
     allowed_prefixes = ("references", "scripts")
     if parts[0] not in allowed_prefixes and file_path != "SKILL.md":
-        logger.warning("Path not allowed: %s (must be under %s)", file_path, allowed_prefixes)
+        logger.warning(
+            "Path not allowed: %s (must be under %s)",
+            file_path,
+            allowed_prefixes,
+        )
         return None
 
     if source == "active":
@@ -502,7 +520,8 @@ class SkillsManager:
         extra_files: Optional[Dict[str, str]] = None,
     ) -> Dict[str, Any]:
         info = create_skill(
-            name, content,
+            name,
+            content,
             overwrite=overwrite,
             references=references,
             scripts=scripts,
@@ -511,7 +530,10 @@ class SkillsManager:
         return info.model_dump()
 
     def load_skill_file(
-        self, skill_name: str, file_path: str, source: str = "active",
+        self,
+        skill_name: str,
+        file_path: str,
+        source: str = "active",
     ) -> Optional[str]:
         return load_skill_file(skill_name, file_path, source)
 
@@ -560,7 +582,9 @@ def _read_skill_info(skill_dir: Path, source: str = "builtin") -> SkillInfo:
     refs_dir = skill_dir / "references"
     scripts_dir = skill_dir / "scripts"
     references = _build_directory_tree(refs_dir) if refs_dir.is_dir() else {}
-    scripts = _build_directory_tree(scripts_dir) if scripts_dir.is_dir() else {}
+    scripts = (
+        _build_directory_tree(scripts_dir) if scripts_dir.is_dir() else {}
+    )
 
     return SkillInfo(
         name=name,

@@ -70,15 +70,20 @@ def send_file(
         if file_size > _MAX_FILE_SIZE:
             return {
                 "error": f"File too large ({file_size / 1024 / 1024:.1f} MB). "
-                f"Maximum is {_MAX_FILE_SIZE / 1024 / 1024:.0f} MB."
+                f"Maximum is {_MAX_FILE_SIZE / 1024 / 1024:.0f} MB.",
             }
 
-        mime_type = mimetypes.guess_type(str(path))[0] or "application/octet-stream"
+        mime_type = (
+            mimetypes.guess_type(str(path))[0] or "application/octet-stream"
+        )
         as_type = _auto_as_type(mime_type)
 
         if use_url:
             absolute_path = str(path)
-            source: dict[str, str] = {"type": "url", "url": f"file://{absolute_path}"}
+            source: dict[str, str] = {
+                "type": "url",
+                "url": f"file://{absolute_path}",
+            }
         else:
             import base64
 

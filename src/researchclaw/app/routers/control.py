@@ -62,11 +62,17 @@ async def list_sessions(req: Request):
 async def get_session(session_id: str, req: Request):
     runner = getattr(req.app.state, "runner", None)
     if not runner or not hasattr(runner, "session_manager"):
-        raise HTTPException(status_code=404, detail="Session manager not available")
+        raise HTTPException(
+            status_code=404,
+            detail="Session manager not available",
+        )
 
     session = runner.session_manager.get_session(session_id)
     if not session:
-        raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found")
+        raise HTTPException(
+            status_code=404,
+            detail=f"Session '{session_id}' not found",
+        )
     return session.to_dict()
 
 
@@ -74,11 +80,17 @@ async def get_session(session_id: str, req: Request):
 async def delete_session(session_id: str, req: Request):
     runner = getattr(req.app.state, "runner", None)
     if not runner or not hasattr(runner, "session_manager"):
-        raise HTTPException(status_code=404, detail="Session manager not available")
+        raise HTTPException(
+            status_code=404,
+            detail="Session manager not available",
+        )
 
     session = runner.session_manager.get_session(session_id)
     if not session:
-        raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found")
+        raise HTTPException(
+            status_code=404,
+            detail=f"Session '{session_id}' not found",
+        )
 
     runner.session_manager.delete_session(session_id)
     return {"deleted": True, "session_id": session_id}
@@ -88,7 +100,10 @@ async def delete_session(session_id: str, req: Request):
 async def enable_cron_job(job_name: str, req: Request):
     cron = getattr(req.app.state, "cron", None)
     if not cron:
-        raise HTTPException(status_code=500, detail="Cron manager not available")
+        raise HTTPException(
+            status_code=500,
+            detail="Cron manager not available",
+        )
     cron.enable_job(job_name)
     return {"enabled": True, "job": job_name}
 
@@ -97,7 +112,10 @@ async def enable_cron_job(job_name: str, req: Request):
 async def disable_cron_job(job_name: str, req: Request):
     cron = getattr(req.app.state, "cron", None)
     if not cron:
-        raise HTTPException(status_code=500, detail="Cron manager not available")
+        raise HTTPException(
+            status_code=500,
+            detail="Cron manager not available",
+        )
     cron.disable_job(job_name)
     return {"enabled": False, "job": job_name}
 

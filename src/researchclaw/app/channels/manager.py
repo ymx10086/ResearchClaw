@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Channel manager – queue-based coordinator for multiple channels.
 
 Key improvements over CoPaw:
@@ -153,16 +152,27 @@ class ChannelManager:
                 available = set(ch_cfg.get("available", []))
 
         channels: List[BaseChannel] = []
-        extra = getattr(config, "extra_channels", {}) if hasattr(config, "extra_channels") else {}
+        extra = (
+            getattr(config, "extra_channels", {})
+            if hasattr(config, "extra_channels")
+            else {}
+        )
 
         for key, ch_cls in registry.items():
             if available and key not in available:
                 continue
-            ch_config = getattr(config.channels if hasattr(config, "channels") else config, key, None)
+            ch_config = getattr(
+                config.channels if hasattr(config, "channels") else config,
+                key,
+                None,
+            )
             if ch_config is None and key in extra:
                 from types import SimpleNamespace
+
                 raw = extra[key]
-                ch_config = SimpleNamespace(**raw) if isinstance(raw, dict) else raw
+                ch_config = (
+                    SimpleNamespace(**raw) if isinstance(raw, dict) else raw
+                )
             if ch_config is None:
                 continue
 
@@ -170,20 +180,25 @@ class ChannelManager:
                 if key == "console":
                     channels.append(
                         ch_cls.from_config(
-                            process, ch_config,
+                            process,
+                            ch_config,
                             on_reply_sent=on_last_dispatch,
                         ),
                     )
                 else:
                     channels.append(
                         ch_cls.from_config(
-                            process, ch_config,
+                            process,
+                            ch_config,
                             on_reply_sent=on_last_dispatch,
                             show_tool_details=show_tool_details,
                         ),
                     )
             except Exception:
-                logger.exception("Failed to create channel from config: %s", key)
+                logger.exception(
+                    "Failed to create channel from config: %s",
+                    key,
+                )
 
         return cls(channels)
 
@@ -191,8 +206,10 @@ class ChannelManager:
 
     def _make_enqueue_cb(self, channel_id: str) -> Callable[[Any], None]:
         """Return a callback that enqueues payload for the given channel."""
+
         def cb(payload: Any) -> None:
             self.enqueue(channel_id, payload)
+
         return cb
 
     def _enqueue_one(self, channel_id: str, payload: Any) -> None:
@@ -228,7 +245,9 @@ class ChannelManager:
             logger.warning("enqueue: loop not set for channel=%s", channel_id)
             return
         self._loop.call_soon_threadsafe(
-            self._enqueue_one, channel_id, payload,
+            self._enqueue_one,
+            channel_id,
+            payload,
         )
 
     # ── consumer loop ──────────────────────────────────────────────
@@ -252,7 +271,8 @@ class ChannelManager:
                     continue
                 key = ch_obj.get_debounce_key(payload)
                 key_lock = self._key_locks.setdefault(
-                    (channel_id, key), asyncio.Lock(),
+                    (channel_id, key),
+                    asyncio.Lock(),
                 )
                 async with key_lock:
                     self._in_progress.add((channel_id, key))
@@ -268,7 +288,8 @@ class ChannelManager:
             except Exception:
                 logger.exception(
                     "channel consume failed: channel=%s worker=%s",
-                    channel_id, worker_index,
+                    channel_id,
+                    worker_index,
                 )
 
     # ── lifecycle ──────────────────────────────────────────────────
@@ -360,7 +381,9 @@ class ChannelManager:
         # Ensure queue exists
         if name not in self._queues:
             if getattr(new_channel, "uses_manager_queue", True):
-                self._queues[name] = asyncio.Queue(maxsize=_CHANNEL_QUEUE_MAXSIZE)
+                self._queues[name] = asyncio.Queue(
+                    maxsize=_CHANNEL_QUEUE_MAXSIZE,
+                )
                 for w in range(_CONSUMER_WORKERS_PER_CHANNEL):
                     task = asyncio.create_task(
                         self._consume_channel_loop(name, w),
@@ -420,7 +443,9 @@ class ChannelManager:
         merged_meta["session_id"] = session_id
         merged_meta["user_id"] = user_id
         bot_prefix = getattr(ch, "bot_prefix", None) or getattr(
-            ch, "_bot_prefix", None,
+            ch,
+            "_bot_prefix",
+            None,
         )
         if bot_prefix and "bot_prefix" not in merged_meta:
             merged_meta["bot_prefix"] = bot_prefix
@@ -446,17 +471,22 @@ class ChannelManager:
             raise KeyError(f"channel not found: {channel}")
 
         to_handle = ch.to_handle_from_target(
-            user_id=user_id, session_id=session_id,
+            user_id=user_id,
+            session_id=session_id,
         )
         logger.info(
             "send_text: channel=%s user=%s session=%s to_handle=%s",
-            channel, (user_id or "")[:40],
-            (session_id or "")[:40], (to_handle or "")[:60],
+            channel,
+            (user_id or "")[:40],
+            (session_id or "")[:40],
+            (to_handle or "")[:60],
         )
 
         merged_meta = dict(meta or {})
         bot_prefix = getattr(ch, "bot_prefix", None) or getattr(
-            ch, "_bot_prefix", None,
+            ch,
+            "_bot_prefix",
+            None,
         )
         if bot_prefix and "bot_prefix" not in merged_meta:
             merged_meta["bot_prefix"] = bot_prefix

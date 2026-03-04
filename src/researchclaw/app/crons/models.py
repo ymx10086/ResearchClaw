@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Cron job models — schedules, dispatch targets, job specs, and state.
 
 Provides Pydantic models for defining and persisting cron jobs with

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Base Channel – unified async channel abstraction.
 
 All channels inherit from :class:`BaseChannel`. A channel converts between
@@ -89,8 +88,12 @@ class RefusalContent:
 
 
 OutgoingContentPart = Union[
-    TextContent, ImageContent, VideoContent, AudioContent,
-    FileContent, RefusalContent,
+    TextContent,
+    ImageContent,
+    VideoContent,
+    AudioContent,
+    FileContent,
+    RefusalContent,
 ]
 
 # ---------------------------------------------------------------------------
@@ -200,13 +203,16 @@ class BaseChannel(ABC):
     def _get_renderer(self) -> Any:
         """Return (and cache) the MessageRenderer instance."""
         if self._renderer is None:
-            from .renderer import MessageRenderer, RenderStyle
+            from .renderer import MessageRenderer  # noqa: F811
+            from .renderer import RenderStyle  # noqa: F811
 
             style = RenderStyle(
                 show_tool_details=self._show_tool_details,
                 show_emoji=getattr(self._render_style, "show_emoji", True),
                 max_tool_output_len=getattr(
-                    self._render_style, "max_tool_output_len", 300
+                    self._render_style,
+                    "max_tool_output_len",
+                    300,
                 ),
             )
             self._renderer = MessageRenderer(style)
@@ -315,7 +321,9 @@ class BaseChannel(ABC):
         for c in contents:
             t = getattr(c, "type", None)
             # Accept both our ContentType enum and string values
-            t_val = t.value if isinstance(t, ContentType) else str(t) if t else ""
+            t_val = (
+                t.value if isinstance(t, ContentType) else str(t) if t else ""
+            )
             if t_val == ContentType.TEXT.value:
                 if (getattr(c, "text", None) or "").strip():
                     return True
@@ -343,7 +351,8 @@ class BaseChannel(ABC):
         """
         if not self._content_has_text(content_parts):
             self._pending_content_by_session.setdefault(
-                session_id, []
+                session_id,
+                [],
             ).extend(content_parts)
             logger.debug(
                 "channel debounce: no text, buffered session_id=%s",
@@ -463,7 +472,11 @@ class BaseChannel(ABC):
             raise ValueError("payload is None")
         if hasattr(payload, "session_id") and hasattr(payload, "input"):
             return payload
-        if isinstance(payload, dict) and "session_id" in payload and "input" in payload:
+        if (
+            isinstance(payload, dict)
+            and "session_id" in payload
+            and "input" in payload
+        ):
             return payload
         return self.build_agent_request_from_native(payload)
 
@@ -479,9 +492,14 @@ class BaseChannel(ABC):
         Default: ``(to_handle, session_id)``.
         """
         if isinstance(request, dict):
-            session_id = request.get("session_id", "") or f"{self.channel}:{to_handle}"
+            session_id = (
+                request.get("session_id", "") or f"{self.channel}:{to_handle}"
+            )
         else:
-            session_id = getattr(request, "session_id", "") or f"{self.channel}:{to_handle}"
+            session_id = (
+                getattr(request, "session_id", "")
+                or f"{self.channel}:{to_handle}"
+            )
         return (to_handle, session_id)
 
     # ── webhook / token refresh ────────────────────────────────────
@@ -501,7 +519,9 @@ class BaseChannel(ABC):
             key = self.get_debounce_key(payload)
             if key in self._debounce_pending and self._debounce_pending[key]:
                 self._on_debounce_buffer_append(
-                    key, payload, self._debounce_pending[key],
+                    key,
+                    payload,
+                    self._debounce_pending[key],
                 )
             self._debounce_pending.setdefault(key, []).append(payload)
             old = self._debounce_timers.pop(key, None)
@@ -532,7 +552,9 @@ class BaseChannel(ABC):
         if isinstance(payload, dict):
             meta_from_payload = dict(payload.get("meta") or {})
             if payload.get("session_webhook"):
-                meta_from_payload["session_webhook"] = payload["session_webhook"]
+                meta_from_payload["session_webhook"] = payload[
+                    "session_webhook"
+                ]
             if hasattr(request, "channel_meta"):
                 request.channel_meta = meta_from_payload
             elif isinstance(request, dict):
@@ -540,23 +562,27 @@ class BaseChannel(ABC):
 
         # No-text debounce
         session_id = (
-            request.get("session_id", "") if isinstance(request, dict)
+            request.get("session_id", "")
+            if isinstance(request, dict)
             else getattr(request, "session_id", "")
         ) or ""
 
         inp = (
-            request.get("input") if isinstance(request, dict)
+            request.get("input")
+            if isinstance(request, dict)
             else getattr(request, "input", None)
         )
         if inp:
             first_msg = inp[0] if isinstance(inp, list) else inp
             contents = (
-                first_msg.get("content") if isinstance(first_msg, dict)
+                first_msg.get("content")
+                if isinstance(first_msg, dict)
                 else getattr(first_msg, "content", None)
             ) or []
             contents = list(contents)
             should_process, merged = self._apply_no_text_debounce(
-                session_id, contents,
+                session_id,
+                contents,
             )
             if not should_process:
                 return
@@ -583,11 +609,17 @@ class BaseChannel(ABC):
         else:
             send_meta = (
                 getattr(request, "channel_meta", None)
-                or (request.get("channel_meta") if isinstance(request, dict) else None)
+                or (
+                    request.get("channel_meta")
+                    if isinstance(request, dict)
+                    else None
+                )
                 or {}
             )
         bot_prefix = getattr(self, "bot_prefix", None) or getattr(
-            self, "_bot_prefix", "",
+            self,
+            "_bot_prefix",
+            "",
         )
         if bot_prefix and "bot_prefix" not in send_meta:
             send_meta = {**send_meta, "bot_prefix": bot_prefix}
@@ -626,7 +658,8 @@ class BaseChannel(ABC):
                 getattr(request, "channel_meta", None)
                 if not isinstance(request, dict)
                 else request.get("channel_meta")
-            ) or {},
+            )
+            or {},
         )
 
     # ── process loop ───────────────────────────────────────────────
@@ -642,7 +675,9 @@ class BaseChannel(ABC):
         Override for channel-specific loops (e.g. DingTalk webhook sends).
         """
         bot_prefix = send_meta.get("bot_prefix", "") or getattr(
-            self, "bot_prefix", "",
+            self,
+            "bot_prefix",
+            "",
         )
         last_response = None
         try:
@@ -651,14 +686,20 @@ class BaseChannel(ABC):
                 status = getattr(event, "status", None)
                 # Support both RunStatus objects and string values
                 status_val = (
-                    status.value if hasattr(status, "value") else str(status)
-                ) if status else ""
+                    (status.value if hasattr(status, "value") else str(status))
+                    if status
+                    else ""
+                )
                 completed = status_val in (
-                    RunStatus.Completed, "completed",
+                    RunStatus.Completed,
+                    "completed",
                 )
                 if obj == "message" and completed:
                     await self.on_event_message_completed(
-                        request, to_handle, event, send_meta,
+                        request,
+                        to_handle,
+                        event,
+                        send_meta,
                     )
                 elif obj == "response":
                     last_response = event
@@ -666,7 +707,8 @@ class BaseChannel(ABC):
 
             if last_response and getattr(last_response, "error", None):
                 err = getattr(
-                    last_response.error, "message",
+                    last_response.error,
+                    "message",
                     str(last_response.error),
                 )
                 err_text = (bot_prefix or "") + f"Error: {err}"
@@ -678,13 +720,17 @@ class BaseChannel(ABC):
         except Exception:
             logger.exception("channel consume_one failed")
             await self._on_consume_error(
-                request, to_handle,
+                request,
+                to_handle,
                 "An error occurred while processing your request.",
             )
 
     # ── message rendering ──────────────────────────────────────────
 
-    def _message_to_content_parts(self, message: Any) -> List[OutgoingContentPart]:
+    def _message_to_content_parts(
+        self,
+        message: Any,
+    ) -> List[OutgoingContentPart]:
         """Convert a message event into sendable content parts.
 
         Delegates to the pluggable renderer.
@@ -708,7 +754,8 @@ class BaseChannel(ABC):
             return
         logger.debug(
             "send_message_content: to_handle=%s parts=%d types=%s",
-            to_handle, len(parts),
+            to_handle,
+            len(parts),
             [getattr(p, "type", None) for p in parts],
         )
         await self.send_content_parts(to_handle, parts, meta)
@@ -731,10 +778,16 @@ class BaseChannel(ABC):
         media_parts: List[OutgoingContentPart] = []
         for p in parts:
             t = getattr(p, "type", None)
-            t_val = t.value if isinstance(t, ContentType) else str(t) if t else ""
+            t_val = (
+                t.value if isinstance(t, ContentType) else str(t) if t else ""
+            )
             if t_val == ContentType.TEXT.value and getattr(p, "text", None):
                 text_parts.append(p.text)
-            elif t_val == ContentType.REFUSAL.value and getattr(p, "refusal", None):
+            elif t_val == ContentType.REFUSAL.value and getattr(
+                p,
+                "refusal",
+                None,
+            ):
                 text_parts.append(p.refusal)
             elif t_val in (
                 ContentType.IMAGE.value,
@@ -751,12 +804,23 @@ class BaseChannel(ABC):
 
         for m in media_parts:
             t_val = (
-                m.type.value if isinstance(m.type, ContentType)
-                else str(m.type) if m.type else ""
+                m.type.value
+                if isinstance(m.type, ContentType)
+                else str(m.type)
+                if m.type
+                else ""
             )
-            if t_val == ContentType.IMAGE.value and getattr(m, "image_url", None):
+            if t_val == ContentType.IMAGE.value and getattr(
+                m,
+                "image_url",
+                None,
+            ):
                 body += f"\n[Image: {m.image_url}]"
-            elif t_val == ContentType.VIDEO.value and getattr(m, "video_url", None):
+            elif t_val == ContentType.VIDEO.value and getattr(
+                m,
+                "video_url",
+                None,
+            ):
                 body += f"\n[Video: {m.video_url}]"
             elif t_val == ContentType.FILE.value and (
                 getattr(m, "file_url", None) or getattr(m, "file_id", None)
@@ -802,19 +866,26 @@ class BaseChannel(ABC):
 
         last_msg = output[-1] if isinstance(output, list) else output
         content = (
-            last_msg.get("content") if isinstance(last_msg, dict)
+            last_msg.get("content")
+            if isinstance(last_msg, dict)
             else getattr(last_msg, "content", None)
         )
         if not content:
             return ""
 
         parts = []
-        for c in (content if isinstance(content, list) else [content]):
+        for c in content if isinstance(content, list) else [content]:
             t = getattr(c, "type", None)
-            t_val = t.value if isinstance(t, ContentType) else str(t) if t else ""
+            t_val = (
+                t.value if isinstance(t, ContentType) else str(t) if t else ""
+            )
             if t_val == ContentType.TEXT.value and getattr(c, "text", None):
                 parts.append(c.text)
-            elif t_val == ContentType.REFUSAL.value and getattr(c, "refusal", None):
+            elif t_val == ContentType.REFUSAL.value and getattr(
+                c,
+                "refusal",
+                None,
+            ):
                 parts.append(c.refusal)
         return "".join(parts)
 
@@ -870,14 +941,20 @@ class BaseChannel(ABC):
         obj = getattr(event, "object", None)
         status = getattr(event, "status", None)
         status_val = (
-            status.value if hasattr(status, "value") else str(status)
-        ) if status else ""
+            (status.value if hasattr(status, "value") else str(status))
+            if status
+            else ""
+        )
 
-        if obj != "message" or status_val not in (RunStatus.Completed, "completed"):
+        if obj != "message" or status_val not in (
+            RunStatus.Completed,
+            "completed",
+        ):
             return
 
         to_handle = self.to_handle_from_target(
-            user_id=user_id, session_id=session_id,
+            user_id=user_id,
+            session_id=session_id,
         )
         await self.send_message_content(to_handle, event, meta)
 

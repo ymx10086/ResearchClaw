@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Console push store for SSE-based real-time updates.
 
 Supports two complementary push mechanisms:

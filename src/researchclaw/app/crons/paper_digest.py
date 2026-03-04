@@ -58,7 +58,11 @@ async def paper_digest():
             digest_file = digest_path / f"digest_{int(time.time())}.json"
             digest_file.write_text(
                 json.dumps(
-                    {"timestamp": time.time(), "areas": areas, "papers": results},
+                    {
+                        "timestamp": time.time(),
+                        "areas": areas,
+                        "papers": results,
+                    },
                     indent=2,
                     ensure_ascii=False,
                 ),

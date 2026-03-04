@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Tool message validation and sanitization utilities.
 
 This module ensures tool_use and tool_result messages are properly

@@ -118,7 +118,9 @@ def semantic_scholar_search(
         return results
 
     except ImportError:
-        return [{"error": "httpx package not installed. Run: pip install httpx"}]
+        return [
+            {"error": "httpx package not installed. Run: pip install httpx"},
+        ]
     except Exception as e:
         logger.exception("Semantic Scholar search failed")
         return [{"error": f"Semantic Scholar search failed: {e}"}]

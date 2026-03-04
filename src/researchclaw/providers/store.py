@@ -14,7 +14,9 @@ class ProviderStore:
     """Stores provider configurations in working directory."""
 
     def __init__(self, file_path: str | None = None):
-        self.file_path = Path(file_path or (Path(WORKING_DIR) / "providers.json"))
+        self.file_path = Path(
+            file_path or (Path(WORKING_DIR) / "providers.json"),
+        )
         self.file_path.parent.mkdir(parents=True, exist_ok=True)
 
     def list_providers(self) -> list[dict]:
@@ -48,6 +50,10 @@ class ProviderStore:
 
     def _save(self, items: list[ProviderConfig]) -> None:
         self.file_path.write_text(
-            json.dumps([item.to_dict() for item in items], indent=2, ensure_ascii=False),
+            json.dumps(
+                [item.to_dict() for item in items],
+                indent=2,
+                ensure_ascii=False,
+            ),
             encoding="utf-8",
         )

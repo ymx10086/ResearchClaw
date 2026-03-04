@@ -64,7 +64,7 @@ class PromptConfig:
             PromptFileSpec("SOUL.md", required=True),
             PromptFileSpec("PROFILE.md", required=False),
             PromptFileSpec("RESEARCH_AREAS.md", required=False),
-        ]
+        ],
     )
 
 

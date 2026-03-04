@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Cron job manager – APScheduler-based scheduling with persistence.
 
 Supports both:
@@ -226,7 +225,9 @@ class CronManager:
     async def create_or_replace_job(self, spec: CronJobSpec) -> None:
         """Create or update a persistent cron job."""
         if self._repo is None:
-            raise RuntimeError("No repository configured; cannot manage persistent jobs")
+            raise RuntimeError(
+                "No repository configured; cannot manage persistent jobs",
+            )
         async with self._lock:
             await self._repo.upsert_job(spec)
             if self._started and self._scheduler:
@@ -349,10 +350,13 @@ class CronManager:
             if session_id:
                 error_text = f"Cron job [{job.name}] failed: {exc}"
                 asyncio.ensure_future(
-                    push_store.push("cron_error", {
-                        "session_id": session_id,
-                        "text": error_text,
-                    }),
+                    push_store.push(
+                        "cron_error",
+                        {
+                            "session_id": session_id,
+                            "text": error_text,
+                        },
+                    ),
                 )
 
     # ----- Internal -----
@@ -451,7 +455,8 @@ class CronManager:
                 st.last_status = "success"
                 st.last_error = None
                 logger.info(
-                    "cron _execute_once: job_id=%s status=success", job.id,
+                    "cron _execute_once: job_id=%s status=success",
+                    job.id,
                 )
             except Exception as e:
                 st.last_status = "error"

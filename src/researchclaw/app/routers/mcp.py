@@ -42,14 +42,24 @@ async def list_clients(req: Request) -> List[dict[str, Any]]:
 
 
 @router.post("", status_code=201)
-async def create_client(client_key: str, body: MCPClientCreate, req: Request) -> dict[str, Any]:
+async def create_client(
+    client_key: str,
+    body: MCPClientCreate,
+    req: Request,
+) -> dict[str, Any]:
     mcp = getattr(req.app.state, "mcp_manager", None)
     if not mcp:
-        raise HTTPException(status_code=500, detail="MCP manager not available")
+        raise HTTPException(
+            status_code=500,
+            detail="MCP manager not available",
+        )
 
     existing = {item.get("key") for item in mcp.list_clients()}
     if client_key in existing:
-        raise HTTPException(status_code=400, detail=f"MCP client '{client_key}' already exists")
+        raise HTTPException(
+            status_code=400,
+            detail=f"MCP client '{client_key}' already exists",
+        )
 
     mcp.register(client_key, body.model_dump())
     await mcp.save()
@@ -57,10 +67,17 @@ async def create_client(client_key: str, body: MCPClientCreate, req: Request) ->
 
 
 @router.put("/{client_key}")
-async def update_client(client_key: str, body: MCPClientCreate, req: Request) -> dict[str, Any]:
+async def update_client(
+    client_key: str,
+    body: MCPClientCreate,
+    req: Request,
+) -> dict[str, Any]:
     mcp = getattr(req.app.state, "mcp_manager", None)
     if not mcp:
-        raise HTTPException(status_code=500, detail="MCP manager not available")
+        raise HTTPException(
+            status_code=500,
+            detail="MCP manager not available",
+        )
 
     mcp.register(client_key, body.model_dump())
     await mcp.save()
@@ -71,12 +88,18 @@ async def update_client(client_key: str, body: MCPClientCreate, req: Request) ->
 async def toggle_client(client_key: str, req: Request) -> dict[str, Any]:
     mcp = getattr(req.app.state, "mcp_manager", None)
     if not mcp:
-        raise HTTPException(status_code=500, detail="MCP manager not available")
+        raise HTTPException(
+            status_code=500,
+            detail="MCP manager not available",
+        )
 
     clients = {item.get("key"): item for item in mcp.list_clients()}
     item = clients.get(client_key)
     if not item:
-        raise HTTPException(status_code=404, detail=f"MCP client '{client_key}' not found")
+        raise HTTPException(
+            status_code=404,
+            detail=f"MCP client '{client_key}' not found",
+        )
 
     item["enabled"] = not bool(item.get("enabled", True))
     mcp.register(client_key, item)
@@ -88,7 +111,10 @@ async def toggle_client(client_key: str, req: Request) -> dict[str, Any]:
 async def delete_client(client_key: str, req: Request) -> dict[str, Any]:
     mcp = getattr(req.app.state, "mcp_manager", None)
     if not mcp:
-        raise HTTPException(status_code=500, detail="MCP manager not available")
+        raise HTTPException(
+            status_code=500,
+            detail="MCP manager not available",
+        )
 
     mcp.remove(client_key)
     await mcp.save()

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=too-many-branches,too-many-statements
 """DingTalk channel: DingTalk Stream for incoming, webhook/API for replies.
 
@@ -40,7 +39,9 @@ def _short_session_id(conversation_id: str) -> str:
     """Short suffix of conversation_id for session lookup."""
     if not conversation_id:
         return ""
-    return conversation_id[-16:] if len(conversation_id) > 16 else conversation_id
+    return (
+        conversation_id[-16:] if len(conversation_id) > 16 else conversation_id
+    )
 
 
 class DingTalkChannel(BaseChannel):
@@ -123,7 +124,8 @@ class DingTalkChannel(BaseChannel):
             client_id=getattr(config, "client_id", "") or "",
             client_secret=getattr(config, "client_secret", "") or "",
             bot_prefix=getattr(config, "bot_prefix", "[BOT] ") or "[BOT] ",
-            media_dir=getattr(config, "media_dir", "~/.researchclaw/media") or "~/.researchclaw/media",
+            media_dir=getattr(config, "media_dir", "~/.researchclaw/media")
+            or "~/.researchclaw/media",
             on_reply_sent=on_reply_sent,
             show_tool_details=show_tool_details,
         )
@@ -226,7 +228,8 @@ class DingTalkChannel(BaseChannel):
                     body = await resp.text()
                     logger.warning(
                         "dingtalk webhook send failed: HTTP %s: %s",
-                        resp.status, body[:200],
+                        resp.status,
+                        body[:200],
                     )
         except Exception:
             logger.exception("dingtalk: webhook send failed")
@@ -238,7 +241,9 @@ class DingTalkChannel(BaseChannel):
             logger.debug("dingtalk channel disabled")
             return
         if not self.client_id or not self.client_secret:
-            logger.warning("dingtalk: client_id or client_secret not configured")
+            logger.warning(
+                "dingtalk: client_id or client_secret not configured",
+            )
             return
 
         try:
@@ -246,26 +251,35 @@ class DingTalkChannel(BaseChannel):
         except ImportError:
             logger.warning(
                 "dingtalk-stream not installed. "
-                "Install with: pip install dingtalk-stream"
+                "Install with: pip install dingtalk-stream",
             )
             return
 
         self._loop = asyncio.get_running_loop()
         credential = dingtalk_stream.Credential(
-            self.client_id, self.client_secret,
+            self.client_id,
+            self.client_secret,
         )
         self._client = dingtalk_stream.DingTalkStreamClient(credential)
 
         # Register chatbot handler
         async def _on_message(headers: dict, incoming: Any) -> Any:
-            text = (getattr(incoming, "text", None) or {}).get("content", "").strip()
+            text = (
+                (getattr(incoming, "text", None) or {})
+                .get("content", "")
+                .strip()
+            )
             sender_id = getattr(incoming, "sender_staff_id", "") or getattr(
-                incoming, "sender_id", ""
+                incoming,
+                "sender_id",
+                "",
             )
             conversation_id = getattr(incoming, "conversation_id", "")
             session_webhook = getattr(incoming, "session_webhook", "")
 
-            content_parts = [TextContent(text=text)] if text else [TextContent(text="")]
+            content_parts = (
+                [TextContent(text=text)] if text else [TextContent(text="")]
+            )
 
             meta = {
                 "conversation_id": conversation_id,
@@ -313,7 +327,9 @@ class DingTalkChannel(BaseChannel):
                 logger.exception("dingtalk stream thread crashed")
 
         self._stream_thread = threading.Thread(
-            target=_run_stream, daemon=True, name="dingtalk_stream",
+            target=_run_stream,
+            daemon=True,
+            name="dingtalk_stream",
         )
         self._stream_thread.start()
         logger.info("DingTalk channel started")

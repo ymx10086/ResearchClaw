@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Runner utility functions.
 
 Provides environment context building for agent queries and

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """iMessage channel: macOS Messages.app integration via sqlite + imsg CLI.
 
 Key improvements over CoPaw:
@@ -78,7 +77,10 @@ class IMessageChannel(BaseChannel):
         return cls(
             process=process,
             enabled=os.getenv("IMESSAGE_CHANNEL_ENABLED", "0") == "1",
-            db_path=os.getenv("IMESSAGE_DB_PATH", "~/Library/Messages/chat.db"),
+            db_path=os.getenv(
+                "IMESSAGE_DB_PATH",
+                "~/Library/Messages/chat.db",
+            ),
             poll_sec=float(os.getenv("IMESSAGE_POLL_SEC", "1.0")),
             bot_prefix=os.getenv("IMESSAGE_BOT_PREFIX", "[BOT] "),
             on_reply_sent=on_reply_sent,
@@ -95,7 +97,8 @@ class IMessageChannel(BaseChannel):
         return cls(
             process=process,
             enabled=getattr(config, "enabled", False),
-            db_path=getattr(config, "db_path", "~/Library/Messages/chat.db") or "~/Library/Messages/chat.db",
+            db_path=getattr(config, "db_path", "~/Library/Messages/chat.db")
+            or "~/Library/Messages/chat.db",
             poll_sec=getattr(config, "poll_sec", 1.0),
             bot_prefix=getattr(config, "bot_prefix", "[BOT] ") or "[BOT] ",
             on_reply_sent=on_reply_sent,
@@ -112,7 +115,7 @@ class IMessageChannel(BaseChannel):
                 "Cannot find executable: imsg. Install it with:\n"
                 "  brew install steipete/tap/imsg\n"
                 "Then verify:\n"
-                "  which imsg\n"
+                "  which imsg\n",
             )
         return path
 
@@ -151,11 +154,13 @@ class IMessageChannel(BaseChannel):
                 rowid, text, is_from_me, sender_id = row
                 self._last_rowid = max(self._last_rowid, rowid)
                 if text and text.strip():
-                    messages.append({
-                        "rowid": rowid,
-                        "text": text.strip(),
-                        "sender_id": sender_id or "",
-                    })
+                    messages.append(
+                        {
+                            "rowid": rowid,
+                            "text": text.strip(),
+                            "sender_id": sender_id or "",
+                        },
+                    )
             return messages
         except Exception:
             logger.exception("imessage: poll failed")
@@ -207,6 +212,7 @@ class IMessageChannel(BaseChannel):
             return
 
         import sys
+
         if sys.platform != "darwin":
             logger.warning("imessage: only available on macOS")
             self.enabled = False
@@ -229,19 +235,28 @@ class IMessageChannel(BaseChannel):
                             "content_parts": content_parts,
                             "meta": {"sender_id": msg["sender_id"]},
                         }
-                        if self._enqueue is not None and self._loop is not None:
+                        if (
+                            self._enqueue is not None
+                            and self._loop is not None
+                        ):
                             self._loop.call_soon_threadsafe(
-                                self._enqueue, native,
+                                self._enqueue,
+                                native,
                             )
                 except Exception:
                     logger.exception("imessage: poll loop error")
                 self._stop_event.wait(self.poll_sec)
 
         self._thread = threading.Thread(
-            target=_poll_loop, daemon=True, name="imessage_poll",
+            target=_poll_loop,
+            daemon=True,
+            name="imessage_poll",
         )
         self._thread.start()
-        logger.info("iMessage channel started (polling every %.1fs)", self.poll_sec)
+        logger.info(
+            "iMessage channel started (polling every %.1fs)",
+            self.poll_sec,
+        )
 
     async def stop(self) -> None:
         if not self.enabled:

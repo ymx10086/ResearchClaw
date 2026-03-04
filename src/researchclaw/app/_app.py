@@ -102,8 +102,18 @@ async def lifespan(app: FastAPI):
             interval_seconds=max(1, HEARTBEAT_INTERVAL_MINUTES) * 60,
             enabled=HEARTBEAT_ENABLED,
         )
-        cron.register("paper_digest", paper_digest, interval_seconds=6 * 3600, enabled=True)
-        cron.register("deadline_reminder", deadline_reminder, interval_seconds=12 * 3600, enabled=True)
+        cron.register(
+            "paper_digest",
+            paper_digest,
+            interval_seconds=6 * 3600,
+            enabled=True,
+        )
+        cron.register(
+            "deadline_reminder",
+            deadline_reminder,
+            interval_seconds=12 * 3600,
+            enabled=True,
+        )
         await cron.start()
         app.state.cron = cron
         logger.info("Cron manager started")
@@ -167,7 +177,18 @@ async def health_check():
 # ── API routes ──────────────────────────────────────────────────────────────
 
 try:
-    from .routers import agent, config, console, control, envs, mcp, papers, providers, skills, workspace
+    from .routers import (
+        agent,
+        config,
+        console,
+        control,
+        envs,
+        mcp,
+        papers,
+        providers,
+        skills,
+        workspace,
+    )
 
     app.include_router(agent.router, prefix="/api/agent", tags=["Agent"])
     app.include_router(config.router, prefix="/api/config", tags=["Config"])
@@ -176,9 +197,17 @@ try:
     app.include_router(envs.router, prefix="/api/envs", tags=["Environments"])
     app.include_router(mcp.router, prefix="/api/mcp", tags=["MCP"])
     app.include_router(papers.router, prefix="/api/papers", tags=["Papers"])
-    app.include_router(providers.router, prefix="/api/providers", tags=["Providers"])
+    app.include_router(
+        providers.router,
+        prefix="/api/providers",
+        tags=["Providers"],
+    )
     app.include_router(skills.router, prefix="/api/skills", tags=["Skills"])
-    app.include_router(workspace.router, prefix="/api/workspace", tags=["Workspace"])
+    app.include_router(
+        workspace.router,
+        prefix="/api/workspace",
+        tags=["Workspace"],
+    )
 except ImportError as e:
     logger.warning("Some routers could not be loaded: %s", e)
 
@@ -194,7 +223,9 @@ def _find_console_dir() -> Path | None:
         return pkg_console
 
     # 2. Development: console/dist
-    dev_console = Path(__file__).parent.parent.parent.parent / "console" / "dist"
+    dev_console = (
+        Path(__file__).parent.parent.parent.parent / "console" / "dist"
+    )
     if (dev_console / "index.html").exists():
         return dev_console
 
@@ -207,7 +238,11 @@ if _console_dir:
     # Mount static assets
     assets_dir = _console_dir / "assets"
     if assets_dir.exists():
-        app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="assets")
+        app.mount(
+            "/assets",
+            StaticFiles(directory=str(assets_dir)),
+            name="assets",
+        )
 
     @app.get("/")
     async def serve_index():
@@ -225,7 +260,9 @@ if _console_dir:
             return FileResponse(str(file_path))
 
         return FileResponse(str(_console_dir / "index.html"))
+
 else:
+
     @app.get("/")
     async def no_console():
         """Fallback when console is not built."""
@@ -233,5 +270,5 @@ else:
             "<h1>ResearchClaw</h1>"
             "<p>Console not found. Build it with <code>cd console && npm run build</code></p>"
             f"<p>API is available at <a href='/docs'>/docs</a> (if enabled)</p>"
-            f"<p>Version: {__version__}</p>"
+            f"<p>Version: {__version__}</p>",
         )

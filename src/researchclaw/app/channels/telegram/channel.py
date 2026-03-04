@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=too-many-branches
 """Telegram channel: Bot API with polling; receive/send via chat_id.
 
@@ -91,14 +90,18 @@ async def _build_content_parts_from_message(
     Returns (content_parts, has_bot_command).
     """
     message = getattr(update, "message", None) or getattr(
-        update, "edited_message", None,
+        update,
+        "edited_message",
+        None,
     )
     if not message:
         return [TextContent(text="")], False
 
     content_parts: list[Any] = []
     text = (
-        getattr(message, "text", None) or getattr(message, "caption", None) or ""
+        getattr(message, "text", None)
+        or getattr(message, "caption", None)
+        or ""
     ).strip()
 
     entities = (
@@ -122,8 +125,10 @@ async def _build_content_parts_from_message(
         file_id = getattr(largest, "file_id", None)
         if file_id:
             local_path = await _download_telegram_file(
-                bot=bot, file_id=file_id,
-                media_dir=media_dir, filename_hint="photo.jpg",
+                bot=bot,
+                file_id=file_id,
+                media_dir=media_dir,
+                filename_hint="photo.jpg",
             )
             if local_path:
                 content_parts.append(ImageContent(image_url=local_path))
@@ -138,8 +143,10 @@ async def _build_content_parts_from_message(
             continue
         file_name = getattr(media_obj, "file_name", None) or attr_name
         local_path = await _download_telegram_file(
-            bot=bot, file_id=file_id,
-            media_dir=media_dir, filename_hint=file_name,
+            bot=bot,
+            file_id=file_id,
+            media_dir=media_dir,
+            filename_hint=file_name,
         )
         if local_path:
             content_parts.append(
@@ -155,7 +162,9 @@ async def _build_content_parts_from_message(
 def _message_meta(update: Any) -> dict:
     """Extract chat_id, user_id, etc. from Telegram update."""
     message = getattr(update, "message", None) or getattr(
-        update, "edited_message", None,
+        update,
+        "edited_message",
+        None,
     )
     if not message:
         return {}
@@ -220,7 +229,8 @@ class TelegramChannel(BaseChannel):
             token=os.getenv("TELEGRAM_BOT_TOKEN", ""),
             bot_prefix=os.getenv("TELEGRAM_BOT_PREFIX", "[BOT] "),
             media_dir=os.getenv(
-                "TELEGRAM_MEDIA_DIR", "~/.researchclaw/media/telegram"
+                "TELEGRAM_MEDIA_DIR",
+                "~/.researchclaw/media/telegram",
             ),
             http_proxy=os.getenv("TELEGRAM_HTTP_PROXY", ""),
             on_reply_sent=on_reply_sent,
@@ -240,8 +250,11 @@ class TelegramChannel(BaseChannel):
             token=getattr(config, "bot_token", "") or "",
             bot_prefix=getattr(config, "bot_prefix", "[BOT] ") or "[BOT] ",
             media_dir=getattr(
-                config, "media_dir", "~/.researchclaw/media/telegram"
-            ) or "~/.researchclaw/media/telegram",
+                config,
+                "media_dir",
+                "~/.researchclaw/media/telegram",
+            )
+            or "~/.researchclaw/media/telegram",
             http_proxy=getattr(config, "http_proxy", "") or "",
             on_reply_sent=on_reply_sent,
             show_tool_details=show_tool_details,
@@ -310,7 +323,8 @@ class TelegramChannel(BaseChannel):
                     await bot.send_message(chat_id=chat_id, text=chunk)
                 except Exception:
                     logger.exception(
-                        "telegram: send_message failed chat_id=%s", chat_id
+                        "telegram: send_message failed chat_id=%s",
+                        chat_id,
                     )
 
     async def send_media(
@@ -344,7 +358,11 @@ class TelegramChannel(BaseChannel):
                 if data:
                     await bot.send_audio(chat_id=chat_id, audio=data)
             elif t_val == ContentType.FILE.value:
-                url = getattr(part, "file_url", "") or getattr(part, "file_id", "")
+                url = getattr(part, "file_url", "") or getattr(
+                    part,
+                    "file_id",
+                    "",
+                )
                 if url:
                     await bot.send_document(chat_id=chat_id, document=url)
         except Exception:
@@ -369,21 +387,26 @@ class TelegramChannel(BaseChannel):
         except ImportError:
             logger.warning(
                 "python-telegram-bot not installed. "
-                "Install with: pip install python-telegram-bot"
+                "Install with: pip install python-telegram-bot",
             )
             return
 
         builder = ApplicationBuilder().token(self.token)
         if self._http_proxy:
             builder = builder.proxy(self._http_proxy).get_updates_proxy(
-                self._http_proxy
+                self._http_proxy,
             )
 
         self._app = builder.build()
 
         async def _handle_message(update: Any, context: Any) -> None:
-            content_parts, has_bot_command = await _build_content_parts_from_message(
-                update, bot=self._app.bot, media_dir=self._media_dir,
+            (
+                content_parts,
+                has_bot_command,
+            ) = await _build_content_parts_from_message(
+                update,
+                bot=self._app.bot,
+                media_dir=self._media_dir,
             )
             meta = _message_meta(update)
             native = {
@@ -398,8 +421,12 @@ class TelegramChannel(BaseChannel):
                 logger.warning("telegram: _enqueue not set, message dropped")
 
         handler = MessageHandler(
-            filters.TEXT | filters.PHOTO | filters.Document.ALL
-            | filters.VIDEO | filters.AUDIO | filters.VOICE,
+            filters.TEXT
+            | filters.PHOTO
+            | filters.Document.ALL
+            | filters.VIDEO
+            | filters.AUDIO
+            | filters.VOICE,
             _handle_message,
         )
         self._app.add_handler(handler)

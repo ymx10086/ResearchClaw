@@ -47,4 +47,7 @@ class EnvStore:
         return json.loads(self.file_path.read_text(encoding="utf-8"))
 
     def _save(self, items: list[dict[str, Any]]) -> None:
-        self.file_path.write_text(json.dumps(items, indent=2, ensure_ascii=False), encoding="utf-8")
+        self.file_path.write_text(
+            json.dumps(items, indent=2, ensure_ascii=False),
+            encoding="utf-8",
+        )

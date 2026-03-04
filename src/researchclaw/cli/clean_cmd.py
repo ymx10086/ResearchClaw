@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """researchclaw clean — remove WORKING_DIR contents."""
 from __future__ import annotations
 
@@ -18,7 +17,11 @@ def _iter_children(p: Path) -> list[Path]:
 
 @click.command("clean")
 @click.option("--yes", is_flag=True, help="Do not prompt for confirmation")
-@click.option("--dry-run", is_flag=True, help="List what would be deleted, but do not delete")
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="List what would be deleted, but do not delete",
+)
 def clean_cmd(yes: bool, dry_run: bool) -> None:
     """Clear ResearchClaw WORKING_DIR (~/.researchclaw by default)."""
     wd = Path(WORKING_DIR)

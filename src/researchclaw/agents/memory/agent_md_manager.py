@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Agent markdown manager for reading and writing markdown files in working
 and memory directories.
 
@@ -256,7 +255,8 @@ class AgentMdManager:
                 try:
                     content = md_file.read_text(encoding="utf-8")
                     for line_no, line in enumerate(
-                        content.splitlines(), start=1
+                        content.splitlines(),
+                        start=1,
                     ):
                         if query_lower in line.lower():
                             results.append(

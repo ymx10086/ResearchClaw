@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Agent utilities package.
 
 This package provides utilities for agent operations:

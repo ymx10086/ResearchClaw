@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Write query-handler error log and agent/memory state to a temp JSON file.
 
 When an error occurs during agent query handling, this module captures

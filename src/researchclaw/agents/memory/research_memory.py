@@ -64,7 +64,7 @@ class ResearchMemory:
                 "role": role,
                 "content": content,
                 "timestamp": datetime.now().isoformat(),
-            }
+            },
         )
         self._save_state()
 
@@ -120,7 +120,7 @@ class ResearchMemory:
                 "content": content,
                 "tags": tags or [],
                 "created_at": datetime.now().isoformat(),
-            }
+            },
         )
         self._save_state()
 
@@ -136,11 +136,13 @@ class ResearchMemory:
                 summary_parts.append(self._compact_summary)
 
             # Simple summary: extract key topics
-            user_msgs = [m["content"] for m in self._messages if m["role"] == "user"]
+            user_msgs = [
+                m["content"] for m in self._messages if m["role"] == "user"
+            ]
             if user_msgs:
                 topics = "; ".join(user_msgs[:5])
                 summary_parts.append(
-                    f"Session {self._session_count + 1}: Topics discussed: {topics[:500]}"
+                    f"Session {self._session_count + 1}: Topics discussed: {topics[:500]}",
                 )
 
             self._compact_summary = "\n".join(summary_parts)
@@ -170,11 +172,11 @@ class ResearchMemory:
 
         if user_msgs:
             summary_parts.append(
-                f"User asked about: {'; '.join(m[:100] for m in user_msgs[:10])}"
+                f"User asked about: {'; '.join(m[:100] for m in user_msgs[:10])}",
             )
         if asst_msgs:
             summary_parts.append(
-                f"Assistant covered: {'; '.join(m[:100] for m in asst_msgs[:5])}"
+                f"Assistant covered: {'; '.join(m[:100] for m in asst_msgs[:5])}",
             )
 
         self._compact_summary = "\n".join(summary_parts)
@@ -228,12 +230,14 @@ class ResearchMemory:
                             "source": "conversation",
                             "role": msg["role"],
                             "timestamp": msg.get("timestamp", ""),
-                        }
+                        },
                     )
 
         if search_type in ("all", "notes"):
             for note in self._notes:
-                searchable = f"{note.get('title', '')} {note['content']}".lower()
+                searchable = (
+                    f"{note.get('title', '')} {note['content']}".lower()
+                )
                 if query_lower in searchable:
                     results.append(
                         {
@@ -242,7 +246,7 @@ class ResearchMemory:
                             "title": note.get("title", ""),
                             "tags": note.get("tags", []),
                             "timestamp": note.get("created_at", ""),
-                        }
+                        },
                     )
 
         if search_type in ("all", "papers"):
@@ -256,7 +260,7 @@ class ResearchMemory:
                             "authors": paper.get("authors", []),
                             "year": paper.get("year"),
                             "timestamp": paper.get("discussed_at", ""),
-                        }
+                        },
                     )
 
         return results[:max_results]

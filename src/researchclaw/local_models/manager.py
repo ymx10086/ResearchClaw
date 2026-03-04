@@ -113,11 +113,15 @@ class LocalModelManager:
         """
         if source == DownloadSource.HUGGINGFACE:
             return LocalModelManager._download_from_huggingface(
-                repo_id, filename, backend,
+                repo_id,
+                filename,
+                backend,
             )
         elif source == DownloadSource.MODELSCOPE:
             return LocalModelManager._download_from_modelscope(
-                repo_id, filename, backend,
+                repo_id,
+                filename,
+                backend,
             )
         else:
             raise ValueError(f"Unknown download source: {source}")
@@ -168,7 +172,8 @@ class LocalModelManager:
 
         logger.info(
             "Downloading %s/%s from Hugging Face...",
-            repo_id, filename,
+            repo_id,
+            filename,
         )
         downloaded_path = hf_hub_download(
             repo_id=repo_id,
@@ -177,8 +182,11 @@ class LocalModelManager:
         )
 
         return LocalModelManager._register_model(
-            repo_id, filename, backend,
-            DownloadSource.HUGGINGFACE, downloaded_path,
+            repo_id,
+            filename,
+            backend,
+            DownloadSource.HUGGINGFACE,
+            downloaded_path,
         )
 
     @staticmethod
@@ -219,7 +227,8 @@ class LocalModelManager:
 
         logger.info(
             "Downloading %s/%s from ModelScope...",
-            repo_id, filename,
+            repo_id,
+            filename,
         )
         downloaded_path = model_file_download(
             model_id=repo_id,
@@ -228,8 +237,11 @@ class LocalModelManager:
         )
 
         return LocalModelManager._register_model(
-            repo_id, filename, backend,
-            DownloadSource.MODELSCOPE, downloaded_path,
+            repo_id,
+            filename,
+            backend,
+            DownloadSource.MODELSCOPE,
+            downloaded_path,
         )
 
     @staticmethod

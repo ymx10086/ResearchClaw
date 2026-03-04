@@ -8,7 +8,12 @@ from typing import Awaitable, Callable
 
 
 class ConfigWatcher:
-    def __init__(self, path: Path, callback: Callable[[], Awaitable[None]], interval_seconds: int = 2):
+    def __init__(
+        self,
+        path: Path,
+        callback: Callable[[], Awaitable[None]],
+        interval_seconds: int = 2,
+    ):
         self.path = path
         self.callback = callback
         self.interval_seconds = interval_seconds

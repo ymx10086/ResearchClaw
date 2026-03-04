@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Cron jobs API — CRUD + control endpoints for scheduled tasks.
 
 Provides REST endpoints for managing cron jobs: create, update, delete,

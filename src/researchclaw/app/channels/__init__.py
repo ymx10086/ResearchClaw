@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Channels package – communication channel abstractions.
 
 Provides:
@@ -73,32 +72,46 @@ def __getattr__(name: str):  # noqa: C901
     """Lazy-load heavy classes to avoid import-time cost."""
     if name == "ChannelManager":
         from .manager import ChannelManager
+
         return ChannelManager
     if name in ("MessageRenderer", "RenderStyle"):
         from .renderer import MessageRenderer, RenderStyle
+
         return MessageRenderer if name == "MessageRenderer" else RenderStyle
     if name == "ConsoleChannel":
         from .console_channel import ConsoleChannel
+
         return ConsoleChannel
     if name == "TelegramChannel":
         from .telegram import TelegramChannel
+
         return TelegramChannel
     if name == "DiscordChannel":
         from .discord_ import DiscordChannel
+
         return DiscordChannel
     if name == "DingTalkChannel":
         from .dingtalk import DingTalkChannel
+
         return DingTalkChannel
     if name == "FeishuChannel":
         from .feishu import FeishuChannel
+
         return FeishuChannel
     if name == "IMessageChannel":
         from .imessage import IMessageChannel
+
         return IMessageChannel
     if name == "QQChannel":
         from .qq import QQChannel
+
         return QQChannel
     if name in ("get_channel_registry", "BUILTIN_CHANNEL_KEYS"):
         from .registry import get_channel_registry, BUILTIN_CHANNEL_KEYS
-        return get_channel_registry if name == "get_channel_registry" else BUILTIN_CHANNEL_KEYS
+
+        return (
+            get_channel_registry
+            if name == "get_channel_registry"
+            else BUILTIN_CHANNEL_KEYS
+        )
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

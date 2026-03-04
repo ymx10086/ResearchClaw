@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # pylint: disable=too-many-branches,too-many-statements
 """QQ Channel: WebSocket receive + HTTP API send.
 
@@ -62,6 +61,7 @@ TOKEN_URL = "https://bots.qq.com/app/getAppAccessToken"
 
 # ── Helpers ────────────────────────────────────────────────────────
 
+
 def _get_api_base() -> str:
     return os.getenv("QQ_API_BASE", DEFAULT_API_BASE).rstrip("/")
 
@@ -90,7 +90,7 @@ def _get_gateway_url_sync(access_token: str) -> str:
         except Exception:
             pass
         raise RuntimeError(
-            f"Gateway fetch failed HTTP {exc.code}: {body[:500]}"
+            f"Gateway fetch failed HTTP {exc.code}: {body[:500]}",
         ) from exc
     ws_url = data.get("url")
     if not ws_url:
@@ -116,6 +116,7 @@ def _next_msg_seq(key: str) -> int:
 
 
 # ── Async API helpers ──────────────────────────────────────────────
+
 
 async def _api(
     session: aiohttp.ClientSession,
@@ -167,7 +168,13 @@ async def _send_channel(
     body: Dict[str, Any] = {"content": content}
     if msg_id:
         body["msg_id"] = msg_id
-    await _api(session, token, "POST", f"/channels/{channel_id}/messages", body)
+    await _api(
+        session,
+        token,
+        "POST",
+        f"/channels/{channel_id}/messages",
+        body,
+    )
 
 
 async def _send_group(
@@ -185,12 +192,16 @@ async def _send_group(
     if msg_id:
         body["msg_id"] = msg_id
     await _api(
-        session, token, "POST",
-        f"/v2/groups/{group_openid}/messages", body,
+        session,
+        token,
+        "POST",
+        f"/v2/groups/{group_openid}/messages",
+        body,
     )
 
 
 # ── Channel ───────────────────────────────────────────────────────
+
 
 class QQChannel(BaseChannel):
     """QQ Bot channel.
@@ -371,18 +382,45 @@ class QQChannel(BaseChannel):
             return
         try:
             if message_type == "c2c":
-                await _send_c2c(self._http, token, sender_id, text.strip(), msg_id)
+                await _send_c2c(
+                    self._http,
+                    token,
+                    sender_id,
+                    text.strip(),
+                    msg_id,
+                )
             elif message_type == "group" and group_openid:
-                await _send_group(self._http, token, group_openid, text.strip(), msg_id)
+                await _send_group(
+                    self._http,
+                    token,
+                    group_openid,
+                    text.strip(),
+                    msg_id,
+                )
             elif channel_id:
-                await _send_channel(self._http, token, channel_id, text.strip(), msg_id)
+                await _send_channel(
+                    self._http,
+                    token,
+                    channel_id,
+                    text.strip(),
+                    msg_id,
+                )
             else:
-                await _send_c2c(self._http, token, sender_id, text.strip(), msg_id)
+                await _send_c2c(
+                    self._http,
+                    token,
+                    sender_id,
+                    text.strip(),
+                    msg_id,
+                )
         except Exception:
             logger.exception("qq: send failed")
 
     async def _on_consume_error(
-        self, request: Any, to_handle: str, err_text: str,
+        self,
+        request: Any,
+        to_handle: str,
+        err_text: str,
     ) -> None:
         await self.send(to_handle, err_text)
 
@@ -393,7 +431,7 @@ class QQChannel(BaseChannel):
             import websocket
         except ImportError:
             logger.error(
-                "websocket-client required. pip install websocket-client"
+                "websocket-client required. pip install websocket-client",
             )
             return
 
@@ -449,13 +487,18 @@ class QQChannel(BaseChannel):
                         return
                     try:
                         if ws.connected:
-                            ws.send(json.dumps({"op": OP_HEARTBEAT, "d": last_seq}))
+                            ws.send(
+                                json.dumps(
+                                    {"op": OP_HEARTBEAT, "d": last_seq},
+                                ),
+                            )
                     except Exception:
                         pass
                     _schedule_heartbeat()
 
                 heartbeat_timer = threading.Timer(
-                    heartbeat_interval / 1000.0, _ping,
+                    heartbeat_interval / 1000.0,
+                    _ping,
                 )
                 heartbeat_timer.daemon = True
                 heartbeat_timer.start()
@@ -474,28 +517,45 @@ class QQChannel(BaseChannel):
                         last_seq = s
 
                     if op == OP_HELLO:
-                        heartbeat_interval = (d or {}).get("heartbeat_interval", 45000)
+                        heartbeat_interval = (d or {}).get(
+                            "heartbeat_interval",
+                            45000,
+                        )
                         if session_id and last_seq is not None:
-                            ws.send(json.dumps({
-                                "op": OP_RESUME,
-                                "d": {
-                                    "token": f"QQBot {token}",
-                                    "session_id": session_id,
-                                    "seq": last_seq,
-                                },
-                            }))
+                            ws.send(
+                                json.dumps(
+                                    {
+                                        "op": OP_RESUME,
+                                        "d": {
+                                            "token": f"QQBot {token}",
+                                            "session_id": session_id,
+                                            "seq": last_seq,
+                                        },
+                                    },
+                                ),
+                            )
                         else:
-                            intents = INTENT_PUBLIC_GUILD_MESSAGES | INTENT_GUILD_MEMBERS
+                            intents = (
+                                INTENT_PUBLIC_GUILD_MESSAGES
+                                | INTENT_GUILD_MEMBERS
+                            )
                             if identify_fail_count < 3:
-                                intents |= INTENT_DIRECT_MESSAGE | INTENT_GROUP_AND_C2C
-                            ws.send(json.dumps({
-                                "op": OP_IDENTIFY,
-                                "d": {
-                                    "token": f"QQBot {token}",
-                                    "intents": intents,
-                                    "shard": [0, 1],
-                                },
-                            }))
+                                intents |= (
+                                    INTENT_DIRECT_MESSAGE
+                                    | INTENT_GROUP_AND_C2C
+                                )
+                            ws.send(
+                                json.dumps(
+                                    {
+                                        "op": OP_IDENTIFY,
+                                        "d": {
+                                            "token": f"QQBot {token}",
+                                            "intents": intents,
+                                            "shard": [0, 1],
+                                        },
+                                    },
+                                ),
+                            )
                         _schedule_heartbeat()
 
                     elif op == OP_DISPATCH:
@@ -510,7 +570,10 @@ class QQChannel(BaseChannel):
 
                     elif op == OP_INVALID_SESSION:
                         can_resume = d
-                        logger.warning("qq: invalid session (resume=%s)", can_resume)
+                        logger.warning(
+                            "qq: invalid session (resume=%s)",
+                            can_resume,
+                        )
                         if not can_resume:
                             session_id = None
                             last_seq = None
@@ -538,7 +601,9 @@ class QQChannel(BaseChannel):
                     pass
 
             # ── reconnect delay logic ──────────────────────────────
-            elapsed = time.time() - last_connect_time if last_connect_time else 999
+            elapsed = (
+                time.time() - last_connect_time if last_connect_time else 999
+            )
             if elapsed < QUICK_DISCONNECT_THRESHOLD:
                 quick_disconnect_count += 1
                 if quick_disconnect_count >= MAX_QUICK_DISCONNECT_COUNT:
@@ -562,7 +627,11 @@ class QQChannel(BaseChannel):
                 logger.error("qq: max reconnect attempts reached")
                 return False
 
-            logger.info("qq: reconnect in %ss (attempt %s)", delay, reconnect_attempts)
+            logger.info(
+                "qq: reconnect in %ss (attempt %s)",
+                delay,
+                reconnect_attempts,
+            )
             self._stop_event.wait(timeout=delay)
             return not self._stop_event.is_set()
 
@@ -573,7 +642,11 @@ class QQChannel(BaseChannel):
 
     # ── dispatch handler ───────────────────────────────────────────
 
-    def _handle_dispatch(self, event_type: Optional[str], d: Dict[str, Any]) -> None:
+    def _handle_dispatch(
+        self,
+        event_type: Optional[str],
+        d: Dict[str, Any],
+    ) -> None:
         """Parse a DISPATCH event and enqueue if it's a message."""
         if event_type in (
             "C2C_MESSAGE_CREATE",
@@ -583,7 +656,11 @@ class QQChannel(BaseChannel):
         ):
             self._handle_message_event(event_type, d)
 
-    def _handle_message_event(self, event_type: str, d: Dict[str, Any]) -> None:
+    def _handle_message_event(
+        self,
+        event_type: str,
+        d: Dict[str, Any],
+    ) -> None:
         author = d.get("author") or {}
         text = (d.get("content") or "").strip()
         attachments = d.get("attachments") or []
@@ -644,7 +721,9 @@ class QQChannel(BaseChannel):
 
         logger.info(
             "qq: recv %s from=%s text=%r",
-            event_type, sender, text[:100],
+            event_type,
+            sender,
+            text[:100],
         )
 
     # ── lifecycle ──────────────────────────────────────────────────
@@ -655,14 +734,16 @@ class QQChannel(BaseChannel):
             return
         if not self.app_id or not self.client_secret:
             raise RuntimeError(
-                "QQ_APP_ID and QQ_CLIENT_SECRET are required."
+                "QQ_APP_ID and QQ_CLIENT_SECRET are required.",
             )
         self._loop = asyncio.get_running_loop()
         self._stop_event.clear()
         if self._http is None:
             self._http = aiohttp.ClientSession()
         self._ws_thread = threading.Thread(
-            target=self._run_ws_forever, daemon=True, name="qq_ws",
+            target=self._run_ws_forever,
+            daemon=True,
+            name="qq_ws",
         )
         self._ws_thread.start()
         logger.info("QQ channel started")

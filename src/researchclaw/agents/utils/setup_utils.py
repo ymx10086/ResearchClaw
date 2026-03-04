@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Setup and initialization utilities for agent configuration.
 
 This module handles copying markdown configuration files to

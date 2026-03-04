@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Channel schema: channel type identifiers, routing, and conversion protocol.
 
 Provides ChannelAddress for unified routing, built-in channel type constants,
@@ -38,8 +37,8 @@ BUILTIN_CHANNEL_TYPES: tuple[str, ...] = (
     "feishu",
     "qq",
     "imessage",
-    "slack",       # planned
-    "wechat",      # planned
+    "slack",  # planned
+    "wechat",  # planned
 )
 
 # ChannelType is str to allow plugin channels

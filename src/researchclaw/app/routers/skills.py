@@ -84,9 +84,17 @@ async def install_skill(request: SkillInstallRequest):
     try:
         from researchclaw.agents.skills_hub import SkillsHubClient
 
-        client = SkillsHubClient(base_url=request.hub_url) if request.hub_url else SkillsHubClient()
+        client = (
+            SkillsHubClient(base_url=request.hub_url)
+            if request.hub_url
+            else SkillsHubClient()
+        )
         result = client.install(request.skill_id)
-        return {"status": "installed", "skill": request.skill_id, "result": result}
+        return {
+            "status": "installed",
+            "skill": request.skill_id,
+            "result": result,
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -98,7 +106,9 @@ async def search_hub(q: str = "", tags: str = ""):
         from researchclaw.agents.skills_hub import SkillsHubClient
 
         client = SkillsHubClient()
-        tag_list = [t.strip() for t in tags.split(",") if t.strip()] if tags else []
+        tag_list = (
+            [t.strip() for t in tags.split(",") if t.strip()] if tags else []
+        )
         results = client.search(query=q, tags=tag_list)
         return {"results": results}
     except Exception as e:

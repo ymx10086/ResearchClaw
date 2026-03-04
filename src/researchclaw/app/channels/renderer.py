@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Message renderer – converts agent events into sendable content parts.
 
 Framework-independent: works with plain dicts and lightweight dataclasses.
@@ -89,14 +88,28 @@ class MessageRenderer:
         text_parts: List[str] = []
         for p in parts:
             t = getattr(p, "type", None)
-            t_val = t.value if isinstance(t, ContentType) else str(t) if t else ""
+            t_val = (
+                t.value if isinstance(t, ContentType) else str(t) if t else ""
+            )
             if t_val == ContentType.TEXT.value and getattr(p, "text", None):
                 text_parts.append(p.text)
-            elif t_val == ContentType.REFUSAL.value and getattr(p, "refusal", None):
+            elif t_val == ContentType.REFUSAL.value and getattr(
+                p,
+                "refusal",
+                None,
+            ):
                 text_parts.append(p.refusal)
-            elif t_val == ContentType.IMAGE.value and getattr(p, "image_url", None):
+            elif t_val == ContentType.IMAGE.value and getattr(
+                p,
+                "image_url",
+                None,
+            ):
                 text_parts.append(f"[Image: {p.image_url}]")
-            elif t_val == ContentType.VIDEO.value and getattr(p, "video_url", None):
+            elif t_val == ContentType.VIDEO.value and getattr(
+                p,
+                "video_url",
+                None,
+            ):
                 text_parts.append(f"[Video: {p.video_url}]")
             elif t_val == ContentType.AUDIO.value:
                 text_parts.append("[Audio]")
@@ -117,18 +130,30 @@ class MessageRenderer:
         if data is not None:
             content = getattr(data, "content", None)
             if content is not None:
-                return list(content) if isinstance(content, (list, tuple)) else [content]
+                return (
+                    list(content)
+                    if isinstance(content, (list, tuple))
+                    else [content]
+                )
 
         # Object with .content (Message-like)
         content = getattr(message, "content", None)
         if content is not None:
-            return list(content) if isinstance(content, (list, tuple)) else [content]
+            return (
+                list(content)
+                if isinstance(content, (list, tuple))
+                else [content]
+            )
 
         # dict with "content" key
         if isinstance(message, dict):
             content = message.get("content")
             if content is not None:
-                return list(content) if isinstance(content, (list, tuple)) else [content]
+                return (
+                    list(content)
+                    if isinstance(content, (list, tuple))
+                    else [content]
+                )
 
         return []
 
@@ -144,55 +169,69 @@ class MessageRenderer:
 
         # Text
         if t_val in (ContentType.TEXT.value, "text"):
-            text = getattr(item, "text", None) or (
-                item.get("text") if isinstance(item, dict) else None
-            ) or ""
+            text = (
+                getattr(item, "text", None)
+                or (item.get("text") if isinstance(item, dict) else None)
+                or ""
+            )
             if not text.strip():
                 return []
             return [TextContent(text=text)]
 
         # Refusal
         if t_val in (ContentType.REFUSAL.value, "refusal"):
-            refusal = getattr(item, "refusal", None) or (
-                item.get("refusal") if isinstance(item, dict) else None
-            ) or ""
+            refusal = (
+                getattr(item, "refusal", None)
+                or (item.get("refusal") if isinstance(item, dict) else None)
+                or ""
+            )
             if not refusal.strip():
                 return []
             return [RefusalContent(refusal=refusal)]
 
         # Image
         if t_val in (ContentType.IMAGE.value, "image"):
-            url = getattr(item, "image_url", None) or (
-                item.get("image_url") if isinstance(item, dict) else None
-            ) or ""
+            url = (
+                getattr(item, "image_url", None)
+                or (item.get("image_url") if isinstance(item, dict) else None)
+                or ""
+            )
             if url:
                 return [ImageContent(image_url=url)]
             return []
 
         # Video
         if t_val in (ContentType.VIDEO.value, "video"):
-            url = getattr(item, "video_url", None) or (
-                item.get("video_url") if isinstance(item, dict) else None
-            ) or ""
+            url = (
+                getattr(item, "video_url", None)
+                or (item.get("video_url") if isinstance(item, dict) else None)
+                or ""
+            )
             if url:
                 return [VideoContent(video_url=url)]
             return []
 
         # Audio
         if t_val in (ContentType.AUDIO.value, "audio"):
-            data = getattr(item, "data", None) or (
-                item.get("data") if isinstance(item, dict) else None
-            ) or ""
+            data = (
+                getattr(item, "data", None)
+                or (item.get("data") if isinstance(item, dict) else None)
+                or ""
+            )
             return [AudioContent(data=data)]
 
         # File
         if t_val in (ContentType.FILE.value, "file"):
-            file_url = getattr(item, "file_url", None) or (
-                item.get("file_url") if isinstance(item, dict) else None
-            ) or ""
-            file_id = getattr(item, "file_id", None) or (
-                item.get("file_id") if isinstance(item, dict) else None
-            ) or ""
+            file_url = (
+                getattr(item, "file_url", None)
+                or (item.get("file_url") if isinstance(item, dict) else None)
+                or ""
+            )
+            file_id = (
+                getattr(item, "file_id", None)
+                or (item.get("file_id") if isinstance(item, dict) else None)
+                or ""
+            )
             if file_url or file_id:
                 return [FileContent(file_url=file_url, file_id=file_id)]
             return []
@@ -229,13 +268,21 @@ class MessageRenderer:
             getattr(item, "name", None)
             or getattr(item, "function_name", None)
             or (item.get("name") if isinstance(item, dict) else None)
-            or (item.get("function", {}).get("name") if isinstance(item, dict) else None)
+            or (
+                item.get("function", {}).get("name")
+                if isinstance(item, dict)
+                else None
+            )
             or "unknown"
         )
         args = (
             getattr(item, "arguments", None)
             or (item.get("arguments") if isinstance(item, dict) else None)
-            or (item.get("function", {}).get("arguments") if isinstance(item, dict) else None)
+            or (
+                item.get("function", {}).get("arguments")
+                if isinstance(item, dict)
+                else None
+            )
         )
 
         emoji = "🔧 " if self.style.show_emoji else ""
@@ -341,7 +388,11 @@ class MessageRenderer:
 
         if abstract and self.style.render_citations:
             max_len = 200
-            abs_text = abstract[:max_len] + "…" if len(abstract) > max_len else abstract
+            abs_text = (
+                abstract[:max_len] + "…"
+                if len(abstract) > max_len
+                else abstract
+            )
             parts.append(f"  Abstract: {abs_text}")
 
         return TextContent(text="\n".join(parts))
