@@ -18,6 +18,12 @@ dist/
 # Console frontend build (generated in Docker/CI, do not commit)
 src/researchclaw/console/dist/
 
+# Console build artifacts
+console/dist/
+console/*.tsbuildinfo
+console/vite.config.d.ts
+console/vite.config.js
+
 # frontend (website)
 website/node_modules/
 website/.vite/
