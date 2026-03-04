@@ -60,7 +60,7 @@ export function Nav({
             className="nav-brand-logo"
             style={{ marginTop: -5, display: "flex" }}
           >
-            <ResearchClawMascot size={150} />
+            <ResearchClawMascot size={300} />
           </span>
         </Link>
         <div

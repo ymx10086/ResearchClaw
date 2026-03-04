@@ -65,7 +65,7 @@ export function Hero({
           aria-label={projectName}
         >
           <span className="hero-brand-logo">
-            <ResearchClawMascot size={480} />
+            <ResearchClawMascot size={800} />
           </span>
         </div>
         <span />
