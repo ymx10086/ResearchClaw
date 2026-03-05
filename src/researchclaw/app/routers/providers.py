@@ -74,6 +74,54 @@ async def add_provider(config: ProviderConfig):
         raise HTTPException(status_code=500, detail="Provider store not available")
 
 
+@router.post("/{name}/enable")
+async def enable_provider(name: str, req: Request):
+    """Set this provider as the active one; disable all others."""
+    try:
+        from researchclaw.providers.store import ProviderStore
+
+        store = ProviderStore()
+        store.set_enabled(name)
+        return {"status": "ok", "name": name, "enabled": True}
+    except KeyError:
+        raise HTTPException(status_code=404, detail=f"Provider '{name}' not found")
+    except ImportError:
+        raise HTTPException(status_code=500, detail="Provider store not available")
+
+
+@router.post("/{name}/disable")
+async def disable_provider(name: str, req: Request):
+    """Disable this provider without affecting others."""
+    try:
+        from researchclaw.providers.store import ProviderStore
+
+        store = ProviderStore()
+        store.set_disabled(name)
+        return {"status": "ok", "name": name, "enabled": False}
+    except KeyError:
+        raise HTTPException(status_code=404, detail=f"Provider '{name}' not found")
+    except ImportError:
+        raise HTTPException(status_code=500, detail="Provider store not available")
+
+
+@router.put("/{name}/enabled")
+async def set_provider_enabled(name: str, body: EnabledUpdate, req: Request):
+    """Enable or disable a provider (kept for backward compat)."""
+    try:
+        from researchclaw.providers.store import ProviderStore
+
+        store = ProviderStore()
+        if body.enabled:
+            store.set_enabled(name)
+        else:
+            store.set_disabled(name)
+        return {"status": "ok", "name": name, "enabled": body.enabled}
+    except KeyError:
+        raise HTTPException(status_code=404, detail=f"Provider '{name}' not found")
+    except ImportError:
+        raise HTTPException(status_code=500, detail="Provider store not available")
+
+
 @router.put("/{name}")
 async def update_provider_settings(name: str, update: ProviderSettingsUpdate):
     """Update settings of an existing provider (partial update)."""
@@ -92,28 +140,6 @@ async def update_provider_settings(name: str, update: ProviderSettingsUpdate):
                 result["api_key"][:8] + "..." if len(result["api_key"]) > 8 else "***"
             )
         return {"status": "ok", "provider": result}
-    except KeyError:
-        raise HTTPException(status_code=404, detail=f"Provider '{name}' not found")
-    except ImportError:
-        raise HTTPException(status_code=500, detail="Provider store not available")
-
-
-@router.patch("/{name}/enabled")
-async def set_provider_enabled(name: str, body: EnabledUpdate, req: Request):
-    """Enable or disable a provider.
-
-    Enabling a provider marks it as active and disables all others.
-    Disabling just turns it off without selecting another.
-    """
-    try:
-        from researchclaw.providers.store import ProviderStore
-
-        store = ProviderStore()
-        if body.enabled:
-            store.set_enabled(name)
-        else:
-            store.set_disabled(name)
-        return {"status": "ok", "name": name, "enabled": body.enabled}
     except KeyError:
         raise HTTPException(status_code=404, detail=f"Provider '{name}' not found")
     except ImportError:

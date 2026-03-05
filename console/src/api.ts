@@ -276,13 +276,10 @@ export async function setProviderEnabled(
   name: string,
   enabled: boolean,
 ): Promise<void> {
+  const action = enabled ? "enable" : "disable";
   const res = await fetch(
-    `/api/providers/${encodeURIComponent(name)}/enabled`,
-    {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ enabled }),
-    },
+    `/api/providers/${encodeURIComponent(name)}/${action}`,
+    { method: "POST" },
   );
   if (!res.ok) throw new Error("Set provider enabled failed");
 }
