@@ -7,6 +7,7 @@ Provides:
 - MessageRenderer: Converts agent events to sendable content parts
 - Channel schema (ChannelAddress, DEFAULT_CHANNEL, etc.)
 - Built-in channels: Console, Telegram, Discord, DingTalk, Feishu, iMessage, QQ
+  , Voice
 - Registry: get_channel_registry() for built-in + custom channel discovery
 
 Heavy channel classes are lazy-loaded to avoid pulling third-party deps
@@ -63,6 +64,7 @@ __all__ = [
     "FeishuChannel",
     "IMessageChannel",
     "QQChannel",
+    "VoiceChannel",
     "get_channel_registry",
     "BUILTIN_CHANNEL_KEYS",
 ]
@@ -106,6 +108,10 @@ def __getattr__(name: str):  # noqa: C901
         from .qq import QQChannel
 
         return QQChannel
+    if name == "VoiceChannel":
+        from .voice import VoiceChannel
+
+        return VoiceChannel
     if name in ("get_channel_registry", "BUILTIN_CHANNEL_KEYS"):
         from .registry import get_channel_registry, BUILTIN_CHANNEL_KEYS
 

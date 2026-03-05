@@ -34,6 +34,7 @@ class RenderStyle:
     """Controls how messages are rendered for channel delivery."""
 
     show_tool_details: bool = True
+    filter_tool_messages: bool = False
     show_emoji: bool = True
     max_tool_output_len: int = 300
     # Research-specific: render paper citations as structured blocks
@@ -261,7 +262,7 @@ class MessageRenderer:
 
     def _render_tool_call(self, item: Any) -> List[OutgoingContentPart]:
         """Format a tool call as a styled text block."""
-        if not self.style.show_tool_details:
+        if self.style.filter_tool_messages or not self.style.show_tool_details:
             return []
 
         name = (
@@ -297,7 +298,7 @@ class MessageRenderer:
 
     def _render_tool_output(self, item: Any) -> List[OutgoingContentPart]:
         """Format a tool output as a styled text block."""
-        if not self.style.show_tool_details:
+        if self.style.filter_tool_messages or not self.style.show_tool_details:
             return []
 
         name = (

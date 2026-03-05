@@ -205,6 +205,13 @@ def _get_last_dispatch_safe() -> Any:
         from ...config import load_config
 
         config = load_config()
+        if isinstance(config, dict):
+            last = config.get("last_dispatch")
+            if isinstance(last, dict):
+                from types import SimpleNamespace
+
+                return SimpleNamespace(**last)
+            return None
         return getattr(config, "last_dispatch", None)
     except (ImportError, Exception):
         return None

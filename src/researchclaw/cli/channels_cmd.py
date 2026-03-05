@@ -18,6 +18,7 @@ _SECRET_FIELDS = {
     "app_secret",
     "http_proxy_auth",
     "api_key",
+    "twilio_auth_token",
 }
 
 _ALL_CHANNEL_NAMES = {
@@ -28,6 +29,7 @@ _ALL_CHANNEL_NAMES = {
     "feishu": "Feishu",
     "imessage": "iMessage",
     "qq": "QQ",
+    "voice": "Voice",
 }
 
 CHANNEL_TEMPLATE = '''# -*- coding: utf-8 -*-
@@ -239,6 +241,56 @@ def _configure_telegram(current: dict) -> dict:
     return current
 
 
+def _configure_voice(current: dict) -> dict:
+    click.echo("\n=== Configure Voice Channel (Twilio) ===")
+    current["enabled"] = prompt_confirm(
+        "Enable Voice?",
+        default=current.get("enabled", False),
+    )
+    if not current["enabled"]:
+        return current
+    current["bot_prefix"] = click.prompt(
+        "Bot prefix",
+        default=current.get("bot_prefix", "[BOT]"),
+        type=str,
+    )
+    current["public_base_url"] = click.prompt(
+        "Public base URL (https://your-domain)",
+        default=current.get("public_base_url", ""),
+        type=str,
+    )
+    current["phone_number"] = click.prompt(
+        "Twilio phone number (optional label)",
+        default=current.get("phone_number", ""),
+        type=str,
+    )
+    current["phone_number_sid"] = click.prompt(
+        "Twilio phone_number_sid",
+        default=current.get("phone_number_sid", ""),
+        type=str,
+    )
+    current["twilio_account_sid"] = click.prompt(
+        "Twilio account SID",
+        default=current.get("twilio_account_sid", ""),
+        type=str,
+    )
+    current["twilio_auth_token"] = click.prompt(
+        "Twilio auth token",
+        default=current.get("twilio_auth_token", ""),
+        hide_input=True,
+        type=str,
+    )
+    current["welcome_greeting"] = click.prompt(
+        "Welcome greeting",
+        default=current.get(
+            "welcome_greeting",
+            "Hi! This is ResearchClaw. How can I help you?",
+        ),
+        type=str,
+    )
+    return current
+
+
 _CHANNEL_CONFIGURATORS = {
     "console": ("Console", lambda c: _configure_generic("Console", c)),
     "telegram": ("Telegram", _configure_telegram),
@@ -247,6 +299,7 @@ _CHANNEL_CONFIGURATORS = {
     "feishu": ("Feishu", _configure_feishu),
     "imessage": ("iMessage", lambda c: _configure_generic("iMessage", c)),
     "qq": ("QQ", lambda c: _configure_generic("QQ", c)),
+    "voice": ("Voice", _configure_voice),
 }
 
 

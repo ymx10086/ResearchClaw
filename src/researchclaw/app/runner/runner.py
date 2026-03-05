@@ -24,6 +24,9 @@ class AgentRunner:
         self.agent = None
         self._lock = asyncio.Lock()
         self._is_running = False
+        self._mcp_manager = None
+        self._last_model_config: dict[str, Any] = {}
+        self._last_mcp_fingerprint: tuple[Any, ...] | None = None
 
     @property
     def is_running(self) -> bool:
@@ -52,11 +55,50 @@ class AgentRunner:
                     llm_cfg=llm_cfg,
                     working_dir=config.get("working_dir") or WORKING_DIR,
                 )
+                self._last_model_config = dict(config)
+                await self._attach_mcp_clients_if_any()
                 self._is_running = True
                 logger.info("ScholarAgent started successfully")
             except Exception:
                 logger.exception("Failed to start ScholarAgent")
                 raise
+
+    def set_mcp_manager(self, mcp_manager: Any) -> None:
+        """Bind MCP manager for tool client discovery."""
+        self._mcp_manager = mcp_manager
+        self._last_mcp_fingerprint = None
+
+    @staticmethod
+    def _build_mcp_fingerprint(clients: list[Any]) -> tuple[Any, ...]:
+        items: list[Any] = []
+        for client in clients:
+            info = getattr(client, "_researchclaw_rebuild_info", None)
+            if info is None:
+                info = repr(client)
+            items.append(str(info))
+        return tuple(sorted(items))
+
+    async def _attach_mcp_clients_if_any(self, force: bool = False) -> None:
+        if self.agent is None or self._mcp_manager is None:
+            return
+        try:
+            clients = await self._mcp_manager.get_clients()
+            if not clients:
+                return
+
+            fingerprint = self._build_mcp_fingerprint(clients)
+            if not force and fingerprint == self._last_mcp_fingerprint:
+                return
+
+            self.agent.register_mcp_clients(clients)
+            self._last_mcp_fingerprint = fingerprint
+            logger.info("Attached %d MCP client(s) to agent", len(clients))
+        except Exception:
+            logger.exception("Failed to attach MCP clients to agent")
+
+    async def refresh_mcp_clients(self, force: bool = False) -> None:
+        """Attach latest MCP clients to current agent instance."""
+        await self._attach_mcp_clients_if_any(force=force)
 
     async def stop(self):
         """Stop the agent."""

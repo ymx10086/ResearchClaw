@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any, Dict, List
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 class MCPClient(BaseModel):
@@ -31,6 +33,25 @@ class MCPClientCreate(BaseModel):
     args: List[str] = Field(default_factory=list)
     url: str = ""
     env: Dict[str, str] = Field(default_factory=dict)
+
+
+async def _reload_runtime(req: Request, mcp: Any) -> None:
+    """Apply current in-memory MCP config to runtime clients immediately."""
+    try:
+        await mcp.reload()
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"MCP runtime reload failed: {exc}",
+        ) from exc
+
+    runner = getattr(req.app.state, "runner", None)
+    if runner is None:
+        return
+    try:
+        await runner.refresh_mcp_clients(force=True)
+    except Exception:
+        logger.debug("Runner MCP refresh failed", exc_info=True)
 
 
 @router.get("")
@@ -63,6 +84,7 @@ async def create_client(
 
     mcp.register(client_key, body.model_dump())
     await mcp.save()
+    await _reload_runtime(req, mcp)
     return {"created": True, "key": client_key}
 
 
@@ -81,6 +103,7 @@ async def update_client(
 
     mcp.register(client_key, body.model_dump())
     await mcp.save()
+    await _reload_runtime(req, mcp)
     return {"updated": True, "key": client_key}
 
 
@@ -104,6 +127,7 @@ async def toggle_client(client_key: str, req: Request) -> dict[str, Any]:
     item["enabled"] = not bool(item.get("enabled", True))
     mcp.register(client_key, item)
     await mcp.save()
+    await _reload_runtime(req, mcp)
     return {"key": client_key, "enabled": item["enabled"]}
 
 
@@ -118,4 +142,5 @@ async def delete_client(client_key: str, req: Request) -> dict[str, Any]:
 
     mcp.remove(client_key)
     await mcp.save()
+    await _reload_runtime(req, mcp)
     return {"deleted": True, "key": client_key}

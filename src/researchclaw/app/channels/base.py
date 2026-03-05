@@ -147,6 +147,7 @@ if TYPE_CHECKING:
 @dataclass
 class _DefaultRenderStyle:
     show_tool_details: bool = True
+    filter_tool_messages: bool = False
     show_emoji: bool = True
     max_tool_output_len: int = 300
 
@@ -173,10 +174,12 @@ class BaseChannel(ABC):
         process: ProcessHandler,
         on_reply_sent: OnReplySent = None,
         show_tool_details: bool = True,
+        filter_tool_messages: bool = False,
     ):
         self._process = process
         self._on_reply_sent = on_reply_sent
         self._show_tool_details = show_tool_details
+        self._filter_tool_messages = filter_tool_messages
 
         # Enqueue callback – set by ChannelManager.start_all()
         self._enqueue: EnqueueCallback = None
@@ -185,6 +188,7 @@ class BaseChannel(ABC):
         self._renderer: Optional[Any] = None
         self._render_style = _DefaultRenderStyle(
             show_tool_details=show_tool_details,
+            filter_tool_messages=filter_tool_messages,
         )
 
         # Optional shared aiohttp.ClientSession
@@ -208,6 +212,7 @@ class BaseChannel(ABC):
 
             style = RenderStyle(
                 show_tool_details=self._show_tool_details,
+                filter_tool_messages=self._filter_tool_messages,
                 show_emoji=getattr(self._render_style, "show_emoji", True),
                 max_tool_output_len=getattr(
                     self._render_style,
@@ -386,6 +391,7 @@ class BaseChannel(ABC):
         config: Any,
         on_reply_sent: OnReplySent = None,
         show_tool_details: bool = True,
+        filter_tool_messages: bool = False,
     ) -> "BaseChannel":
         raise NotImplementedError
 
@@ -898,6 +904,11 @@ class BaseChannel(ABC):
             config=config,
             on_reply_sent=self._on_reply_sent,
             show_tool_details=self._show_tool_details,
+            filter_tool_messages=getattr(
+                self,
+                "_filter_tool_messages",
+                False,
+            ),
         )
 
     # ── lifecycle ──────────────────────────────────────────────────
