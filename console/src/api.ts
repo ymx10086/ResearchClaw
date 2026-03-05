@@ -6,6 +6,7 @@ import type {
   EnvItem,
   McpClientItem,
   PaperItem,
+  ProviderItem,
   SessionItem,
   SkillItem,
 } from "./types";
@@ -241,11 +242,64 @@ export async function updateAgentRunningConfig(
   return res.json();
 }
 
-export async function listProviders(): Promise<any[]> {
+export async function listProviders(): Promise<ProviderItem[]> {
   const res = await fetch("/api/providers");
   if (!res.ok) throw new Error("List providers failed");
   const data = await res.json();
   return Array.isArray(data.providers) ? data.providers : [];
+}
+
+export async function createProvider(
+  provider: ProviderItem,
+): Promise<void> {
+  const res = await fetch("/api/providers", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(provider),
+  });
+  if (!res.ok) throw new Error("Create provider failed");
+}
+
+export async function updateProvider(
+  name: string,
+  settings: Partial<Omit<ProviderItem, "name" | "enabled">>,
+): Promise<void> {
+  const res = await fetch(`/api/providers/${encodeURIComponent(name)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(settings),
+  });
+  if (!res.ok) throw new Error("Update provider failed");
+}
+
+export async function setProviderEnabled(
+  name: string,
+  enabled: boolean,
+): Promise<void> {
+  const res = await fetch(
+    `/api/providers/${encodeURIComponent(name)}/enabled`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ enabled }),
+    },
+  );
+  if (!res.ok) throw new Error("Set provider enabled failed");
+}
+
+export async function applyProvider(name: string): Promise<void> {
+  const res = await fetch(
+    `/api/providers/${encodeURIComponent(name)}/apply`,
+    { method: "POST" },
+  );
+  if (!res.ok) throw new Error("Apply provider failed");
+}
+
+export async function deleteProvider(name: string): Promise<void> {
+  const res = await fetch(`/api/providers/${encodeURIComponent(name)}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("Delete provider failed");
 }
 
 export async function listAvailableModels(): Promise<any[]> {

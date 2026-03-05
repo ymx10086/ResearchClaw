@@ -81,6 +81,17 @@ class AgentRunnerManager:
 
         return response
 
+    async def apply_provider(self, model_config: dict[str, Any]) -> None:
+        """Hot-reload the agent with a new provider config."""
+        logger.info(
+            "Applying new provider config: %s / %s",
+            model_config.get("provider"),
+            model_config.get("model_name"),
+        )
+        await self.runner.restart(model_config)
+        self._model_config = model_config
+        logger.info("Agent restarted with new provider config")
+
     def _load_model_config(self) -> dict[str, Any]:
         """Load model config from working directory."""
         config_path = Path(WORKING_DIR) / "config.json"

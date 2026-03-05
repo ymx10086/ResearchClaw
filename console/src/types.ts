@@ -58,3 +58,13 @@ export type AgentRunningConfig = {
   max_iters: number;
   max_input_length: number;
 };
+
+export type ProviderItem = {
+  name: string;
+  provider_type: string;
+  model_name?: string;
+  api_key?: string;
+  base_url?: string;
+  enabled?: boolean;
+  extra?: Record<string, unknown>;
+};

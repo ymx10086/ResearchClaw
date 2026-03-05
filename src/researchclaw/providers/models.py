@@ -13,6 +13,7 @@ class ProviderConfig:
     model_name: str = ""
     api_key: str = ""
     base_url: str = ""
+    enabled: bool = False
     extra: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -26,5 +27,6 @@ class ProviderConfig:
             model_name=data.get("model_name", ""),
             api_key=data.get("api_key", ""),
             base_url=data.get("base_url", ""),
+            enabled=bool(data.get("enabled", False)),
             extra=data.get("extra", {}),
         )
