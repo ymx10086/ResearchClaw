@@ -11,16 +11,70 @@ import {
   CheckCircle2,
   XCircle,
   Square,
+  PlusCircle,
+  RefreshCw,
 } from "lucide-react";
 import Markdown from "react-markdown";
-import { streamChat } from "../api";
-import type { ChatMessage, StreamEvent, ToolCallInfo } from "../types";
+import { useSearchParams } from "react-router-dom";
+import { getSessionDetail, getSessions, streamChat } from "../api";
+import type { ChatMessage, SessionItem, StreamEvent, ToolCallInfo } from "../types";
+
+const CHAT_STATE_STORAGE_KEY = "researchclaw.chat.state.v1";
+
+type PersistedChatState = {
+  sessionId?: string;
+  messages?: ChatMessage[];
+};
+
+function normalizeChatRole(value: unknown): ChatMessage["role"] {
+  if (value === "user" || value === "assistant" || value === "tool") {
+    return value;
+  }
+  return "assistant";
+}
+
+function loadPersistedChatState(): PersistedChatState {
+  try {
+    const raw = localStorage.getItem(CHAT_STATE_STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as PersistedChatState;
+    if (!parsed || typeof parsed !== "object") return {};
+    return {
+      sessionId:
+        typeof parsed.sessionId === "string" ? parsed.sessionId : undefined,
+      messages: Array.isArray(parsed.messages)
+        ? parsed.messages.filter(
+            (m) =>
+              m
+              && typeof m === "object"
+              && typeof (m as ChatMessage).content === "string",
+          )
+        : [],
+    };
+  } catch {
+    return {};
+  }
+}
+
+function formatTs(ts?: number): string {
+  if (!ts) return "-";
+  const d = new Date(ts * 1000);
+  if (Number.isNaN(d.getTime())) return "-";
+  return d.toLocaleString();
+}
 
 export default function ChatPage() {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [messages, setMessages] = useState<ChatMessage[]>(
+    () => loadPersistedChatState().messages || [],
+  );
+  const [sessions, setSessions] = useState<SessionItem[]>([]);
   const [chatInput, setChatInput] = useState("");
-  const [sessionId, setSessionId] = useState<string | undefined>(undefined);
+  const [sessionId, setSessionId] = useState<string | undefined>(
+    () => loadPersistedChatState().sessionId,
+  );
   const [chatLoading, setChatLoading] = useState(false);
+  const [sessionsLoading, setSessionsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -34,9 +88,55 @@ export default function ChatPage() {
     [chatInput, chatLoading],
   );
 
+  const querySessionId = searchParams.get("session_id") || undefined;
+
+  const loadSessionList = useCallback(async () => {
+    setSessionsLoading(true);
+    try {
+      const list = await getSessions();
+      setSessions(Array.isArray(list) ? list : []);
+    } finally {
+      setSessionsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const payload: PersistedChatState = { sessionId, messages };
+    localStorage.setItem(CHAT_STATE_STORAGE_KEY, JSON.stringify(payload));
+  }, [messages, sessionId]);
+
+  useEffect(() => {
+    void loadSessionList();
+  }, [loadSessionList]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, streamContent, streamThinking, streamToolCalls]);
+
+  useEffect(() => {
+    if (!querySessionId) return;
+    if (querySessionId === sessionId && messages.length > 0) return;
+
+    let cancelled = false;
+    void getSessionDetail(querySessionId)
+      .then((detail) => {
+        if (cancelled) return;
+        const sessionMessages = Array.isArray(detail?.messages)
+          ? detail.messages
+          : [];
+        const restored: ChatMessage[] = sessionMessages.map((m: any) => ({
+          role: normalizeChatRole(m?.role),
+          content: String(m?.content ?? ""),
+        }));
+        setSessionId(querySessionId);
+        setMessages(restored);
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [messages.length, querySessionId, sessionId]);
 
   const resetStream = useCallback(() => {
     setStreamContent("");
@@ -44,12 +144,21 @@ export default function ChatPage() {
     setStreamToolCalls([]);
   }, []);
 
+  function syncQuerySession(nextSessionId?: string) {
+    const next = new URLSearchParams(searchParams);
+    if (nextSessionId) {
+      next.set("session_id", nextSessionId);
+    } else {
+      next.delete("session_id");
+    }
+    setSearchParams(next, { replace: true });
+  }
+
   function handleStop() {
     if (abortRef.current) {
       abortRef.current.abort();
       abortRef.current = null;
     }
-    // Finalize whatever we have
     const finalContent = streamContent || "(已停止)";
     setMessages((prev) => [
       ...prev,
@@ -64,6 +173,46 @@ export default function ChatPage() {
     setChatLoading(false);
   }
 
+  function onNewConversation() {
+    if (abortRef.current) {
+      abortRef.current.abort();
+      abortRef.current = null;
+    }
+    setChatLoading(false);
+    setChatInput("");
+    setMessages([]);
+    setSessionId(undefined);
+    resetStream();
+    localStorage.removeItem(CHAT_STATE_STORAGE_KEY);
+    syncQuerySession(undefined);
+  }
+
+  async function onOpenSession(targetSessionId: string) {
+    if (!targetSessionId) return;
+    if (abortRef.current) {
+      abortRef.current.abort();
+      abortRef.current = null;
+      setChatLoading(false);
+      resetStream();
+    }
+    syncQuerySession(targetSessionId);
+    if (targetSessionId === sessionId && messages.length > 0) return;
+    try {
+      const detail = await getSessionDetail(targetSessionId);
+      const sessionMessages = Array.isArray(detail?.messages)
+        ? detail.messages
+        : [];
+      const restored: ChatMessage[] = sessionMessages.map((m: any) => ({
+        role: normalizeChatRole(m?.role),
+        content: String(m?.content ?? ""),
+      }));
+      setSessionId(targetSessionId);
+      setMessages(restored);
+    } catch {
+      // Ignore and keep current UI state.
+    }
+  }
+
   function onSendChat() {
     const text = chatInput.trim();
     if (!text || chatLoading) return;
@@ -73,7 +222,6 @@ export default function ChatPage() {
     setMessages((prev) => [...prev, { role: "user", content: text }]);
     setChatInput("");
 
-    // Local accumulators (refs for closure stability)
     let accContent = "";
     let accThinking = "";
     let accToolCalls: ToolCallInfo[] = [];
@@ -81,6 +229,9 @@ export default function ChatPage() {
     const controller = streamChat(text, sessionId, (event: StreamEvent) => {
       if (event.session_id) {
         setSessionId(event.session_id);
+        if (searchParams.get("session_id") !== event.session_id) {
+          syncQuerySession(event.session_id);
+        }
       }
 
       switch (event.type) {
@@ -146,6 +297,7 @@ export default function ChatPage() {
           resetStream();
           setChatLoading(false);
           abortRef.current = null;
+          void loadSessionList();
           break;
         }
 
@@ -162,6 +314,7 @@ export default function ChatPage() {
           resetStream();
           setChatLoading(false);
           abortRef.current = null;
+          void loadSessionList();
           break;
       }
     });
@@ -170,102 +323,153 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="panel chat-container">
-      <div className="messages">
-        {messages.length === 0 && !chatLoading && (
-          <div className="chat-empty">
-            <div className="chat-empty-icon">
-              <MessageSquare size={28} />
-            </div>
-            <h3>开始一段研究对话</h3>
-            <p>
-              你可以询问文献综述、实验设计、论文写作、数据分析等任何学术问题。Scholar
-              将为你提供专业帮助。
-            </p>
-          </div>
-        )}
-
-        {messages.map((msg, idx) => (
-          <div key={idx} className={`msg ${msg.role}`}>
-            <div className="msg-avatar">{msg.role === "user" ? "你" : "S"}</div>
-            <div className="msg-bubble">
-              {msg.thinking && <ThinkingBlock content={msg.thinking} />}
-              {msg.toolCalls && <ToolCallsBlock calls={msg.toolCalls} />}
-              <MessageContent content={msg.content} />
-            </div>
-          </div>
-        ))}
-
-        {/* Streaming assistant message */}
-        {chatLoading && (
-          <div className="msg assistant">
-            <div className="msg-avatar">S</div>
-            <div className="msg-bubble">
-              {streamThinking && (
-                <ThinkingBlock content={streamThinking} streaming />
-              )}
-              {streamToolCalls.length > 0 && (
-                <ToolCallsBlock calls={streamToolCalls} />
-              )}
-              {streamContent ? (
-                <MessageContent content={streamContent} />
-              ) : (
-                !streamThinking &&
-                streamToolCalls.length === 0 && (
-                  <span className="stream-cursor">
-                    <Loader2 size={14} className="spinner" />
-                  </span>
-                )
-              )}
-            </div>
-          </div>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
-
-      <div className="chat-input-bar">
-        <input
-          value={chatInput}
-          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-            setChatInput(e.target.value)
-          }
-          placeholder="例如：帮我总结 Diffusion Models 近两年趋势..."
-          onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
-            if (e.key === "Enter" && canSend) onSendChat();
-          }}
-        />
-        {chatLoading ? (
-          <button onClick={handleStop} className="btn-stop">
-            <Square size={14} />
-            停止
+    <div className="panel chat-layout">
+      <aside className="chat-history-panel">
+        <div className="chat-history-header">
+          <button className="btn-secondary btn-sm" onClick={onNewConversation}>
+            <PlusCircle size={14} />
+            新对话
           </button>
-        ) : (
-          <button onClick={onSendChat} disabled={!canSend}>
-            <Send size={16} />
-            发送
+          <button
+            className="btn-ghost btn-sm"
+            onClick={() => void loadSessionList()}
+            disabled={sessionsLoading}
+          >
+            <RefreshCw
+              size={14}
+              className={sessionsLoading ? "spin-icon" : undefined}
+            />
+            刷新
           </button>
-        )}
-      </div>
+        </div>
 
-      {sessionId && (
-        <div className="chat-session-label">
-          <span
-            style={{
-              width: 6,
-              height: 6,
-              borderRadius: "50%",
-              background: "var(--success)",
-              display: "inline-block",
+        <div className="chat-history-list">
+          {sessions.length === 0 && (
+            <div className="chat-history-empty">暂无历史会话</div>
+          )}
+          {sessions.map((session) => (
+            <button
+              key={session.session_id}
+              className={`chat-history-item${
+                session.session_id === sessionId ? " active" : ""
+              }`}
+              onClick={() => void onOpenSession(session.session_id)}
+            >
+              <div className="chat-history-title">
+                {session.title || session.session_id}
+              </div>
+              <div className="chat-history-meta">
+                {formatTs(session.updated_at)} · {session.message_count ?? 0} 条
+              </div>
+            </button>
+          ))}
+        </div>
+      </aside>
+
+      <div className="chat-container">
+        <div className="chat-toolbar">
+          <div className="chat-toolbar-session">
+            当前会话: {sessionId || "未创建"}
+          </div>
+          <button className="btn-secondary btn-sm" onClick={onNewConversation}>
+            <PlusCircle size={14} />
+            新对话
+          </button>
+        </div>
+
+        <div className="messages">
+          {messages.length === 0 && !chatLoading && (
+            <div className="chat-empty">
+              <div className="chat-empty-icon">
+                <MessageSquare size={28} />
+              </div>
+              <h3>开始一段研究对话</h3>
+              <p>
+                你可以询问文献综述、实验设计、论文写作、数据分析等任何学术问题。Scholar
+                将为你提供专业帮助。
+              </p>
+            </div>
+          )}
+
+          {messages.map((msg, idx) => (
+            <div key={idx} className={`msg ${msg.role}`}>
+              <div className="msg-avatar">{msg.role === "user" ? "你" : "S"}</div>
+              <div className="msg-bubble">
+                {msg.thinking && <ThinkingBlock content={msg.thinking} />}
+                {msg.toolCalls && <ToolCallsBlock calls={msg.toolCalls} />}
+                <MessageContent content={msg.content} />
+              </div>
+            </div>
+          ))}
+
+          {chatLoading && (
+            <div className="msg assistant">
+              <div className="msg-avatar">S</div>
+              <div className="msg-bubble">
+                {streamThinking && (
+                  <ThinkingBlock content={streamThinking} streaming />
+                )}
+                {streamToolCalls.length > 0 && (
+                  <ToolCallsBlock calls={streamToolCalls} />
+                )}
+                {streamContent ? (
+                  <MessageContent content={streamContent} />
+                ) : (
+                  !streamThinking &&
+                  streamToolCalls.length === 0 && (
+                    <span className="stream-cursor">
+                      <Loader2 size={14} className="spinner" />
+                    </span>
+                  )
+                )}
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+
+        <div className="chat-input-bar">
+          <input
+            value={chatInput}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setChatInput(e.target.value)
+            }
+            placeholder="例如：帮我总结 Diffusion Models 近两年趋势..."
+            onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
+              if (e.key === "Enter" && canSend) onSendChat();
             }}
           />
-          Session: {sessionId}
+          {chatLoading ? (
+            <button onClick={handleStop} className="btn-stop">
+              <Square size={14} />
+              停止
+            </button>
+          ) : (
+            <button onClick={onSendChat} disabled={!canSend}>
+              <Send size={16} />
+              发送
+            </button>
+          )}
         </div>
-      )}
+
+        {sessionId && (
+          <div className="chat-session-label">
+            <span
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: "50%",
+                background: "var(--success)",
+                display: "inline-block",
+              }}
+            />
+            Session: {sessionId}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
-
-/* ── Sub-components ─────────────────────────────────────────── */
 
 function MessageContent({ content }: { content: string }) {
   if (!content) return null;

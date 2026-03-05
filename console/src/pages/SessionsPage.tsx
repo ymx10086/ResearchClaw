@@ -6,7 +6,9 @@ import {
   Trash2,
   Clock,
   Hash,
+  PlayCircle,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { getSessions, getSessionDetail, deleteSession } from "../api";
 import type { SessionItem } from "../types";
 import { PageHeader, EmptyState, Badge, DetailModal } from "../components/ui";
@@ -19,6 +21,7 @@ function formatTs(ts?: number): string {
 }
 
 export default function SessionsPage() {
+  const navigate = useNavigate();
   const [sessions, setSessions] = useState<SessionItem[]>([]);
   const [selected, setSelected] = useState<any>(null);
   const [loaded, setLoaded] = useState(false);
@@ -38,6 +41,10 @@ export default function SessionsPage() {
       setSelected(null);
     }
     await onLoad();
+  }
+
+  function onContinue(sessionId: string) {
+    navigate(`/chat?session_id=${encodeURIComponent(sessionId)}`);
   }
 
   return (
@@ -98,6 +105,13 @@ export default function SessionsPage() {
               >
                 <Eye size={14} />
                 查看
+              </button>
+              <button
+                className="btn-sm"
+                onClick={() => onContinue(session.session_id)}
+              >
+                <PlayCircle size={14} />
+                继续对话
               </button>
               <button
                 className="btn-sm danger"
