@@ -515,18 +515,116 @@ export function streamChat(
   const controller = new AbortController();
 
   (async () => {
+    const STREAM_OPEN_TIMEOUT_MS = 20_000;
+    const STREAM_IDLE_TIMEOUT_MS = 45_000;
+
+    const toReadableError = (err: unknown): string => {
+      const raw =
+        typeof err === "string"
+          ? err
+          : err instanceof Error
+            ? err.message || String(err)
+            : String(err ?? "");
+      if (
+        /load failed|failed to fetch|networkerror|network request failed/i.test(
+          raw,
+        )
+      ) {
+        return "网络连接失败：请确认后端服务可用并检查浏览器网络/代理设置。";
+      }
+      return raw || "Unknown error";
+    };
+
+    const fallbackToNonStream = async (reason?: string): Promise<void> => {
+      if (controller.signal.aborted) return;
+      try {
+        const res = await fetch("/api/agent/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message, session_id: sessionId }),
+          signal: controller.signal,
+          cache: "no-store",
+        });
+
+        if (!res.ok) {
+          const prefix = reason ? `${reason}; ` : "";
+          onEvent({
+            type: "error",
+            content: `${prefix}HTTP ${res.status}`,
+            session_id: sessionId,
+          });
+          return;
+        }
+
+        const data = await res.json();
+        const finalContent = String(data?.response ?? "");
+        const sid =
+          typeof data?.session_id === "string" ? data.session_id : sessionId;
+        onEvent({
+          type: "done",
+          content: finalContent,
+          session_id: sid,
+        });
+      } catch (err) {
+        if ((err as any)?.name === "AbortError") return;
+        onEvent({
+          type: "error",
+          content: toReadableError(err),
+          session_id: sessionId,
+        });
+      }
+    };
+
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let sawAnyStreamEvent = false;
+    let sawTerminalEvent = false;
+
+    const clearTimer = () => {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+    };
+
+    const armTimer = (ms: number, reason: string) => {
+      clearTimer();
+      timer = setTimeout(() => {
+        if (controller.signal.aborted || sawTerminalEvent) return;
+        onEvent({
+          type: "error",
+          content: reason,
+          session_id: sessionId,
+        });
+        controller.abort();
+      }, ms);
+    };
+
     try {
+      // If stream can't be established in time, fail fast.
+      armTimer(
+        STREAM_OPEN_TIMEOUT_MS,
+        "流式连接超时：后端响应过慢或网络不稳定。",
+      );
+
       const res = await fetch("/api/agent/chat/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message, session_id: sessionId, stream: true }),
         signal: controller.signal,
+        cache: "no-store",
       });
 
       if (!res.ok || !res.body) {
-        onEvent({ type: "error", content: `HTTP ${res.status}` });
+        clearTimer();
+        await fallbackToNonStream(`stream unavailable (HTTP ${res.status})`);
         return;
       }
+
+      // Stream established; now monitor inactivity.
+      armTimer(
+        STREAM_IDLE_TIMEOUT_MS,
+        "流式连接中断：长时间未收到数据，请重试。",
+      );
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
@@ -535,6 +633,10 @@ export function streamChat(
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
+        armTimer(
+          STREAM_IDLE_TIMEOUT_MS,
+          "流式连接中断：长时间未收到数据，请重试。",
+        );
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split("\n");
@@ -548,16 +650,42 @@ export function streamChat(
 
           try {
             const event: StreamEvent = JSON.parse(jsonStr);
+            sawAnyStreamEvent = true;
+            if (event.type === "done" || event.type === "error") {
+              sawTerminalEvent = true;
+              clearTimer();
+            }
             onEvent(event);
           } catch {
             // skip malformed JSON
           }
         }
       }
+
+      // Some proxies close stream without terminal events; don't leave UI hanging.
+      if (!sawTerminalEvent) {
+        onEvent({
+          type: "error",
+          content: sawAnyStreamEvent
+            ? "流式连接已结束，但未收到完成信号。"
+            : "流式连接未返回有效数据。",
+          session_id: sessionId,
+        });
+      }
     } catch (err: any) {
       if (err.name !== "AbortError") {
-        onEvent({ type: "error", content: String(err) });
+        if (!sawAnyStreamEvent) {
+          await fallbackToNonStream(toReadableError(err));
+        } else {
+          onEvent({
+            type: "error",
+            content: toReadableError(err),
+            session_id: sessionId,
+          });
+        }
       }
+    } finally {
+      clearTimer();
     }
   })();
 

@@ -327,12 +327,16 @@ export default function ChatPage() {
           break;
         }
 
-        case "error":
+        case "error": {
+          const errText = String(event.content || "unknown error");
+          const mergedContent = accContent.trim()
+            ? `${accContent}\n\n[流式中断] ${errText}`
+            : `错误: ${errText}`;
           setMessages((prev) => [
             ...prev,
             {
               role: "assistant",
-              content: `错误: ${event.content}`,
+              content: mergedContent,
               thinking: accThinking || undefined,
               toolCalls: accToolCalls.length ? accToolCalls : undefined,
             },
@@ -342,6 +346,7 @@ export default function ChatPage() {
           abortRef.current = null;
           void loadSessionList();
           break;
+        }
       }
     });
 
