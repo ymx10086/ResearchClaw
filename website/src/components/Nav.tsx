@@ -36,7 +36,7 @@ export function Nav({
         style={{
           margin: "0 auto",
           maxWidth: "var(--container)",
-          padding: "var(--space-2) var(--space-4)",
+          padding: "0.5rem 1rem",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -58,9 +58,9 @@ export function Nav({
         >
           <span
             className="nav-brand-logo"
-            style={{ marginTop: -5, display: "flex" }}
+            style={{ display: "flex" }}
           >
-            <ResearchClawMascot size={300} />
+            <ResearchClawMascot size={180} />
           </span>
         </Link>
         <div
