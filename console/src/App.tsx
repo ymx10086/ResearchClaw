@@ -29,6 +29,8 @@ import WorkspacePage from "./pages/WorkspacePage";
 import AgentConfigPage from "./pages/AgentConfigPage";
 import ModelsPage from "./pages/ModelsPage";
 import ConsoleCronBubble from "./components/ConsoleCronBubble";
+import { IconBadge } from "./components/icons";
+import { useI18n } from "./i18n";
 
 type NavItem = {
   to: string;
@@ -45,41 +47,137 @@ const navSections: NavSection[] = [
   {
     title: "研究",
     items: [
-      { to: "/chat", label: "AI 对话", icon: <MessageSquare size={17} /> },
-      { to: "/papers", label: "论文检索", icon: <FileText size={17} /> },
+      {
+        to: "/chat",
+        label: "AI 对话",
+        icon: (
+          <IconBadge tone="brand" size="sm">
+            <MessageSquare size={14} />
+          </IconBadge>
+        ),
+      },
+      {
+        to: "/papers",
+        label: "论文检索",
+        icon: (
+          <IconBadge tone="teal" size="sm">
+            <FileText size={14} />
+          </IconBadge>
+        ),
+      },
     ],
   },
   {
     title: "控制",
     items: [
-      { to: "/channels", label: "频道", icon: <Radio size={17} /> },
-      { to: "/sessions", label: "会话", icon: <MessageCircle size={17} /> },
-      { to: "/cron-jobs", label: "定时任务", icon: <Timer size={17} /> },
-      { to: "/heartbeat", label: "心跳", icon: <Heart size={17} /> },
-      { to: "/status", label: "系统状态", icon: <Activity size={17} /> },
+      {
+        to: "/channels",
+        label: "频道",
+        icon: (
+          <IconBadge tone="blue" size="sm">
+            <Radio size={14} />
+          </IconBadge>
+        ),
+      },
+      {
+        to: "/sessions",
+        label: "会话",
+        icon: (
+          <IconBadge tone="green" size="sm">
+            <MessageCircle size={14} />
+          </IconBadge>
+        ),
+      },
+      {
+        to: "/cron-jobs",
+        label: "定时任务",
+        icon: (
+          <IconBadge tone="amber" size="sm">
+            <Timer size={14} />
+          </IconBadge>
+        ),
+      },
+      {
+        to: "/heartbeat",
+        label: "心跳",
+        icon: (
+          <IconBadge tone="danger" size="sm">
+            <Heart size={14} />
+          </IconBadge>
+        ),
+      },
+      {
+        to: "/status",
+        label: "系统状态",
+        icon: (
+          <IconBadge tone="violet" size="sm">
+            <Activity size={14} />
+          </IconBadge>
+        ),
+      },
     ],
   },
   {
     title: "智能体",
     items: [
-      { to: "/workspace", label: "工作区", icon: <FolderOpen size={17} /> },
-      { to: "/skills", label: "技能", icon: <Puzzle size={17} /> },
-      { to: "/mcp", label: "MCP", icon: <Cable size={17} /> },
+      {
+        to: "/workspace",
+        label: "工作区",
+        icon: (
+          <IconBadge tone="slate" size="sm">
+            <FolderOpen size={14} />
+          </IconBadge>
+        ),
+      },
+      {
+        to: "/skills",
+        label: "技能",
+        icon: (
+          <IconBadge tone="brand" size="sm">
+            <Puzzle size={14} />
+          </IconBadge>
+        ),
+      },
+      {
+        to: "/mcp",
+        label: "MCP",
+        icon: (
+          <IconBadge tone="teal" size="sm">
+            <Cable size={14} />
+          </IconBadge>
+        ),
+      },
       {
         to: "/agent-config",
         label: "Agent 配置",
-        icon: <Settings size={17} />,
+        icon: (
+          <IconBadge tone="violet" size="sm">
+            <Settings size={14} />
+          </IconBadge>
+        ),
       },
     ],
   },
   {
     title: "设置",
     items: [
-      { to: "/models", label: "模型", icon: <Cpu size={17} /> },
+      {
+        to: "/models",
+        label: "模型",
+        icon: (
+          <IconBadge tone="blue" size="sm">
+            <Cpu size={14} />
+          </IconBadge>
+        ),
+      },
       {
         to: "/environments",
         label: "环境变量",
-        icon: <KeyRound size={17} />,
+        icon: (
+          <IconBadge tone="amber" size="sm">
+            <KeyRound size={14} />
+          </IconBadge>
+        ),
       },
     ],
   },
@@ -87,6 +185,7 @@ const navSections: NavSection[] = [
 
 export default function App() {
   const location = useLocation();
+  const { locale, setLocale } = useI18n();
 
   return (
     <div className="layout">
@@ -127,6 +226,22 @@ export default function App() {
           <div className="sidebar-footer-badge">
             <span className="sidebar-footer-dot" />
             ResearchClaw 运行中
+          </div>
+          <div className="lang-switch">
+            <button
+              type="button"
+              className={`lang-btn${locale === "zh" ? " active" : ""}`}
+              onClick={() => setLocale("zh")}
+            >
+              中文
+            </button>
+            <button
+              type="button"
+              className={`lang-btn${locale === "en" ? " active" : ""}`}
+              onClick={() => setLocale("en")}
+            >
+              EN
+            </button>
           </div>
         </div>
       </aside>

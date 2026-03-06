@@ -1,5 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
-import { FolderOpen, RefreshCw, FileText, Save, RotateCcw } from "lucide-react";
+import {
+  FolderOpen,
+  RefreshCw,
+  FileText,
+  Save,
+  RotateCcw,
+  MessageCircle,
+  Puzzle,
+  Timer,
+  Heart,
+  Settings,
+} from "lucide-react";
 import {
   getWorkspaceInfo,
   getWorkspaceRelations,
@@ -9,6 +20,7 @@ import {
 } from "../api";
 import type { WorkspaceFileItem } from "../types";
 import { PageHeader, EmptyState, Badge } from "../components/ui";
+import { IconBadge } from "../components/icons";
 
 function fmtBytes(bytes?: number): string {
   const n = Number(bytes || 0);
@@ -117,7 +129,11 @@ export default function WorkspacePage() {
 
       {!loaded && (
         <EmptyState
-          icon={<FolderOpen size={28} />}
+          icon={
+            <IconBadge tone="slate">
+              <FolderOpen size={20} />
+            </IconBadge>
+          }
           title="加载工作区信息"
           description="展示关键文件并支持在线修改"
           action={
@@ -136,6 +152,9 @@ export default function WorkspacePage() {
             <div className="workspace-rel-card">
               <div className="workspace-rel-title">对话</div>
               <div className="workspace-rel-value">
+                <IconBadge tone="blue" size="sm">
+                  <MessageCircle size={12} />
+                </IconBadge>
                 sessions: {relations?.chat?.session_total ?? 0}
               </div>
               <div className="workspace-rel-meta">
@@ -145,6 +164,9 @@ export default function WorkspacePage() {
             <div className="workspace-rel-card">
               <div className="workspace-rel-title">技能</div>
               <div className="workspace-rel-value">
+                <IconBadge tone="violet" size="sm">
+                  <Puzzle size={12} />
+                </IconBadge>
                 active: {relations?.skills?.active_count ?? 0}
               </div>
               <div className="workspace-rel-meta">
@@ -154,6 +176,9 @@ export default function WorkspacePage() {
             <div className="workspace-rel-card">
               <div className="workspace-rel-title">定时任务</div>
               <div className="workspace-rel-value">
+                <IconBadge tone="amber" size="sm">
+                  <Timer size={12} />
+                </IconBadge>
                 {relations?.cron?.enabled ?? 0}/{relations?.cron?.total ?? 0}
               </div>
               <div className="workspace-rel-meta">enabled / total</div>
@@ -161,6 +186,9 @@ export default function WorkspacePage() {
             <div className="workspace-rel-card">
               <div className="workspace-rel-title">心跳</div>
               <div className="workspace-rel-value">
+                <IconBadge tone="danger" size="sm">
+                  <Heart size={12} />
+                </IconBadge>
                 {relations?.heartbeat?.enabled ? "enabled" : "disabled"}
               </div>
               <div className="workspace-rel-meta">
@@ -171,6 +199,9 @@ export default function WorkspacePage() {
             <div className="workspace-rel-card">
               <div className="workspace-rel-title">配置</div>
               <div className="workspace-rel-value">
+                <IconBadge tone="teal" size="sm">
+                  <Settings size={12} />
+                </IconBadge>
                 lang: {relations?.config?.language || "-"}
               </div>
               <div className="workspace-rel-meta">

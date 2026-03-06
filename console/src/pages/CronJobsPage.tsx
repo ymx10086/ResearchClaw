@@ -20,6 +20,8 @@ import {
 } from "../api";
 import type { ChannelItem, CronJobItem, CronTaskType } from "../types";
 import { PageHeader, EmptyState, Badge, Toggle, DetailModal } from "../components/ui";
+import { ChannelGlyph, IconBadge } from "../components/icons";
+import { useI18n } from "../i18n";
 
 const DEFAULT_TIMEZONE =
   Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
@@ -164,6 +166,7 @@ function toPayload(form: CronJobForm, editing: CronJobItem | null): CronJobItem 
 }
 
 export default function CronJobsPage() {
+  const { t } = useI18n();
   const [jobs, setJobs] = useState<CronJobItem[]>([]);
   const [channels, setChannels] = useState<string[]>(["console"]);
   const [loaded, setLoaded] = useState(false);
@@ -214,7 +217,7 @@ export default function CronJobsPage() {
   }
 
   async function onDelete(job: CronJobItem) {
-    if (!window.confirm(`确认删除定时任务「${job.name}」吗？`)) return;
+    if (!window.confirm(t("确认删除定时任务「{name}」吗？", { name: job.name }))) return;
     setDeletingJobId(job.id);
     try {
       await deleteCronJob(job.id);
@@ -253,15 +256,19 @@ export default function CronJobsPage() {
   async function onSave() {
     if (!form) return;
     if (!form.name.trim()) {
-      window.alert("任务名称不能为空");
+      window.alert(t("任务名称不能为空"));
       return;
     }
     if (!form.cron.trim()) {
-      window.alert("Cron 表达式不能为空");
+      window.alert(t("Cron 表达式不能为空"));
       return;
     }
     if (!form.content.trim()) {
-      window.alert(form.task_type === "text" ? "文本内容不能为空" : "Agent 提示词不能为空");
+      window.alert(
+        form.task_type === "text"
+          ? t("文本内容不能为空")
+          : t("Agent 提示词不能为空"),
+      );
       return;
     }
 
@@ -301,7 +308,11 @@ export default function CronJobsPage() {
 
       {!loaded && jobs.length === 0 && (
         <EmptyState
-          icon={<Timer size={28} />}
+          icon={
+            <IconBadge tone="amber">
+              <Timer size={20} />
+            </IconBadge>
+          }
           title="加载定时任务"
           description="查看和控制所有自动化定时任务"
           action={
@@ -315,7 +326,11 @@ export default function CronJobsPage() {
 
       {loaded && jobs.length === 0 && (
         <EmptyState
-          icon={<Timer size={28} />}
+          icon={
+            <IconBadge tone="amber">
+              <Timer size={20} />
+            </IconBadge>
+          }
           title="暂无定时任务"
           description="你可以新建一个定时任务，或在聊天里让 Agent 帮你创建"
           action={
@@ -343,7 +358,11 @@ export default function CronJobsPage() {
                 <span style={{ margin: "0 6px" }}>·</span>
                 类型: {job.task_type}
                 <span style={{ margin: "0 6px" }}>·</span>
-                通道: {job.channel || "console"}
+                通道:{" "}
+                <span className="inline-row">
+                  <ChannelGlyph channel={job.channel || "console"} />
+                  {job.channel || "console"}
+                </span>
                 <span style={{ margin: "0 6px" }}>·</span>
                 目标: {job.target_user_id || "main"}/{job.target_session_id || "main"}
                 <span style={{ margin: "0 6px" }}>·</span>

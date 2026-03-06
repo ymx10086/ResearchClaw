@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Radio, RefreshCw, Wifi } from "lucide-react";
+import { Radio, RefreshCw } from "lucide-react";
 import { getChannels } from "../api";
 import type { ChannelItem } from "../types";
 import { PageHeader, EmptyState, Badge } from "../components/ui";
+import { ChannelGlyph, IconBadge } from "../components/icons";
 
 export default function ChannelsPage() {
   const [channels, setChannels] = useState<ChannelItem[]>([]);
@@ -32,7 +33,11 @@ export default function ChannelsPage() {
 
       {!loaded && channels.length === 0 && (
         <EmptyState
-          icon={<Radio size={28} />}
+          icon={
+            <IconBadge tone="blue">
+              <Radio size={20} />
+            </IconBadge>
+          }
           title="点击刷新加载频道"
           description="查看所有已注册的通信频道信息"
           action={
@@ -49,10 +54,7 @@ export default function ChannelsPage() {
           <div key={idx} className="data-row">
             <div className="data-row-info">
               <div className="data-row-title">
-                <Wifi
-                  size={14}
-                  style={{ marginRight: 6, verticalAlign: "middle" }}
-                />
+                <ChannelGlyph channel={item.name} />
                 {item.name}
               </div>
             </div>

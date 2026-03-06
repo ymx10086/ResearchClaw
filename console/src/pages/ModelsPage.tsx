@@ -23,6 +23,7 @@ import {
 } from "../api";
 import type { ProviderItem } from "../types";
 import { PageHeader, EmptyState, Badge, Toggle } from "../components/ui";
+import { useI18n } from "../i18n";
 
 const PROVIDER_TYPES = [
   "openai",
@@ -47,6 +48,7 @@ type EditForm = Pick<
 >;
 
 export default function ModelsPage() {
+  const { t } = useI18n();
   const [providers, setProviders] = useState<ProviderItem[]>([]);
   const [loaded, setLoaded] = useState(false);
 
@@ -192,7 +194,7 @@ export default function ModelsPage() {
   // ── Delete ──────────────────────────────────────────────────────────────
 
   async function onDelete(name: string) {
-    if (!window.confirm(`确定删除供应商 "${name}"？`)) return;
+    if (!window.confirm(t('确定删除供应商 "{name}"？', { name }))) return;
     setError(null);
     try {
       await deleteProvider(name);
