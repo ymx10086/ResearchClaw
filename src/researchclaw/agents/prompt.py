@@ -1,154 +1,220 @@
-"""System prompt construction for ScholarAgent.
+# -*- coding: utf-8 -*-
+# flake8: noqa: E501
+"""System prompt building utilities.
 
-Reads Markdown profile files from the working directory to build a
-research-oriented system prompt. Falls back to a sensible default when
-the required files are missing.
+This module provides utilities for building system prompts from
+markdown configuration files in the working directory.
 """
-
-from __future__ import annotations
-
 import logging
-import re
-from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
-
-from ..constant import WORKING_DIR
 
 logger = logging.getLogger(__name__)
 
-# ── Defaults ────────────────────────────────────────────────────────────────
-
-DEFAULT_SYS_PROMPT = """\
-You are **Scholar**, an AI research assistant created by ResearchClaw.
-
-Your mission is to help academic researchers with their scientific workflow:
-- Searching and discovering relevant papers (ArXiv, Semantic Scholar, Google Scholar)
-- Reading, summarizing, and critically analyzing research papers
-- Managing references and BibTeX citations
-- Performing data analysis and creating publication-quality visualizations
-- Assisting with LaTeX writing and literature reviews
-- Tracking experiments and maintaining research notes
-- Staying up-to-date with the latest publications in the user's fields of interest
-
-Guidelines:
-- Always cite sources when referring to specific papers or findings
-- Be precise with scientific terminology
-- When summarizing papers, highlight methodology, key findings, and limitations
-- For data analysis, explain statistical methods and assumptions
-- Provide BibTeX entries when recommending papers
-- Respect the user's research domain expertise — assist, don't patronize
-- When uncertain about scientific claims, clearly state the uncertainty
-
-You have access to various research tools. Use them proactively to help the user.
+# Default fallback prompt
+DEFAULT_SYS_PROMPT = """
+You are a helpful assistant.
 """
 
-# ── Prompt file configuration ──────────────────────────────────────────────
+# Backward compatibility alias
+SYS_PROMPT = DEFAULT_SYS_PROMPT
 
 
-@dataclass
-class PromptFileSpec:
-    """Specification for a single prompt file."""
-
-    filename: str
-    required: bool = True
-
-
-@dataclass
 class PromptConfig:
-    """Ordered list of Markdown files that compose the system prompt."""
+    """Configuration for system prompt building."""
 
-    files: list[PromptFileSpec] = field(
-        default_factory=lambda: [
-            PromptFileSpec("AGENTS.md", required=True),
-            PromptFileSpec("SOUL.md", required=True),
-            PromptFileSpec("PROFILE.md", required=False),
-            PromptFileSpec("RESEARCH_AREAS.md", required=False),
-        ],
-    )
-
-
-# ── Builder ─────────────────────────────────────────────────────────────────
-
-_YAML_FRONT_MATTER = re.compile(r"\A---\s*\n.*?\n---\s*\n", re.DOTALL)
+    # Define file loading order: (filename, required)
+    FILE_ORDER = [
+        ("AGENTS.md", True),
+        ("SOUL.md", True),
+        ("PROFILE.md", False),
+    ]
 
 
 class PromptBuilder:
-    """Build the system prompt from Markdown files in a directory."""
+    """Builder for constructing system prompts from markdown files."""
 
-    def __init__(
-        self,
-        directory: str | Path,
-        config: Optional[PromptConfig] = None,
-    ) -> None:
-        self.directory = Path(directory)
-        self.config = config or PromptConfig()
+    def __init__(self, working_dir: Path):
+        """Initialize prompt builder.
+
+        Args:
+            working_dir: Directory containing markdown configuration files
+        """
+        self.working_dir = working_dir
+        self.prompt_parts = []
+        self.loaded_count = 0
+
+    def _load_file(self, filename: str, required: bool) -> bool:
+        """Load a single markdown file.
+
+        Args:
+            filename: Name of the file to load
+            required: Whether the file is required
+
+        Returns:
+            True if file was loaded successfully, False otherwise
+        """
+        file_path = self.working_dir / filename
+
+        if not file_path.exists():
+            if required:
+                logger.warning(
+                    "%s not found in working directory (%s), using default prompt",
+                    filename,
+                    self.working_dir,
+                )
+                return False
+            else:
+                logger.debug("Optional file %s not found, skipping", filename)
+                return True  # Not an error for optional files
+
+        try:
+            content = file_path.read_text(encoding="utf-8").strip()
+
+            # Remove YAML frontmatter if present
+            if content.startswith("---"):
+                parts = content.split("---", 2)
+                if len(parts) >= 3:
+                    content = parts[2].strip()
+
+            if content:
+                if self.prompt_parts:  # Add separator if not first section
+                    self.prompt_parts.append("")
+                # Add section header with filename
+                self.prompt_parts.append(f"# {filename}")
+                self.prompt_parts.append("")
+                self.prompt_parts.append(content)
+                self.loaded_count += 1
+                logger.debug("Loaded %s", filename)
+            else:
+                logger.debug("Skipped empty file: %s", filename)
+
+            return True
+
+        except Exception as e:
+            if required:
+                logger.error(
+                    "Failed to read required file %s: %s",
+                    filename,
+                    e,
+                    exc_info=True,
+                )
+                return False
+            else:
+                logger.warning(
+                    "Failed to read optional file %s: %s",
+                    filename,
+                    e,
+                )
+                return True  # Not fatal for optional files
 
     def build(self) -> str:
-        """Read and concatenate prompt files.
+        """Build the system prompt from markdown files.
 
-        Returns the concatenated Markdown content, or
-        :data:`DEFAULT_SYS_PROMPT` if any required file is missing.
+        Returns:
+            Constructed system prompt string
         """
-        parts: list[str] = []
-        for spec in self.config.files:
-            path = self.directory / spec.filename
-            if not path.is_file():
-                if spec.required:
-                    logger.warning(
-                        "Required prompt file missing: %s – using default prompt",
-                        path,
-                    )
-                    return DEFAULT_SYS_PROMPT
-                continue
+        for filename, required in PromptConfig.FILE_ORDER:
+            if not self._load_file(filename, required):
+                # Required file failed to load
+                return DEFAULT_SYS_PROMPT
 
-            text = path.read_text(encoding="utf-8")
-            # Strip optional YAML front-matter
-            text = _YAML_FRONT_MATTER.sub("", text).strip()
-            parts.append(f"# {spec.filename}\n\n{text}")
-
-        if not parts:
+        if not self.prompt_parts:
+            logger.warning("No content loaded from working directory")
             return DEFAULT_SYS_PROMPT
 
-        return "\n\n---\n\n".join(parts)
+        # Join all parts with double newlines
+        final_prompt = "\n\n".join(self.prompt_parts)
 
+        logger.debug(
+            "System prompt built from %d file(s), total length: %d chars",
+            self.loaded_count,
+            len(final_prompt),
+        )
 
-# ── Convenience functions ───────────────────────────────────────────────────
+        return final_prompt
 
 
 def build_system_prompt_from_working_dir() -> str:
-    """Build the system prompt using files in :data:`WORKING_DIR`."""
-    return PromptBuilder(WORKING_DIR).build()
-
-
-def build_bootstrap_guidance(language: str = "en") -> str:
-    """Return first-run bootstrap guidance.
-
-    Parameters
-    ----------
-    language:
-        ``"en"`` for English, ``"zh"`` for Chinese.
     """
-    if language.startswith("zh"):
-        return (
-            "# 🌟 引导模式已激活\n\n"
-            "**你现在处于首次运行引导阶段。**\n\n"
-            "工作目录里存在 `BOOTSTRAP.md`，你应先按引导建立协作关系，再进入常规问答。\n\n"
-            "请按下面顺序执行：\n"
-            "1. 阅读并遵循 `BOOTSTRAP.md` 的步骤，先和用户完成初次沟通。\n"
-            "2. 协助用户完善关键文件：`PROFILE.md`、`SOUL.md`、`AGENTS.md`、`HEARTBEAT.md`。\n"
-            "3. 引导用户确认语言、研究方向、沟通偏好与任务节奏。\n"
-            "4. 引导完成后，提醒用户可删除 `BOOTSTRAP.md`（或在工作区手动维护）。\n\n"
-            "如果用户明确要求跳过引导，就继续回答用户当前问题。"
-        )
-    return (
-        "# 🌟 Bootstrap Mode Activated\n\n"
-        "**You are in first-run onboarding mode.**\n\n"
-        "A `BOOTSTRAP.md` file exists in the workspace. Guide the user through onboarding before regular Q&A.\n\n"
-        "Please follow this order:\n"
-        "1. Read and follow the steps in `BOOTSTRAP.md`.\n"
-        "2. Help the user complete key files: `PROFILE.md`, `SOUL.md`, `AGENTS.md`, `HEARTBEAT.md`.\n"
-        "3. Confirm language, research areas, collaboration preferences, and cadence.\n"
-        "4. After onboarding, remind the user they can remove `BOOTSTRAP.md`.\n\n"
-        "If the user explicitly wants to skip onboarding, proceed with their current request."
-    )
+    Build system prompt by reading markdown files from working directory.
+
+    This function constructs the system prompt by loading markdown files from
+    WORKING_DIR (~/.researchclaw by default). These files define the agent's behavior,
+    personality, and operational guidelines.
+
+    Loading order and priority:
+    1. AGENTS.md (required) - Detailed workflows, rules, and guidelines
+    2. SOUL.md (required) - Core identity and behavioral principles
+    3. PROFILE.md (optional) - Agent identity and user profile
+
+    Returns:
+        str: Constructed system prompt from markdown files.
+             If required files don't exist, returns the default prompt.
+
+    Example:
+        If working_dir contains AGENTS.md, SOUL.md and PROFILE.md, they will be combined:
+        "# AGENTS.md\\n\\n...\\n\\n# SOUL.md\\n\\n...\\n\\n# PROFILE.md\\n\\n..."
+    """
+    from ..constant import WORKING_DIR
+
+    builder = PromptBuilder(working_dir=Path(WORKING_DIR))
+    return builder.build()
+
+
+def build_bootstrap_guidance(
+    language: str = "zh",
+) -> str:
+    """Build bootstrap guidance message for first-time setup.
+
+    Args:
+        language: Language code (en/zh)
+
+    Returns:
+        Formatted bootstrap guidance message
+    """
+    if language == "en":
+        return """# 🌟 BOOTSTRAP MODE ACTIVATED
+
+**IMPORTANT: You are in first-time setup mode.**
+
+A `BOOTSTRAP.md` file exists in your working directory. This means you should guide the user through the bootstrap process to establish your identity and preferences.
+
+**Your task:**
+1. Read the BOOTSTRAP.md file, greet the user warmly as a first meeting, and guide them through the bootstrap process.
+2. Follow the instructions in BOOTSTRAP.md. For example, help the user define your identity, their preferences, and establish the working relationship.
+3. Create and update the necessary files (PROFILE.md, MEMORY.md, etc.) as described in the guide.
+4. After completing the bootstrap process, delete BOOTSTRAP.md as instructed.
+
+**If the user wants to skip:**
+If the user explicitly says they want to skip the bootstrap or just want their question answered directly, then proceed to answer their original question below. You can always help them bootstrap later.
+
+**Original user message:**
+"""
+    else:  # zh
+        return """# 🌟 引导模式已激活
+
+**重要：你正处于首次设置模式。**
+
+你的工作目录中存在 `BOOTSTRAP.md` 文件。这意味着你应该引导用户完成引导流程，以建立你的身份和偏好。
+
+**你的任务：**
+1. 阅读 BOOTSTRAP.md 文件，友好地表示初次见面，引导用户完成引导流程。
+2. 按照BOOTSTRAP.md 里面的指示执行。例如，帮助用户定义你的身份、他们的偏好，并建立工作关系
+3. 按照指南中的描述创建和更新必要的文件（PROFILE.md、MEMORY.md 等）
+4. 完成引导流程后，按照指示删除 BOOTSTRAP.md
+
+**如果用户希望跳过：**
+如果用户明确表示想跳过引导，那就继续回答下面的原始问题。你随时可以帮助他们完成引导。
+
+**用户的原始消息：**
+"""
+
+
+__all__ = [
+    "build_system_prompt_from_working_dir",
+    "build_bootstrap_guidance",
+    "PromptBuilder",
+    "PromptConfig",
+    "DEFAULT_SYS_PROMPT",
+    "SYS_PROMPT",  # Backward compatibility
+]

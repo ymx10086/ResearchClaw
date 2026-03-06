@@ -1,152 +1,237 @@
-# PPTX – PowerPoint Presentations
-
 - name: pptx
 - description: Create, edit, and analyze PowerPoint presentations — research talks, conference presentations, lecture slides, and poster summaries.
 - emoji: 📊
 
+# PPTX Skill
+
 ## Runtime Dependencies
 
-| Tool | Purpose | Install |
-|------|---------|---------|
-| LibreOffice (`soffice`) | PPTX→PDF conversion | `brew install --cask libreoffice` |
-| Poppler (`pdftoppm`) | PDF→image for visual QA | `brew install poppler` |
+- Requires LibreOffice (`soffice`) for presentation-to-PDF conversion.
+- Requires Poppler (`pdftoppm`) for PDF-to-image conversion used by thumbnail/visual workflows.
+- If `pdftoppm` is unavailable, a Python fallback path may use `pdf2image`.
+- On Windows, dependencies must be installed and available in `PATH`; if missing, report the dependency issue and stop (do not keep retrying).
 
-## Workflows
+## Quick Reference
 
-### Read / Analyze Existing
+| Task | Guide |
+|------|-------|
+| Read/analyze content | `python -m markitdown presentation.pptx` |
+| Edit or create from template | Read [editing.md](editing.md) |
+| Create from scratch | Read [pptxgenjs.md](pptxgenjs.md) |
+
+---
+
+## Reading Content
+
 ```bash
-# Extract text content
+# Text extraction
 python -m markitdown presentation.pptx
+
+# Visual overview
+python scripts/thumbnail.py presentation.pptx
+
+# Raw XML
+python scripts/office/unpack.py presentation.pptx unpacked/
 ```
 
-Or with python-pptx:
-```python
-from pptx import Presentation
-prs = Presentation('presentation.pptx')
-for slide_num, slide in enumerate(prs.slides, 1):
-    print(f"--- Slide {slide_num} ---")
-    for shape in slide.shapes:
-        if shape.has_text_frame:
-            print(shape.text_frame.text)
-```
+---
 
-### Create New Presentation (python-pptx)
-```python
-from pptx import Presentation
-from pptx.util import Inches, Pt, Emu
-from pptx.dml.color import RGBColor
-from pptx.enum.text import PP_ALIGN
+## Editing Workflow
 
-prs = Presentation()
+**Read [editing.md](editing.md) for full details.**
 
-# Title slide
-slide = prs.slides.add_slide(prs.slide_layouts[0])
-title = slide.shapes.title
-title.text = "Neural Architecture Search"
-subtitle = slide.placeholders[1]
-subtitle.text = "A Comprehensive Survey\nAuthor Name — University"
+1. Analyze template with `thumbnail.py`
+2. Unpack → manipulate slides → edit content → clean → pack
 
-# Content slide
-slide = prs.slides.add_slide(prs.slide_layouts[1])
-slide.shapes.title.text = "Key Contributions"
-body = slide.placeholders[1]
-tf = body.text_frame
-tf.text = "Contribution 1: Novel search space design"
-p = tf.add_paragraph()
-p.text = "Contribution 2: Efficient evaluation strategy"
-p.level = 0
+---
 
-# Image slide
-slide = prs.slides.add_slide(prs.slide_layouts[5])  # blank
-slide.shapes.title.text = "Model Architecture"
-slide.shapes.add_picture('architecture.png',
-    Inches(1.5), Inches(2), Inches(7), Inches(4))
+## Creating from Scratch
 
-# Table slide
-slide = prs.slides.add_slide(prs.slide_layouts[5])
-slide.shapes.title.text = "Experimental Results"
-rows, cols = 4, 4
-table = slide.shapes.add_table(rows, cols,
-    Inches(1), Inches(2), Inches(8), Inches(3)).table
-headers = ['Method', 'Accuracy', 'Params', 'FLOPs']
-for i, h in enumerate(headers):
-    table.cell(0, i).text = h
+**Read [pptxgenjs.md](pptxgenjs.md) for full details.**
 
-prs.save('research_talk.pptx')
-```
+Use when no template or reference presentation is available.
 
-### Edit Existing Presentation
-```python
-from pptx import Presentation
-prs = Presentation('existing.pptx')
+---
 
-# Modify specific slide
-slide = prs.slides[2]  # 3rd slide
-for shape in slide.shapes:
-    if shape.has_text_frame:
-        for para in shape.text_frame.paragraphs:
-            for run in para.runs:
-                if 'old_value' in run.text:
-                    run.text = run.text.replace('old_value', 'new_value')
+## Design Ideas
 
-prs.save('updated.pptx')
-```
+**Don't create boring slides.** Plain bullets on a white background won't impress anyone. Consider ideas from this list for each slide.
 
-### Visual QA (verify output)
-```bash
-soffice --headless --convert-to pdf presentation.pptx
-pdftoppm -png -r 200 presentation.pdf slide_preview
-```
+### Before Starting
 
-## Design Guidelines for Research Presentations
+- **Pick a bold, content-informed color palette**: The palette should feel designed for THIS topic. If swapping your colors into a completely different presentation would still "work," you haven't made specific enough choices.
+- **Dominance over equality**: One color should dominate (60-70% visual weight), with 1-2 supporting tones and one sharp accent. Never give all colors equal weight.
+- **Dark/light contrast**: Dark backgrounds for title + conclusion slides, light for content ("sandwich" structure). Or commit to dark throughout for a premium feel.
+- **Commit to a visual motif**: Pick ONE distinctive element and repeat it — rounded image frames, icons in colored circles, thick single-side borders. Carry it across every slide.
 
-### Color Schemes (pick one per presentation)
+### Color Palettes
 
-| Theme | Primary | Secondary | Accent | Background |
-|-------|---------|-----------|--------|------------|
-| Academic Blue | #1B365D | #5B8DB8 | #E8B54D | #FFFFFF |
-| Nature Green | #2D5016 | #7BA05B | #D4A574 | #F5F5F0 |
-| Modern Dark | #1A1A2E | #16213E | #0F3460 | #E4E4E4 |
-| Clean Minimal | #333333 | #666666 | #0066CC | #FFFFFF |
+Choose colors that match your topic — don't default to generic blue. Use these palettes as inspiration:
+
+| Theme | Primary | Secondary | Accent |
+|-------|---------|-----------|--------|
+| **Midnight Executive** | `1E2761` (navy) | `CADCFC` (ice blue) | `FFFFFF` (white) |
+| **Forest & Moss** | `2C5F2D` (forest) | `97BC62` (moss) | `F5F5F5` (cream) |
+| **Coral Energy** | `F96167` (coral) | `F9E795` (gold) | `2F3C7E` (navy) |
+| **Warm Terracotta** | `B85042` (terracotta) | `E7E8D1` (sand) | `A7BEAE` (sage) |
+| **Ocean Gradient** | `065A82` (deep blue) | `1C7293` (teal) | `21295C` (midnight) |
+| **Charcoal Minimal** | `36454F` (charcoal) | `F2F2F2` (off-white) | `212121` (black) |
+| **Teal Trust** | `028090` (teal) | `00A896` (seafoam) | `02C39A` (mint) |
+| **Berry & Cream** | `6D2E46` (berry) | `A26769` (dusty rose) | `ECE2D0` (cream) |
+| **Sage Calm** | `84B59F` (sage) | `69A297` (eucalyptus) | `50808E` (slate) |
+| **Cherry Bold** | `990011` (cherry) | `FCF6F5` (off-white) | `2F3C7E` (navy) |
+
+### For Each Slide
+
+**Every slide needs a visual element** — image, chart, icon, or shape. Text-only slides are forgettable.
+
+**Layout options:**
+- Two-column (text left, illustration on right)
+- Icon + text rows (icon in colored circle, bold header, description below)
+- 2x2 or 2x3 grid (image on one side, grid of content blocks on other)
+- Half-bleed image (full left or right side) with content overlay
+
+**Data display:**
+- Large stat callouts (big numbers 60-72pt with small labels below)
+- Comparison columns (before/after, pros/cons, side-by-side options)
+- Timeline or process flow (numbered steps, arrows)
+
+**Visual polish:**
+- Icons in small colored circles next to section headers
+- Italic accent text for key stats or taglines
 
 ### Typography
 
-| Element | Font | Size | Style |
-|---------|------|------|-------|
-| Title slide title | Arial/Helvetica Bold | 36-44pt | Bold |
-| Slide title | Arial/Helvetica | 28-32pt | Bold |
-| Body text | Arial/Calibri | 18-24pt | Regular |
-| Caption/footnote | Arial/Calibri | 12-14pt | Italic |
+**Choose an interesting font pairing** — don't default to Arial. Pick a header font with personality and pair it with a clean body font.
 
-### Layout Rules
+| Header Font | Body Font |
+|-------------|-----------|
+| Georgia | Calibri |
+| Arial Black | Arial |
+| Calibri | Calibri Light |
+| Cambria | Calibri |
+| Trebuchet MS | Calibri |
+| Impact | Arial |
+| Palatino | Garamond |
+| Consolas | Calibri |
 
-- **Max 6 bullet points** per slide
-- **Max 8 words** per bullet point
-- One key idea per slide
-- Every slide should have a visual element (chart, image, diagram, or table)
-- Use consistent margins: 0.5" from edges minimum
+| Element | Size |
+|---------|------|
+| Slide title | 36-44pt bold |
+| Section header | 20-24pt bold |
+| Body text | 14-16pt |
+| Captions | 10-12pt muted |
 
-### Slide Types for Research Talks
+### Spacing
 
-1. **Title Slide** — Title, authors, affiliations, date
-2. **Outline** — Talk structure overview
-3. **Motivation** — Why this problem matters
-4. **Background** — Prior work (brief)
-5. **Method** — Your approach (with diagrams!)
-6. **Experiments** — Setup, datasets, baselines
-7. **Results** — Tables, charts, visualizations
-8. **Ablation** — What contributes to performance
-9. **Qualitative** — Visual examples
-10. **Conclusion** — Summary + future work
-11. **Thank You / Q&A** — Contact info
+- 0.5" minimum margins
+- 0.3-0.5" between content blocks
+- Leave breathing room—don't fill every inch
 
-## Rules
+### Avoid (Common Mistakes)
 
-- NEVER create text-only slides — every slide needs a visual element
-- NEVER underline titles (it's an AI-generated look)
-- Always verify output by converting to images
-- Use high-contrast colors for readability
-- Limit animations — they rarely work across platforms
-- For charts, prefer clean, simple designs with clear labels
-- Include slide numbers
-- Keep total slides to ~1 per minute of talk time
+- **Don't repeat the same layout** — vary columns, cards, and callouts across slides
+- **Don't center body text** — left-align paragraphs and lists; center only titles
+- **Don't skimp on size contrast** — titles need 36pt+ to stand out from 14-16pt body
+- **Don't default to blue** — pick colors that reflect the specific topic
+- **Don't mix spacing randomly** — choose 0.3" or 0.5" gaps and use consistently
+- **Don't style one slide and leave the rest plain** — commit fully or keep it simple throughout
+- **Don't create text-only slides** — add images, icons, charts, or visual elements; avoid plain title + bullets
+- **Don't forget text box padding** — when aligning lines or shapes with text edges, set `margin: 0` on the text box or offset the shape to account for padding
+- **Don't use low-contrast elements** — icons AND text need strong contrast against the background; avoid light text on light backgrounds or dark text on dark backgrounds
+- **NEVER use accent lines under titles** — these are a hallmark of AI-generated slides; use whitespace or background color instead
+
+---
+
+## QA (Required)
+
+**Assume there are problems. Your job is to find them.**
+
+Your first render is almost never correct. Approach QA as a bug hunt, not a confirmation step. If you found zero issues on first inspection, you weren't looking hard enough.
+
+### Content QA
+
+```bash
+python -m markitdown output.pptx
+```
+
+Check for missing content, typos, wrong order.
+
+**When using templates, check for leftover placeholder text:**
+
+```bash
+python -m markitdown output.pptx | grep -iE "xxxx|lorem|ipsum|this.*(page|slide).*layout"
+```
+
+If grep returns results, fix them before declaring success.
+
+### Visual QA
+
+**⚠️ USE SUBAGENTS** — even for 2-3 slides. You've been staring at the code and will see what you expect, not what's there. Subagents have fresh eyes.
+
+Convert slides to images (see [Converting to Images](#converting-to-images)), then use this prompt:
+
+```
+Visually inspect these slides. Assume there are issues — find them.
+
+Look for:
+- Overlapping elements (text through shapes, lines through words, stacked elements)
+- Text overflow or cut off at edges/box boundaries
+- Decorative lines positioned for single-line text but title wrapped to two lines
+- Source citations or footers colliding with content above
+- Elements too close (< 0.3" gaps) or cards/sections nearly touching
+- Uneven gaps (large empty area in one place, cramped in another)
+- Insufficient margin from slide edges (< 0.5")
+- Columns or similar elements not aligned consistently
+- Low-contrast text (e.g., light gray text on cream-colored background)
+- Low-contrast icons (e.g., dark icons on dark backgrounds without a contrasting circle)
+- Text boxes too narrow causing excessive wrapping
+- Leftover placeholder content
+
+For each slide, list issues or areas of concern, even if minor.
+
+Read and analyze these images:
+1. /path/to/slide-01.jpg (Expected: [brief description])
+2. /path/to/slide-02.jpg (Expected: [brief description])
+
+Report ALL issues found, including minor ones.
+```
+
+### Verification Loop
+
+1. Generate slides → Convert to images → Inspect
+2. **List issues found** (if none found, look again more critically)
+3. Fix issues
+4. **Re-verify affected slides** — one fix often creates another problem
+5. Repeat until a full pass reveals no new issues
+
+**Do not declare success until you've completed at least one fix-and-verify cycle.**
+
+---
+
+## Converting to Images
+
+Convert presentations to individual slide images for visual inspection:
+
+```bash
+python scripts/office/soffice.py --headless --convert-to pdf output.pptx
+pdftoppm -jpeg -r 150 output.pdf slide
+```
+
+This creates `slide-01.jpg`, `slide-02.jpg`, etc.
+
+To re-render specific slides after fixes:
+
+```bash
+pdftoppm -jpeg -r 150 -f N -l N output.pdf slide-fixed
+```
+
+---
+
+## Dependencies
+
+- `pip install "markitdown[pptx]"` - text extraction
+- `pip install Pillow` - thumbnail grids
+- `npm install -g pptxgenjs` - creating from scratch
+- LibreOffice (`soffice`) - PDF conversion (auto-configured for sandboxed environments via `scripts/office/soffice.py`)
+- Poppler (`pdftoppm`) - PDF to images

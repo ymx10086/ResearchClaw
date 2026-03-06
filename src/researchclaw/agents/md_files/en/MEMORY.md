@@ -1,48 +1,26 @@
 ---
-summary: "Agent long-term memory — tool setup, research context, and lessons learned"
+summary: "Agent long-term memory — tool setup and lessons learned"
 read_when:
   - Bootstrapping a workspace manually
 ---
 
 ## Tool Setup
 
-Skills define _how_ tools work. This file is for _your_ specifics — the stuff that's unique to your research setup.
+Skills define _how_ tools work. This file is for _your_ specifics — the stuff that's unique to your setup.
 
 ### What Goes Here
 
-Add whatever helps you do your research. This is your cheat sheet.
+Add whatever helps you do your job. This is your cheat sheet.
 
 Things like:
 
-- Preferred academic databases and API keys
-- SSH hosts for compute clusters
-- Default citation style (APA, IEEE, etc.)
-- Research group conventions
-- Frequently used LaTeX templates
+- SSH hosts and aliases
+- Other user-related settings when executing skills
 
 ### Examples
 
 ```markdown
-### Compute Cluster
+### SSH
 
-- lab-gpu → 10.0.1.50, user: researcher, conda env: torch2.1
-- slurm partition: a100-short (max 24h)
-
-### Citation Style
-
-- Default: APA 7th edition
-- BibTeX file: ~/references/main.bib
-
-### Research Areas
-
-- Primary: Large Language Model Alignment
-- Secondary: Multimodal Learning, Code Generation
+- home-server → 192.168.1.100, user: admin
 ```
-
-## Research Context
-
-*Record ongoing projects, key insights, and methodological preferences here.*
-
-## Lessons Learned
-
-*What worked, what didn't. Save future-you some time.*

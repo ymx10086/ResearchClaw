@@ -1,59 +1,42 @@
-# Research & Academic News
-
 - name: news
 - description: Fetch and summarize the latest research news, academic announcements, and science reporting from trusted sources.
 - emoji: 📰
 - requires: []
 
-## News Sources
+# News Reference
 
-| Category | Source | URL |
-|----------|--------|-----|
-| AI/ML | AI News | https://www.artificialintelligence-news.com/ |
-| Science | Science Daily | https://www.sciencedaily.com/ |
-| Technology | TechCrunch AI | https://techcrunch.com/category/artificial-intelligence/ |
-| Academic | Nature News | https://www.nature.com/news |
-| Academic | Science News | https://www.science.org/news |
-| CS Research | Papers With Code | https://paperswithcode.com/ |
-| Preprints | arxiv Sanity | https://arxiv-sanity-lite.com/ |
-| Policy | Science Policy | https://sciencepolicy.colorado.edu/ |
+When the user asks for "latest news", "what's in the news today", or "news in category X", use the **browser_use** tool with the categories and URLs below: open the page, take a snapshot, then extract headlines and key points from the page content and reply to the user.
 
-## How to Use
+## Categories and Sources
 
-1. Open the news source in the browser:
+| Category      | Source                    | URL |
+|---------------|---------------------------|-----|
+| **Politics**  | People's Daily · CPC News | https://cpc.people.com.cn/ |
+| **Finance**   | China Economic Net        | http://www.ce.cn/ |
+| **Society**   | China News · Society      | https://www.chinanews.com/society/ |
+| **World**     | CGTN                      | https://www.cgtn.com/ |
+| **Tech**      | Science and Technology Daily | https://www.stdaily.com/ |
+| **Sports**    | CCTV Sports               | https://sports.cctv.com/ |
+| **Entertainment** | Sina Entertainment   | https://ent.sina.com.cn/ |
+
+## How to Use (browser_use)
+
+1. **Clarify the user's need**: Determine which category or categories (politics / finance / society / world / tech / sports / entertainment), or pick 1–2 to fetch.
+2. **Pick the URL**: Use the URL from the table for that category; for multiple categories, repeat the steps below for each URL.
+3. **Open the page**: Call **browser_use** with:
    ```json
-   {"action": "open", "url": "https://www.sciencedaily.com/"}
+   {"action": "open", "url": "https://www.chinanews.com/society/"}
    ```
-
-2. Take a snapshot to see current headlines:
+   Replace `url` with the corresponding URL from the table.
+4. **Take a snapshot**: In the same session, call **browser_use** again:
    ```json
    {"action": "snapshot"}
    ```
+   Extract headlines, dates, and summaries from the returned page content.
+5. **Summarize the reply**: Organize a short list (headline + one or two sentences + source) by time or importance; if a site is unreachable or times out, say so and suggest another source.
 
-3. Extract and summarize the top stories with titles, brief descriptions, and links.
+## Notes
 
-4. For deeper analysis, navigate to individual articles and extract key points.
-
-## Output Format
-
-Present news summaries in this format:
-
-```
-📰 **[Category] Source Name** — [Date]
-
-1. **Title of Article**
-   Summary of key findings/announcements (2-3 sentences)
-   🔗 [Link]
-
-2. **Title of Article**
-   Summary...
-   🔗 [Link]
-```
-
-## Rules
-
-- Always attribute the source
-- Provide direct links to original articles
-- Focus on factual reporting, avoid editorializing
-- For research papers mentioned in news, also check the original paper on arxiv if available
-- Summarize in the user's preferred language
+- Page structure may change when sites are updated; if extraction fails, say so and suggest the user open the link directly.
+- When visiting multiple categories, run `open` for each URL, then `snapshot`, to avoid mixing content from different pages.
+- You may include the original link in the reply so the user can open it.

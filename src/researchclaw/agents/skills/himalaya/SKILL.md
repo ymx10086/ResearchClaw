@@ -1,30 +1,35 @@
-# Himalaya – Email Management
-
 - name: himalaya
 - description: Read, search, and organize emails via the himalaya CLI (IMAP/SMTP). Useful for managing research correspondence, collaboration, and paper submission communications.
 - emoji: 📧
 - requires:
   bins: ["himalaya"]
+# Himalaya Email CLI
 
-## Installation
+Himalaya is a CLI email client that lets you manage emails from the terminal using IMAP, SMTP, Notmuch, or Sendmail backends.
+
+## References
+
+- `references/configuration.md` (config file setup + IMAP/SMTP authentication)
+
+## Prerequisites
+
+1. Himalaya CLI installed (`himalaya --version` to verify)
+2. A configuration file at `~/.config/himalaya/config.toml`
+3. IMAP/SMTP credentials configured (password stored securely)
+
+## Configuration Setup
+
+Run the interactive wizard to set up an account (replace `default` with
+any name you want, e.g. `gmail`, `work`):
 
 ```bash
-# macOS
-brew install himalaya
-
-# Linux
-curl -sSL https://raw.githubusercontent.com/pimalaya/himalaya/master/install.sh | bash
-
-# Or via cargo
-cargo install himalaya
+himalaya account configure default
 ```
 
-## Configuration
-
-Create `~/.config/himalaya/config.toml`:
+Or create `~/.config/himalaya/config.toml` manually:
 
 ```toml
-[accounts.default]
+[accounts.personal]
 email = "you@example.com"
 display-name = "Your Name"
 default = true
@@ -32,99 +37,176 @@ default = true
 backend.type = "imap"
 backend.host = "imap.example.com"
 backend.port = 993
+backend.encryption.type = "tls"
 backend.login = "you@example.com"
 backend.auth.type = "password"
-backend.auth.raw = "your-app-password"
+backend.auth.cmd = "pass show email/imap"  # or use keyring
 
 message.send.backend.type = "smtp"
 message.send.backend.host = "smtp.example.com"
-message.send.backend.port = 465
+message.send.backend.port = 587
+message.send.backend.encryption.type = "start-tls"
 message.send.backend.login = "you@example.com"
 message.send.backend.auth.type = "password"
-message.send.backend.auth.raw = "your-app-password"
+message.send.backend.auth.cmd = "pass show email/smtp"
 ```
 
-For Gmail, use an App Password (not your regular password) and:
-- IMAP host: `imap.gmail.com`, port: `993`
-- SMTP host: `smtp.gmail.com`, port: `465`
+If you are using 163 mail account, add `backend.extensions.id.send-after-auth = true` in the config file to ensure proper functionality.
 
-## Core Operations
+## Common Operations
 
-### List folders
+### List Folders
+
 ```bash
 himalaya folder list
 ```
 
-### List emails
+### List Emails
+
+List emails in INBOX (default):
+
 ```bash
-himalaya envelope list                    # default inbox
-himalaya envelope list -f "Sent"          # sent folder
-himalaya envelope list -s 20              # page size 20
-himalaya envelope list -p 2               # page 2
+himalaya envelope list
 ```
 
-### Search emails
+List emails in a specific folder:
+
 ```bash
-himalaya envelope list -f INBOX "subject:paper review"
-himalaya envelope list -f INBOX "from:colleague@university.edu"
-himalaya envelope list -f INBOX "subject:ICML AND unseen"
+himalaya envelope list --folder "Sent"
 ```
 
-### Read an email
+List with pagination:
+
 ```bash
-himalaya message read <id>                # plain text
-himalaya message read <id> -h             # with headers
+himalaya envelope list --page 1 --page-size 20
 ```
 
-### Move / Copy / Delete
+If meet with error, try:
+
 ```bash
-himalaya message move <id> -f INBOX "Archive"
-himalaya message copy <id> -f INBOX "Important"
-himalaya message delete <id>
+himalaya envelope list -f INBOX -s 1
 ```
 
-### Flag management
+### Search Emails
+
 ```bash
-himalaya flag add <id> seen               # mark as read
-himalaya flag remove <id> seen            # mark as unread
-himalaya flag add <id> flagged            # star
+himalaya envelope list from john@example.com subject meeting
 ```
 
-### Download attachments
+### Read an Email
+
+Read email by ID (shows plain text):
+
 ```bash
-himalaya attachment download <id>         # save to current dir
-himalaya attachment download <id> -o ~/Downloads/
+himalaya message read 42
 ```
 
-### Multi-account
+Export raw MIME:
+
 ```bash
-himalaya envelope list --account work
-himalaya message read 42 --account personal
+himalaya message export 42 --full
 ```
 
-## DISABLED Operations (Security)
+### Reply / Forward / Write (Disabled)
 
-The following operations are **disabled** for safety:
-- ❌ Sending new emails
-- ❌ Replying to emails
-- ❌ Forwarding emails
+**Do not send, reply, forward, or compose emails.** These operations are
+disabled for safety. Avoid using any of the following commands:
 
-These require explicit user action. If the user asks to send an email, explain that sending is disabled for security and suggest they do it manually.
+- `himalaya message reply`
+- `himalaya message forward`
+- `himalaya message write`
+- `himalaya template send`
 
-## Research Use Cases
+When the user ask you to do so, just reply you don't have such ability.
 
-- Check for paper review notifications
-- Search for conference deadline emails
-- Find collaboration discussion threads
-- Download paper drafts sent as attachments
-- Monitor journal submission status emails
-- Organize research correspondence into folders
+### Move/Copy Emails
 
-## Rules
+Move to folder:
 
-- NEVER send, reply to, or forward emails (disabled for security)
-- Always check if himalaya is installed before using: `which himalaya`
-- If not configured, guide the user through the config.toml setup
-- Respect the user's privacy — don't read emails without being asked
-- When listing emails, show a reasonable page size (10-20)
-- For search, use IMAP search syntax
+```bash
+himalaya message move 42 "Archive"
+```
+
+Copy to folder:
+
+```bash
+himalaya message copy 42 "Important"
+```
+
+### Delete an Email
+
+```bash
+himalaya message delete 42
+```
+
+### Manage Flags
+
+Add flag:
+
+```bash
+himalaya flag add 42 --flag seen
+```
+
+Remove flag:
+
+```bash
+himalaya flag remove 42 --flag seen
+```
+
+## Multiple Accounts
+
+List accounts:
+
+```bash
+himalaya account list
+```
+
+Use a specific account:
+
+```bash
+himalaya --account work envelope list
+```
+
+## Attachments
+
+Save attachments from a message:
+
+```bash
+himalaya attachment download 42
+```
+
+Save to specific directory:
+
+```bash
+himalaya attachment download 42 --dir ~/Downloads
+```
+
+## Output Formats
+
+Most commands support `--output` for structured output:
+
+```bash
+himalaya envelope list --output json
+himalaya envelope list --output plain
+```
+
+## Debugging
+
+Enable debug logging:
+
+```bash
+RUST_LOG=debug himalaya envelope list
+```
+
+Full trace with backtrace:
+
+```bash
+RUST_LOG=trace RUST_BACKTRACE=1 himalaya envelope list
+```
+
+## Tips
+
+- Use `himalaya --help` or `himalaya <command> --help` for detailed usage.
+- Message IDs are relative to the current folder; re-list after folder changes.
+- For composing rich emails with attachments, use MML syntax (see `references/message-composition.md`).
+- Store passwords securely using `pass`, system keyring, or a command that outputs the password.

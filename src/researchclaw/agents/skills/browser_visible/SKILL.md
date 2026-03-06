@@ -1,50 +1,43 @@
-# Browser Visible
-
 - name: browser_visible
 - description: Launch a visible (headed) Chromium browser for interactive research tasks, demos, or debugging — when the user explicitly asks to see a real browser window.
 - emoji: 🖥️
 
-## When to Use
+# 可见浏览器（真实窗口）参考
 
-- User explicitly asks to see a browser window
-- Tasks require visual interaction or human verification
-- Demonstrating web research workflows
-- Debugging browser automation issues
+默认情况下，**browser_use** 在后台以无头（headless）模式运行，不会弹出浏览器窗口。当用户明确希望**打开真正的浏览器窗口**、**看到浏览器界面**、**有界面的浏览器**或**可见浏览器**时，应使用本 skill：先以 **headed** 模式启动浏览器，再按需打开页面并操作。
 
-## How to Use
+## 何时使用
 
-1. Start browser in headed (visible) mode:
+- 用户说：「打开真实浏览器」「打开有界面的浏览器」「我想看到浏览器」「不要后台，要能看到窗口」
+- 用户希望亲眼看到页面加载、点击、填表等过程（演示、调试、教学）
+- 用户需要与可见页面交互（如登录、验证码等需人工参与的场景）
+
+## 使用方式（browser_use）
+
+1. **先以可见模式启动浏览器**  
+   调用 **browser_use**，`action` 为 `start`，并传入 **headed=true**：
    ```json
    {"action": "start", "headed": true}
    ```
+   成功后会出现一个真实的 Chromium 浏览器窗口。
 
-2. Navigate to a URL:
-   ```json
-   {"action": "open", "url": "https://scholar.google.com"}
-   ```
+2. **再按需打开页面并操作**  
+   与无头模式用法相同，例如：
+   - 打开 URL：`{"action": "open", "url": "https://example.com"}`
+   - 获取页面结构：`{"action": "snapshot"}`
+   - 点击、输入等：使用 `ref` 或 `selector` 进行 click、type 等
 
-3. Take a snapshot to see the current page:
-   ```json
-   {"action": "snapshot"}
-   ```
+3. **关闭可见浏览器**  
+   使用完毕后可调用：`{"action": "stop"}` 关闭浏览器。
 
-4. Interact with elements (click, type, scroll):
-   ```json
-   {"action": "click", "selector": "#search-button"}
-   ```
-   ```json
-   {"action": "type", "selector": "#search-input", "text": "machine learning survey"}
-   ```
+## 与默认（无头）模式的区别
 
-5. Always stop when done:
-   ```json
-   {"action": "stop"}
-   ```
+| 模式     | 启动方式                    | 是否弹出窗口 |
+|----------|-----------------------------|--------------|
+| 无头模式 | `{"action": "start"}`       | 否（后台）   |
+| 可见模式 | `{"action": "start", "headed": true}` | 是（真实窗口） |
 
-## Rules
+## 注意
 
-- Always snapshot after navigation to verify page loaded correctly
-- Always stop the browser when the task is complete
-- Do NOT leave the browser running indefinitely
-- If a page requires login, pause and ask the user to complete authentication manually
-- Prefer headless mode for routine tasks; only use headed mode when visibility is required
+- 若当前已有浏览器在运行，需要先 `stop` 再以 `headed: true` 重新 `start`，才能切换到可见窗口。
+- 可见模式会占用桌面并需要图形环境，服务器或无图形环境可能无法使用。

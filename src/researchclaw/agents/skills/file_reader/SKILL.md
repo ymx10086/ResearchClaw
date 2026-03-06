@@ -1,57 +1,53 @@
-# File Reader
-
 - name: file_reader
 - description: Read, preview, and summarize text-based files — source code, configs, logs, data files, and plain text documents.
 - emoji: 📄
 - requires: []
+# File Reader Toolbox
 
-## Supported Formats
+Use this skill when the user asks to read or summarize local text-based files. PDFs, Office documents, images, audio, and video are out of scope for this skill and should be handled by their dedicated skills/tools.
 
-| Category | Extensions |
-|----------|-----------|
-| Plain text | `.txt`, `.md`, `.rst`, `.text` |
-| Data | `.json`, `.yaml`, `.yml`, `.csv`, `.tsv`, `.xml` |
-| Config | `.ini`, `.toml`, `.cfg`, `.conf`, `.env` |
-| Logs | `.log` |
-| Source code | `.py`, `.js`, `.ts`, `.java`, `.c`, `.cpp`, `.go`, `.rs`, `.r`, `.m`, `.jl`, `.sh`, `.sql` |
-| Research | `.bib`, `.tex`, `.sty`, `.cls` |
+## Quick Type Check
 
-## Excluded Formats
+Use a type probe before reading:
 
-Do NOT use this skill for:
-- **PDF files** → use the `pdf` skill
-- **Office files** (`.docx`, `.pptx`, `.xlsx`) → use the respective skill
-- **Images** (`.png`, `.jpg`, `.gif`) → these are binary files
-- **Audio/Video** (`.mp3`, `.mp4`, `.wav`) → these are binary files
+```bash
+file -b --mime-type "/path/to/file"
+```
 
-## How to Use
+If the file is large, avoid dumping the whole content; extract a small, relevant portion and summarize.
 
-1. **Check file type** before reading:
-   ```bash
-   file -b --mime-type /path/to/file
-   ```
+## Text-Based Files (use read_file)
 
-2. **Read the file** with the `read_file` tool:
-   ```json
-   {"path": "/path/to/file.txt"}
-   ```
+Preferred for: `.txt`, `.md`, `.json`, `.yaml/.yml`, `.csv/.tsv`, `.log`, `.sql`, `ini`, `toml`, `py`, `js`, `html`, `xml` source code.
 
-3. For large files, read specific sections or use `head`/`tail`:
-   ```bash
-   head -n 100 /path/to/large_file.csv
-   wc -l /path/to/large_file.csv
-   ```
+Steps:
 
-## Research Context
+1. Use `read_file` to fetch content.
+2. Summarize key sections or show the relevant slice requested by the user.
+3. For JSON/YAML, list top-level keys and important fields.
+4. For CSV/TSV, show header + first few rows, then summarize columns.
 
-- `.bib` files: Parse BibTeX entries and summarize references
-- `.tex` files: Understand LaTeX document structure
-- `.csv`/`.tsv` files: Preview data tables, report shape and column info
-- `.json` files: Parse structured research metadata
+## Large Logs
 
-## Rules
+If the file is huge, use a tail window:
 
-- Always check MIME type before reading unknown files
-- For files > 10,000 lines, preview head + tail + report line count
-- Never attempt to read binary files as text
-- Report encoding issues gracefully (try UTF-8 first, then latin-1)
+```bash
+tail -n 200 "/path/to/file.log"
+```
+
+Summarize the last errors/warnings and notable patterns.
+
+## Out of Scope
+
+Do not handle the following in this skill (they are covered by other skills):
+
+- PDF
+- Office (docx/xlsx/pptx)
+- Images
+- Audio/Video
+
+## Safety and Behavior
+
+- Never execute untrusted files.
+- Prefer reading the smallest portion necessary.
+- If a tool is missing, explain the limitation and ask the user for an alternate format.
