@@ -130,3 +130,8 @@ ResearchClaw 将所有数据存储在本地 `~/.researchclaw/`：
 ## 📄 许可证
 
 Apache License 2.0 — 详见 [LICENSE](LICENSE)。
+
+## 🙏 致谢
+
+ResearchClaw 在通道、定时任务与控制台交互等设计上参考了 [CoPaw](https://github.com/agentscope-ai/CoPaw) 的架构。  
+感谢 CoPaw 项目提供了可落地、经过验证的实现思路。
