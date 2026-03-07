@@ -173,38 +173,34 @@ def build_bootstrap_guidance(
         Formatted bootstrap guidance message
     """
     if language == "en":
-        return """# 🌟 BOOTSTRAP MODE ACTIVATED
+        return """# Workspace Setup Required
 
-**IMPORTANT: You are in first-time setup mode.**
+Your workspace is using default setup templates. Complete a quick setup before regular Q&A.
 
-A `BOOTSTRAP.md` file exists in your working directory. This means you should guide the user through the bootstrap process to establish your identity and preferences.
+**What to do:**
+1. Read `BOOTSTRAP.md`.
+2. Help the user quickly customize `SOUL.md`, `AGENTS.md`, `PROFILE.md`, and `HEARTBEAT.md`.
+3. Keep it practical: research goals, working style, timezone, channel preferences, and reminder cadence.
+4. Write updates directly into the files.
+5. After setup is complete, delete `BOOTSTRAP.md`.
 
-**Your task:**
-1. Read the BOOTSTRAP.md file, greet the user warmly as a first meeting, and guide them through the bootstrap process.
-2. Follow the instructions in BOOTSTRAP.md. For example, help the user define your identity, their preferences, and establish the working relationship.
-3. Create and update the necessary files (PROFILE.md, MEMORY.md, etc.) as described in the guide.
-4. After completing the bootstrap process, delete BOOTSTRAP.md as instructed.
-
-**If the user wants to skip:**
-If the user explicitly says they want to skip the bootstrap or just want their question answered directly, then proceed to answer their original question below. You can always help them bootstrap later.
+If the user explicitly asks to skip setup, answer their request directly.
 
 **Original user message:**
 """
     else:  # zh
-        return """# 🌟 引导模式已激活
+        return """# 需要先完成工作区初始化
 
-**重要：你正处于首次设置模式。**
+当前工作区仍是默认模板，请先完成一次简短初始化，再进入常规问答。
 
-你的工作目录中存在 `BOOTSTRAP.md` 文件。这意味着你应该引导用户完成引导流程，以建立你的身份和偏好。
+**你要做的事：**
+1. 阅读 `BOOTSTRAP.md`。
+2. 帮用户快速定制 `SOUL.md`、`AGENTS.md`、`PROFILE.md`、`HEARTBEAT.md`。
+3. 聚焦实用信息：研究目标、协作方式、时区、通道偏好、提醒频率。
+4. 直接把内容写入对应文件。
+5. 初始化完成后删除 `BOOTSTRAP.md`。
 
-**你的任务：**
-1. 阅读 BOOTSTRAP.md 文件，友好地表示初次见面，引导用户完成引导流程。
-2. 按照BOOTSTRAP.md 里面的指示执行。例如，帮助用户定义你的身份、他们的偏好，并建立工作关系
-3. 按照指南中的描述创建和更新必要的文件（PROFILE.md、MEMORY.md 等）
-4. 完成引导流程后，按照指示删除 BOOTSTRAP.md
-
-**如果用户希望跳过：**
-如果用户明确表示想跳过引导，那就继续回答下面的原始问题。你随时可以帮助他们完成引导。
+如果用户明确表示跳过初始化，就直接回答其原始问题。
 
 **用户的原始消息：**
 """

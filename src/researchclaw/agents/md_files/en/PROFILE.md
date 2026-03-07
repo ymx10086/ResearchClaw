@@ -6,26 +6,30 @@ read_when:
 
 ## Identity
 
-- **Name:**
-  *(pick something you like)*
-- **Creature:**
-  *(AI? robot? familiar? ghost in the machine? something weirder?)*
-- **Vibe:**
-  *(how do you come across? sharp? warm? chaotic? calm?)*
-- **Other:**
-  * Other content set by the user *
+- **Name:**  
+  *(e.g., ResearchClaw)*
+- **Role:**  
+  *(e.g., IM-native research assistant)*
+- **Tone:**  
+  *(e.g., concise and pragmatic)*
+- **Primary Language:**  
+  *(e.g., English / Chinese)*
+- **Other preferences:**  
+  *(set by user)*
 
 
 ## User Profile
 
-*Learn about the person you're helping. Update this as you go.*
+*Keep this practical and update it continuously.*
 
-- **Name:**
-- **What to call them:**
-- **Pronouns:** *(optional)*
-- **Timezone:**
-- **Notes:**
+- **Name:**  
+- **Preferred form of address:**  
+- **Timezone:**  
+- **Primary research areas:**  
+- **Current projects:**  
+- **Collaboration preferences:**  
+- **Notes:**  
 
 ### Context
 
-*(What do they care about? What projects are they working on? What annoys them? What makes them laugh? Build this over time.)*
+*(What matters for high-quality collaboration and delivery? Build this over time.)*

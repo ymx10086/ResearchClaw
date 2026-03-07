@@ -123,7 +123,7 @@ class BootstrapHook:
                 gaps.append(f"{filename} (empty)")
                 continue
             if self._is_default_template(filename, language):
-                gaps.append(f"{filename} (still default template)")
+                gaps.append(f"{filename} (template not customized)")
                 continue
             if filename == "PROFILE.md" and self._profile_has_placeholders(content):
                 gaps.append(f"{filename} (contains placeholders)")
@@ -134,16 +134,16 @@ class BootstrapHook:
         joined = ", ".join(gaps)
         if language.startswith("zh"):
             return (
-                "【配置未完成】检测到以下工作区文件尚未完善："
+                "【初始化未完成】检测到以下工作区文件还未完成个性化配置："
                 f"{joined}。\n"
-                "请先补充完善这些文件（至少 SOUL.md、AGENTS.md、PROFILE.md、HEARTBEAT.md），"
-                "再继续常规问答。你可以直接让我帮你逐项完善。"
+                "请先完成这些文件（至少 SOUL.md、AGENTS.md、PROFILE.md、HEARTBEAT.md），"
+                "再继续常规问答。你可以让我逐项帮你填写。"
             )
         return (
-            "[Setup incomplete] The following workspace files are not ready: "
+            "[Setup incomplete] The following workspace files still need customization: "
             f"{joined}.\n"
             "Please complete these files first (at least SOUL.md, AGENTS.md, PROFILE.md, HEARTBEAT.md) "
-            "before regular Q&A. I can help you fill them step by step."
+            "before regular Q&A. I can help you complete them step by step."
         )
 
     def pre_reply(self, message: str) -> str:
