@@ -146,6 +146,15 @@ class BootstrapHook:
             "before regular Q&A. I can help you complete them step by step."
         )
 
+    @staticmethod
+    def _append_original_message(language: str, guidance: str, message: str) -> str:
+        original = (message or "").strip()
+        if not original:
+            return guidance
+        if language.startswith("zh"):
+            return f"{guidance}\n\n【用户原始消息】\n{original}"
+        return f"{guidance}\n\n[Original user message]\n{original}"
+
     def pre_reply(self, message: str) -> str:
         """Inject bootstrap guidance once and ensure md templates are present."""
         self._ensure_md_files()
@@ -154,7 +163,13 @@ class BootstrapHook:
         gaps = self._core_file_gaps(language)
         if gaps:
             gap_guidance = self._build_gap_guidance(language, gaps)
-            return gap_guidance
+            # Keep the user's original message visible to the model so it can
+            # actually respond to setup replies instead of repeating guidance.
+            return self._append_original_message(
+                language,
+                gap_guidance,
+                message,
+            )
 
         if self._bootstrapped:
             return message
