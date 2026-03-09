@@ -133,14 +133,22 @@ class ScholarAgent:
             cron_resume_job,
             cron_run_job,
         )
-        from .tools.file_io import read_file, write_file, edit_file, append_file
+        from .tools.file_io import (
+            read_file,
+            write_file,
+            edit_file,
+            append_file,
+        )
         from .tools.get_current_time import get_current_time
         from .tools.latex_helper import latex_compile_check, latex_template
         from .tools.memory_search import memory_search
         from .tools.paper_reader import read_paper
         from .tools.semantic_scholar import semantic_scholar_search
         from .tools.send_file import send_file
-        from .tools.copaw_compat import execute_shell_command, send_file_to_user
+        from .tools.copaw_compat import (
+            execute_shell_command,
+            send_file_to_user,
+        )
         from .tools.skill_tools import skills_list, skills_read_file
         from .tools.shell import run_shell
 
@@ -226,7 +234,10 @@ class ScholarAgent:
 
             ensure_skills_initialized()
         except Exception:
-            logger.warning("Failed to initialize skills directory", exc_info=True)
+            logger.warning(
+                "Failed to initialize skills directory",
+                exc_info=True,
+            )
         skills_dir = Path(ACTIVE_SKILLS_DIR)
         if not skills_dir.is_dir():
             logger.debug("No active_skills directory found at %s", skills_dir)
@@ -276,7 +287,10 @@ class ScholarAgent:
             if parsed is not None:
                 self._skill_docs.append(parsed)
         except Exception:
-            logger.exception("Failed to parse SKILL.md for skill: %s", skill_dir.name)
+            logger.exception(
+                "Failed to parse SKILL.md for skill: %s",
+                skill_dir.name,
+            )
 
     def _load_skill(self, skill_dir: Path) -> None:
         """Load a single skill from its directory."""
@@ -498,6 +512,9 @@ class ScholarAgent:
                 # Check if the model wants to use a tool
                 if hasattr(response, "tool_calls") and response.tool_calls:
                     # Add assistant message with tool_calls (required by OpenAI API)
+                    # DeepSeek thinking mode requires reasoning_content in
+                    # assistant messages that contain tool_calls.
+                    # See: https://api-docs.deepseek.com/guides/thinking_mode#tool-calls
                     import json
 
                     assistant_msg: dict[str, Any] = {
@@ -505,6 +522,9 @@ class ScholarAgent:
                         "content": getattr(response, "content", None) or None,
                         "tool_calls": [],
                     }
+                    _reasoning = getattr(response, "reasoning_content", None)
+                    if _reasoning:
+                        assistant_msg["reasoning_content"] = _reasoning
                     for tc in response.tool_calls:
                         tc_func = (
                             tc.function
@@ -695,7 +715,10 @@ class ScholarAgent:
         )
         return timeout_msg
 
-    def _build_messages(self, user_message: str | None = None) -> list[dict[str, str]]:
+    def _build_messages(
+        self,
+        user_message: str | None = None,
+    ) -> list[dict[str, str]]:
         """Build the message list for the LLM from memory and system prompt."""
         self._refresh_skill_docs()
         messages = [{"role": "system", "content": self.sys_prompt}]
@@ -1037,6 +1060,7 @@ class ScholarAgent:
                 # If model supports streaming, use it
                 if hasattr(self.model, "stream"):
                     accumulated_content = ""
+                    accumulated_thinking = ""
                     tool_calls_in_turn: list[dict] = []
 
                     for event in self.model.stream(
@@ -1046,6 +1070,7 @@ class ScholarAgent:
                         etype = event.get("type")
 
                         if etype == "thinking":
+                            accumulated_thinking += event.get("content", "")
                             yield event
 
                         elif etype == "content":
@@ -1066,6 +1091,9 @@ class ScholarAgent:
                     # If there were tool calls, execute them
                     if tool_calls_in_turn:
                         # Add assistant message with tool calls to messages
+                        # DeepSeek thinking mode requires reasoning_content in
+                        # assistant messages that contain tool_calls.
+                        # See: https://api-docs.deepseek.com/guides/thinking_mode#tool-calls
                         assistant_msg: dict[str, Any] = {
                             "role": "assistant",
                             "content": accumulated_content or None,
@@ -1084,6 +1112,10 @@ class ScholarAgent:
                                 for i, tc in enumerate(tool_calls_in_turn)
                             ],
                         }
+                        if accumulated_thinking:
+                            assistant_msg[
+                                "reasoning_content"
+                            ] = accumulated_thinking
                         messages.append(assistant_msg)
 
                         for tc in tool_calls_in_turn:
