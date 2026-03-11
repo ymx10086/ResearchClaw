@@ -1,31 +1,46 @@
 # MCP (Model Context Protocol)
 
-ResearchClaw 支持 MCP 协议，允许接入外部工具和服务。
+ResearchClaw 支持 MCP 客户端接入，使 Agent 可以调用外部工具与数据服务。
 
-## 什么是 MCP
+## MCP 配置位置
 
-MCP（Model Context Protocol）是一个标准化协议，允许 AI 助手与外部工具进行交互。通过 MCP，你可以为 ResearchClaw 接入更多工具和数据源。
+MCP 客户端定义位于 `~/.researchclaw/config.json` 的 `mcp.clients` 字段。
 
-## 配置 MCP 服务
+## 示例
 
-在 `mcp.yaml` 中配置 MCP 服务器：
-
-```yaml
-servers:
-  - name: "my-mcp-server"
-    url: "http://localhost:3000"
-    enabled: true
+```json
+{
+  "mcp": {
+    "clients": {
+      "local-tools": {
+        "name": "Local Tools",
+        "enabled": true,
+        "transport": "stdio",
+        "command": "python",
+        "args": ["/opt/mcp/server.py"],
+        "env": {
+          "API_KEY": "xxx"
+        }
+      },
+      "http-tools": {
+        "name": "HTTP Tools",
+        "enabled": true,
+        "transport": "streamable_http",
+        "url": "http://127.0.0.1:3000"
+      }
+    }
+  }
+}
 ```
 
-## 使用场景
+## 支持的传输类型
 
-- 接入本地知识库
-- 连接数据库进行数据查询
-- 调用自定义 API 服务
-- 扩展文件系统操作能力
+- `stdio`
+- `streamable_http`（兼容 `http` 别名）
+- `sse`
 
-## 注意事项
+## 运维说明
 
-- MCP 服务器需要独立部署和运行
-- 确保 MCP 服务器的端口可访问
-- 建议在安全的网络环境中使用
+- MCP 服务需要独立部署，不与 ResearchClaw 进程绑定。
+- MCP 配置更新后，运行时客户端会热重载。
+- 建议将 MCP 凭证放到密钥环境变量中管理。

@@ -1,37 +1,43 @@
 # Console
 
-ResearchClaw includes a built-in web console for visual management.
+ResearchClaw includes a built-in web console for day-to-day operations.
 
 ## Access
 
-After starting ResearchClaw, visit `http://localhost:8088` to access the console.
+After service startup, open `http://<host>:<port>` (default `http://127.0.0.1:8088`).
 
-## Features
+## Core Areas
 
 ### Chat
 
-- Chat directly with the AI assistant
-- View conversation history
-- Multi-session management
+- Talk with the Scholar agent
+- Manage multi-session conversations
+- Review message history
 
 ### Settings
 
-- Model provider configuration
-- API Key management
-- Channel toggles
-- Skills management
+- Configure model providers and models
+- Manage channel enablement and credentials
+- Manage persisted environment variables
+- Manage skills (enable/disable)
 
-### Environment Variables
+### Status / Control Plane
 
-- Manage environment variables
-- Configure paper source API keys (e.g., Semantic Scholar)
+- Runtime health and uptime
+- Model usage metrics (requests / success / fallback / token estimate)
+- Channel runtime queue/worker stats
+- Cron runtime stats
+- Automation run statistics (queued/running/succeeded/failed)
+- Agent list and session observability
 
-### Skills Management
+## Related APIs
 
-- View installed skills
-- Enable / disable skills
-- Configure cron tasks
+- `GET /api/control/status`
+- `GET /api/control/usage`
+- `GET /api/control/channels/runtime`
+- `GET /api/control/automation/runs`
+- `GET /api/control/agents`
+- `GET /api/control/sessions`
+- `POST /api/control/reload`
 
-## Tech Stack
-
-The console is built with React + TypeScript and communicates with the backend via WebSocket.
+For production access patterns, see [Deployment](./deployment.md).

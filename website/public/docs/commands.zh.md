@@ -1,37 +1,35 @@
-# 命令系统
+# 对话命令
 
-ResearchClaw 支持在对话中使用命令来控制系统行为。
+ResearchClaw 支持在对话中使用斜杠命令（slash commands）。
 
 ## 可用命令
 
-| 命令                | 说明                   |
-| ------------------- | ---------------------- |
-| `/help`             | 显示帮助信息           |
-| `/compact`          | 手动触发对话压缩       |
-| `/clear`            | 清除当前会话的对话历史 |
-| `/reset`            | 重置助手状态           |
-| `/skills`           | 列出已安装的 Skills    |
-| `/install <url>`    | 从 GitHub 安装 Skill   |
-| `/uninstall <name>` | 卸载 Skill             |
+| 命令                    | 说明                 |
+| ----------------------- | -------------------- |
+| `/new` 或 `/start`      | 新建会话             |
+| `/compact`              | 压缩对话记忆         |
+| `/clear`                | 清空历史与摘要       |
+| `/history`              | 查看会话统计         |
+| `/papers`               | 查看最近讨论论文     |
+| `/refs`                 | 查看文献库概览       |
+| `/skills`               | 查看已启用技能       |
+| `/skills debug [query]` | 查看技能路由调试信息 |
+| `/compact_str`          | 查看当前压缩摘要     |
+| `/daemon status`        | 查看运行状态         |
+| `/daemon logs [n]`      | 查看 daemon 日志     |
+| `/help`                 | 查看命令帮助         |
 
-## 使用方式
+## 用法示例
 
-在任意频道的对话中，以 `/` 开头输入命令：
+在任意会话中直接输入：
 
-```
+```text
 /help
+/skills
+/skills debug summarize arxiv papers this week
 ```
 
-```
-/install https://github.com/user/my-skill
-```
+## 说明
 
-## 命令与自然语言
-
-除了命令，你也可以用自然语言描述需求，AI 助手会理解并执行对应操作：
-
-```
-帮我安装这个 Skill: https://github.com/user/my-skill
-```
-
-效果等同于 `/install https://github.com/user/my-skill`。
+- 未识别的 slash 命令会回退到自然语言处理。
+- `/daemon restart` 在对话路径中受限，建议使用 CLI 执行。

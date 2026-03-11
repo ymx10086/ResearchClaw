@@ -29,6 +29,7 @@ export type StreamEvent = {
   arguments?: string;
   result?: string;
   session_id?: string;
+  agent_id?: string;
 };
 
 export type PaperItem = {
@@ -49,6 +50,7 @@ export type CronJobRequest = {
 };
 
 export type SessionItem = {
+  agent_id?: string;
   session_id: string;
   title?: string;
   created_at?: number;

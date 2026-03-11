@@ -54,4 +54,7 @@ def test_chat_stream_fallback_records_usage(tmp_path) -> None:
 
     session = manager.session_manager.get_session("s1")
     assert session is not None
-    assert any(m["role"] == "assistant" and m["content"] == "hello world" for m in session.messages)
+    assert any(
+        m["role"] == "assistant" and m["content"] == "hello world"
+        for m in session.messages
+    )

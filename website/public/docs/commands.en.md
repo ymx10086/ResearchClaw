@@ -1,37 +1,35 @@
-# Commands
+# Chat Commands
 
-ResearchClaw supports commands in chat to control system behavior.
+ResearchClaw supports slash commands inside chat messages.
 
 ## Available Commands
 
-| Command             | Description                                  |
-| ------------------- | -------------------------------------------- |
-| `/help`             | Show help information                        |
-| `/compact`          | Manually trigger conversation compression    |
-| `/clear`            | Clear current session's conversation history |
-| `/reset`            | Reset assistant state                        |
-| `/skills`           | List installed skills                        |
-| `/install <url>`    | Install a skill from GitHub                  |
-| `/uninstall <name>` | Uninstall a skill                            |
+| Command                 | Description                      |
+| ----------------------- | -------------------------------- |
+| `/new` or `/start`      | Start a new session              |
+| `/compact`              | Compact conversation memory      |
+| `/clear`                | Clear history and summaries      |
+| `/history`              | Show conversation statistics     |
+| `/papers`               | List recently discussed papers   |
+| `/refs`                 | Show reference library summary   |
+| `/skills`               | List active skills               |
+| `/skills debug [query]` | Show skill routing debug details |
+| `/compact_str`          | Show current compact summary     |
+| `/daemon status`        | Show runtime daemon status       |
+| `/daemon logs [n]`      | Show daemon logs                 |
+| `/help`                 | Show command help                |
 
 ## Usage
 
-In any channel's chat, type a command starting with `/`:
+Type slash commands directly in any conversation:
 
-```
+```text
 /help
+/skills
+/skills debug summarize arxiv papers this week
 ```
 
-```
-/install https://github.com/user/my-skill
-```
+## Notes
 
-## Commands vs. Natural Language
-
-Besides commands, you can also describe your needs in natural language, and the AI assistant will understand and perform the corresponding action:
-
-```
-Install this skill: https://github.com/user/my-skill
-```
-
-This is equivalent to `/install https://github.com/user/my-skill`.
+- Unknown slash commands fall back to normal natural-language handling.
+- `/daemon restart` is intentionally restricted in chat path; use CLI instead.

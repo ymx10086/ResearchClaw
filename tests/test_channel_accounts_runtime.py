@@ -10,7 +10,14 @@ class _FakeChannel(BaseChannel):
     channel = "fake"
 
     @classmethod
-    def from_config(cls, process, config, on_reply_sent=None, show_tool_details=True, **kwargs):
+    def from_config(
+        cls,
+        process,
+        config,
+        on_reply_sent=None,
+        show_tool_details=True,
+        **kwargs,
+    ):
         inst = cls(
             process,
             on_reply_sent=on_reply_sent,

@@ -1,36 +1,38 @@
 # Heartbeat
 
-Heartbeat is ResearchClaw's periodic timer mechanism for executing scheduled tasks.
+Heartbeat is the periodic scheduler loop used by ResearchClaw for proactive tasks.
 
-## How It Works
+## What It Drives
 
-Heartbeat runs at configured intervals, checking and executing:
+- Skill cron prompts (when configured in skills)
+- Built-in periodic checks
+- Delivery to configured channels
 
-- Skill cron tasks
-- Channel connection status checks
-- Memory cleanup
+## Where to Configure
 
-## Configuration
+Heartbeat settings are read from `config.json` (with legacy fallback):
 
-Configure heartbeat parameters in `config.yaml`:
-
-```yaml
-heartbeat:
-  enabled: true
-  interval: 60 # seconds
+```json
+{
+  "agents": {
+    "defaults": {
+      "heartbeat": {
+        "enabled": true,
+        "every": "30m",
+        "target": "last"
+      }
+    }
+  }
+}
 ```
 
-## Cron Tasks
+Also available via env defaults:
 
-Heartbeat drives skill cron tasks. On each heartbeat, the system checks all skill cron expressions and executes due tasks.
+- `RESEARCHCLAW_HEARTBEAT_ENABLED`
+- `RESEARCHCLAW_HEARTBEAT_INTERVAL` (minutes)
 
-Example scenarios:
+## Operational Tips
 
-- Push latest papers every morning at 9 AM
-- Generate literature tracking reports every Monday
-- Check ArXiv for new papers every hour
-
-## Notes
-
-- Don't set the heartbeat interval too short to avoid unnecessary resource consumption
-- Cron tasks execute at heartbeat time; actual execution may have slight delays
+- Keep interval practical (for example `30m` or `1h`).
+- Ensure at least one dispatch channel is available for proactive messages.
+- Use `/api/control/status` to inspect cron/heartbeat runtime state.

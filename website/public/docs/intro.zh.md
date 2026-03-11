@@ -1,34 +1,34 @@
-# ResearchClaw 项目介绍
+# 项目介绍
 
-ResearchClaw 是一款基于 AI 的科研助手工具，帮助研究人员追踪论文、管理文献、记录实验、分析数据。
+ResearchClaw 是面向科研工作流的 AI 助手，聚焦论文检索、实验追踪和多渠道协作。
 
-## 核心特性
+## 核心能力
 
-- **论文搜索与追踪**：支持 ArXiv、Semantic Scholar 等论文源，自动追踪研究领域最新成果
-- **文献管理**：BibTeX 管理、引用格式化、文献库检索
-- **实验与分析**：实验记录、数据分析、可视化
-- **多频道支持**：钉钉、飞书、QQ、Discord、iMessage 等
-- **Skills 扩展**：内置科研技能，支持自定义扩展和定时任务
-- **本地掌控**：数据本地存储，支持云端部署
+- 论文检索与追踪（ArXiv、Semantic Scholar 等）
+- 文献管理与 BibTeX 工作流
+- 论文总结与研究记忆沉淀
+- 实验记录与周期提醒
+- 多渠道消息触达与自动化触发
 
-## 架构概览
+## 运行模块
 
-ResearchClaw 由以下模块组成：
+- **Agent 运行时**：Scholar 助手与工具/技能编排
+- **控制面**：状态、会话、cron、自动化任务可观测
+- **频道层**：控制台 + 外部 IM 渠道
+- **目录模型**：本地工作目录 + 独立密钥目录
 
-- **Agent 引擎**：基于 ReAct 模式的智能体，负责理解用户意图并调用工具
-- **Skills 系统**：可扩展的技能框架，支持自定义科研技能
-- **频道层**：统一的消息收发接口，支持多种 IM 平台
-- **控制台**：Web 管理界面，用于配置和监控
-- **Memory**：对话记忆与上下文管理
-
-## 快速开始
+## 最小启动流程
 
 ```bash
-pip install researchclaw
-researchclaw init --defaults
-researchclaw app
+researchclaw init --defaults --accept-security
+researchclaw models config
+researchclaw app --host 127.0.0.1 --port 8088
 ```
 
-安装完成后，访问 `http://localhost:8088` 即可进入控制台。
+启动后访问 `http://127.0.0.1:8088`。
 
-详细的安装与配置请参阅 [快速开始](./quickstart.md) 文档。
+## 下一步阅读
+
+- [快速开始](./quickstart.md)
+- [部署指南](./deployment.md)
+- [配置与工作目录](./config.md)

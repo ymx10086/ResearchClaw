@@ -1,6 +1,6 @@
 # ResearchClaw Website
 
-Static site (Vite + React) for the ResearchClaw product. Built output is served with a minimal Node server that supports SPA fallback.
+Vite + React static docs/landing site for ResearchClaw.
 
 ## Prerequisites
 
@@ -21,7 +21,7 @@ npm install
 pnpm run dev
 ```
 
-Dev server runs at `http://localhost:5173`.
+Dev server: `http://localhost:5173`.
 
 ## Build
 
@@ -29,10 +29,29 @@ Dev server runs at `http://localhost:5173`.
 pnpm run build
 ```
 
-Output is in `dist/`.
+Build pipeline includes:
+
+1. docs search index generation (`scripts/build-search-index.mjs`)
+2. Vite production build
+3. SPA fallback page generation (`scripts/spa-fallback-pages.mjs`)
+
+Output: `dist/`.
 
 ## Preview
 
 ```bash
 pnpm run preview
 ```
+
+## Docs Content
+
+- Markdown docs live in `public/docs` as `*.en.md` and `*.zh.md`.
+- Keep bilingual docs in sync.
+- If you add a new docs page slug, update `src/pages/Docs.tsx` sidebar/title mappings.
+
+## Deployment Docs Entry
+
+The deployment guide is now part of docs:
+
+- `public/docs/deployment.en.md`
+- `public/docs/deployment.zh.md`

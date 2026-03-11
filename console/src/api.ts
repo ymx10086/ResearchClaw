@@ -65,6 +65,44 @@ export async function getControlStatus(): Promise<any> {
   return res.json();
 }
 
+export async function getControlUsage(agentId?: string): Promise<any> {
+  const query = agentId ? `?agent_id=${encodeURIComponent(agentId)}` : "";
+  const res = await fetch(`/api/control/usage${query}`);
+  if (!res.ok) throw new Error("Control usage request failed");
+  return res.json();
+}
+
+export async function getControlLogs(lines = 200): Promise<{
+  path: string;
+  lines: number;
+  content: string;
+}> {
+  const res = await fetch(
+    `/api/control/logs?lines=${encodeURIComponent(String(lines))}`,
+  );
+  if (!res.ok) throw new Error("Control logs request failed");
+  return res.json();
+}
+
+export async function reloadControlRuntime(): Promise<any> {
+  const res = await fetch("/api/control/reload", { method: "POST" });
+  if (!res.ok) throw new Error("Control reload failed");
+  return res.json();
+}
+
+export async function applyControlConfig(
+  patch: Record<string, unknown>,
+  replace = false,
+): Promise<any> {
+  const res = await fetch("/api/control/config/apply", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ patch, replace }),
+  });
+  if (!res.ok) throw new Error("Apply config failed");
+  return res.json();
+}
+
 function normalizeCronJob(job: any): CronJobItem {
   const task_type = job?.task_type === "text" ? "text" : "agent";
   const mode: "stream" | "final" =
@@ -199,28 +237,126 @@ export async function getChannels(): Promise<ChannelItem[]> {
   return res.json();
 }
 
+export async function getChannelCatalog(): Promise<any> {
+  const res = await fetch("/api/control/channels/catalog");
+  if (!res.ok) throw new Error("Channel catalog request failed");
+  return res.json();
+}
+
+export async function listCustomChannels(): Promise<any[]> {
+  const res = await fetch("/api/control/channels/custom");
+  if (!res.ok) throw new Error("List custom channels failed");
+  const data = await res.json();
+  return Array.isArray(data?.channels) ? data.channels : [];
+}
+
+export async function installCustomChannel(payload: {
+  key: string;
+  path?: string;
+  url?: string;
+  overwrite?: boolean;
+}): Promise<any> {
+  const res = await fetch("/api/control/channels/custom/install", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error("Install custom channel failed");
+  return res.json();
+}
+
+export async function removeCustomChannel(key: string): Promise<any> {
+  const res = await fetch(
+    `/api/control/channels/custom/${encodeURIComponent(key)}`,
+    { method: "DELETE" },
+  );
+  if (!res.ok) throw new Error("Remove custom channel failed");
+  return res.json();
+}
+
+export async function getChannelAccounts(): Promise<
+  Record<string, Record<string, Record<string, unknown>>>
+> {
+  const res = await fetch("/api/control/channels/accounts");
+  if (!res.ok) throw new Error("Get channel accounts failed");
+  const data = await res.json();
+  return data?.channel_accounts || {};
+}
+
+export async function updateChannelAccounts(
+  channelAccounts: Record<string, Record<string, Record<string, unknown>>>,
+): Promise<any> {
+  const res = await fetch("/api/control/channels/accounts", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ channel_accounts: channelAccounts }),
+  });
+  if (!res.ok) throw new Error("Update channel accounts failed");
+  return res.json();
+}
+
+export async function getBindings(): Promise<any[]> {
+  const res = await fetch("/api/control/bindings");
+  if (!res.ok) throw new Error("Get bindings failed");
+  const data = await res.json();
+  return Array.isArray(data?.bindings) ? data.bindings : [];
+}
+
+export async function updateBindings(bindings: any[]): Promise<any> {
+  const res = await fetch("/api/control/bindings", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ bindings }),
+  });
+  if (!res.ok) throw new Error("Update bindings failed");
+  return res.json();
+}
+
 export async function getSessions(): Promise<SessionItem[]> {
   const res = await fetch("/api/control/sessions");
   if (!res.ok) throw new Error("Sessions request failed");
   return res.json();
 }
 
-export async function getSessionDetail(sessionId: string): Promise<any> {
+export async function getSessionsByAgent(
+  agentId?: string,
+): Promise<SessionItem[]> {
+  const query = agentId ? `?agent_id=${encodeURIComponent(agentId)}` : "";
+  const res = await fetch(`/api/control/sessions${query}`);
+  if (!res.ok) throw new Error("Sessions request failed");
+  return res.json();
+}
+
+export async function getSessionDetail(
+  sessionId: string,
+  agentId?: string,
+): Promise<any> {
+  const query = agentId ? `?agent_id=${encodeURIComponent(agentId)}` : "";
   const res = await fetch(
-    `/api/control/sessions/${encodeURIComponent(sessionId)}`,
+    `/api/control/sessions/${encodeURIComponent(sessionId)}${query}`,
   );
   if (!res.ok) throw new Error("Session detail request failed");
   return res.json();
 }
 
-export async function deleteSession(sessionId: string): Promise<void> {
+export async function deleteSession(
+  sessionId: string,
+  agentId?: string,
+): Promise<void> {
+  const query = agentId ? `?agent_id=${encodeURIComponent(agentId)}` : "";
   const res = await fetch(
-    `/api/control/sessions/${encodeURIComponent(sessionId)}`,
+    `/api/control/sessions/${encodeURIComponent(sessionId)}${query}`,
     {
       method: "DELETE",
     },
   );
   if (!res.ok) throw new Error("Delete session failed");
+}
+
+export async function getAgents(): Promise<any[]> {
+  const res = await fetch("/api/control/agents");
+  if (!res.ok) throw new Error("Agents request failed");
+  return res.json();
 }
 
 export async function toggleCronJob(

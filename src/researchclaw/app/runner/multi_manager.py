@@ -50,9 +50,7 @@ def _as_dict(value: Any) -> dict[str, Any]:
         return {}
     if hasattr(value, "__dict__"):
         return {
-            k: v
-            for k, v in value.__dict__.items()
-            if not k.startswith("_")
+            k: v for k, v in value.__dict__.items() if not k.startswith("_")
         }
     return {}
 
@@ -185,7 +183,10 @@ class MultiAgentRunnerManager:
 
             # Remove disabled or deleted agents.
             for agent_id in list(self._agents.keys()):
-                if agent_id not in definitions or not definitions[agent_id].enabled:
+                if (
+                    agent_id not in definitions
+                    or not definitions[agent_id].enabled
+                ):
                     await self._agents[agent_id].stop()
                     self._agents.pop(agent_id, None)
 
@@ -218,7 +219,9 @@ class MultiAgentRunnerManager:
                         manager.set_mcp_manager(self._mcp_manager)
                     self._agents[agent_id] = manager
                 else:
-                    existing._model_config = dict(definition.model_config)  # noqa: SLF001
+                    existing._model_config = dict(
+                        definition.model_config,
+                    )  # noqa: SLF001
 
             self._definitions = definitions
             self._bindings = bindings
@@ -245,7 +248,10 @@ class MultiAgentRunnerManager:
         agent_id: str | None = None,
     ):
         manager = await self._ensure_manager(agent_id or self.default_agent_id)
-        async for event in manager.chat_stream(message=message, session_id=session_id):
+        async for event in manager.chat_stream(
+            message=message,
+            session_id=session_id,
+        ):
             yield event
 
     async def stream_query(self, request: Any):
@@ -259,7 +265,10 @@ class MultiAgentRunnerManager:
         if not preferred:
             preferred = _normalize_id(meta.get("agent_id", "") or "", "")
 
-        agent_id = self._resolve_agent_id(route_ctx, preferred_agent_id=preferred)
+        agent_id = self._resolve_agent_id(
+            route_ctx,
+            preferred_agent_id=preferred,
+        )
         manager = await self._ensure_manager(agent_id)
         self._last_routed_agent_id = agent_id
 
@@ -313,7 +322,9 @@ class MultiAgentRunnerManager:
             usage: dict[str, Any] = {}
             if manager is not None:
                 try:
-                    session_count = len(manager.session_manager.list_sessions())
+                    session_count = len(
+                        manager.session_manager.list_sessions(),
+                    )
                 except Exception:
                     session_count = 0
                 if hasattr(manager, "get_usage_stats"):
@@ -334,7 +345,10 @@ class MultiAgentRunnerManager:
             )
         return rows
 
-    def list_sessions(self, agent_id: str | None = None) -> list[dict[str, Any]]:
+    def list_sessions(
+        self,
+        agent_id: str | None = None,
+    ) -> list[dict[str, Any]]:
         out: list[dict[str, Any]] = []
         if agent_id:
             manager = self._agents.get(agent_id)
@@ -435,7 +449,10 @@ class MultiAgentRunnerManager:
 
         provider_rows = list(providers.values())
         provider_rows.sort(
-            key=lambda x: (int(x.get("requests", 0)), str(x.get("model_name", ""))),
+            key=lambda x: (
+                int(x.get("requests", 0)),
+                str(x.get("model_name", "")),
+            ),
             reverse=True,
         )
         return {
@@ -508,7 +525,9 @@ class MultiAgentRunnerManager:
                 continue
             if rule.session_id and rule.session_id != ctx.session_id:
                 continue
-            if rule.session_prefix and not ctx.session_id.startswith(rule.session_prefix):
+            if rule.session_prefix and not ctx.session_id.startswith(
+                rule.session_prefix,
+            ):
                 continue
             if rule.agent_id in self._agents:
                 return rule.agent_id
@@ -537,7 +556,9 @@ class MultiAgentRunnerManager:
             "base_url": data.get("base_url"),
         }
         defaults_model = defaults.get("model")
-        defaults_model = defaults_model if isinstance(defaults_model, dict) else {}
+        defaults_model = (
+            defaults_model if isinstance(defaults_model, dict) else {}
+        )
 
         raw_list = agents_cfg.get("list")
         raw_list = raw_list if isinstance(raw_list, list) else []
@@ -588,7 +609,11 @@ class MultiAgentRunnerManager:
             "",
         )
         if not default_agent_id or default_agent_id not in definitions:
-            default_agent_id = "main" if "main" in definitions else next(iter(definitions.keys()))
+            default_agent_id = (
+                "main"
+                if "main" in definitions
+                else next(iter(definitions.keys()))
+            )
 
         raw_bindings = data.get("bindings")
         if not isinstance(raw_bindings, list):
@@ -611,16 +636,16 @@ class MultiAgentRunnerManager:
             bindings.append(
                 BindingRule(
                     agent_id=agent_id,
-                    channel=str(match.get("channel", "") or "").strip().lower(),
+                    channel=str(match.get("channel", "") or "")
+                    .strip()
+                    .lower(),
                     account_id=str(
                         match.get("account_id")
                         or match.get("accountId")
                         or "",
                     ).strip(),
                     user_id=str(
-                        match.get("user_id")
-                        or match.get("userId")
-                        or "",
+                        match.get("user_id") or match.get("userId") or "",
                     ).strip(),
                     session_id=str(
                         match.get("session_id")

@@ -40,7 +40,13 @@ class _FakeSessionManager:
 
 
 class _FakeAgentRunnerManager:
-    def __init__(self, *, working_dir=None, model_config=None, agent_id="main"):
+    def __init__(
+        self,
+        *,
+        working_dir=None,
+        model_config=None,
+        agent_id="main",
+    ):
         self.agent_id = agent_id
         self.working_dir = str(working_dir or "")
         self._model_config = dict(model_config or {})
@@ -147,7 +153,9 @@ def test_multi_agent_stream_query_binding(monkeypatch):
         "channel": "telegram",
         "user_id": "alice",
         "session_id": "telegram:alice",
-        "input": [{"role": "user", "content": [{"type": "text", "text": "hi"}]}],
+        "input": [
+            {"role": "user", "content": [{"type": "text", "text": "hi"}]},
+        ],
     }
 
     async def _run():

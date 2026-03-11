@@ -29,6 +29,7 @@ import {
   Archive,
   Command,
   Activity,
+  Server,
   Settings,
   CircleHelp,
   Users,
@@ -173,6 +174,7 @@ function parseFaqContent(md: string): { intro: string; items: FaqItem[] } {
 const DOC_SLUG_ICONS: Record<string, LucideIcon> = {
   intro: Rocket,
   quickstart: Zap,
+  deployment: Server,
   console: Terminal,
   channels: MessageSquare,
   skills: Wrench,
@@ -191,6 +193,7 @@ const DOC_SLUG_ICONS: Record<string, LucideIcon> = {
 const DOC_SLUGS: DocEntry[] = [
   { slug: "intro", titleKey: "docs.intro" },
   { slug: "quickstart", titleKey: "docs.quickstart" },
+  { slug: "deployment", titleKey: "docs.deployment" },
   { slug: "console", titleKey: "docs.console" },
   { slug: "channels", titleKey: "docs.channels" },
   { slug: "skills", titleKey: "docs.skills" },
@@ -223,6 +226,7 @@ const DOC_TITLES: Record<Lang, Record<string, string>> = {
   zh: {
     "docs.intro": "项目介绍",
     "docs.quickstart": "快速开始",
+    "docs.deployment": "部署指南",
     "docs.channels": "频道配置",
     "docs.heartbeat": "心跳",
     "docs.cli": "CLI",
@@ -240,6 +244,7 @@ const DOC_TITLES: Record<Lang, Record<string, string>> = {
   en: {
     "docs.intro": "Introduction",
     "docs.quickstart": "Quick start",
+    "docs.deployment": "Deployment",
     "docs.channels": "Channels",
     "docs.heartbeat": "Heartbeat",
     "docs.cli": "CLI",

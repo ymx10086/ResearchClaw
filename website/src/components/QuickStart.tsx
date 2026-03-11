@@ -8,22 +8,25 @@ import { t, type Lang } from "../i18n";
 const COMMANDS = {
   pip: [
     "pip install researchclaw",
-    "researchclaw init --defaults",
-    "researchclaw app",
+    "researchclaw init --defaults --accept-security",
+    "researchclaw models config",
+    "researchclaw app --host 127.0.0.1 --port 8088",
   ],
   unix: [
-    "curl -fsSL https://researchclaw.dev/install.sh | bash",
-    "researchclaw init --defaults",
-    "researchclaw app",
+    "curl -fsSL https://researchclaw.github.io/install.sh | bash",
+    "researchclaw init --defaults --accept-security",
+    "researchclaw models config",
+    "researchclaw app --host 127.0.0.1 --port 8088",
   ],
   windows: [
     "irm https://researchclaw.dev/install.ps1 | iex",
-    "researchclaw init --defaults",
-    "researchclaw app",
+    "researchclaw init --defaults --accept-security",
+    "researchclaw models config",
+    "researchclaw app --host 127.0.0.1 --port 8088",
   ],
   docker: [
-    "docker pull researchclaw/researchclaw:latest",
-    "docker run -p 8088:8088 -v researchclaw-data:/app/working researchclaw/researchclaw:latest",
+    "docker build -f deploy/Dockerfile -t researchclaw:local .",
+    "docker run -d -p 8088:8088 -e PORT=8088 researchclaw:local",
   ],
 } as const;
 
@@ -42,7 +45,7 @@ export function QuickStart({ config, lang, delay = 0 }: QuickStartProps) {
   const [hasOverflow, setHasOverflow] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const docsBase = config.docsPath.replace(/\/$/, "") || "/docs";
-  const channelsDocPath = `${docsBase}/channels`;
+  const deploymentDocPath = `${docsBase}/deployment`;
 
   const lines = COMMANDS[activeTab];
   const fullCommand = lines.join("\n");
@@ -264,7 +267,7 @@ export function QuickStart({ config, lang, delay = 0 }: QuickStartProps) {
           >
             {t(lang, "quickstart.hintBefore")}
             <Link
-              to={channelsDocPath}
+              to={deploymentDocPath}
               style={{
                 color: "inherit",
                 textDecoration: "underline",

@@ -8,6 +8,8 @@ All notable changes to this project are documented in this file.
 
 - Automation trigger APIs:
   - `POST /api/automation/triggers/agent`
+  - `POST /api/automation/triggers/wake`
+  - `POST /api/automation/hooks/{hook_name}`
   - `GET /api/automation/triggers/runs`
   - `GET /api/automation/triggers/runs/{run_id}`
 - Token-based automation ingress auth:
@@ -17,6 +19,21 @@ All notable changes to this project are documented in this file.
 - Multi-channel delivery options for automation runs:
   - explicit `dispatches`
   - `fanout_channels` (`["*"]` supported for all active channels)
+- Multi-agent runtime routing and observability:
+  - config-driven `agents.list`, `agents.defaults`, and routing `bindings`
+  - `GET /api/control/agents`
+  - per-agent session APIs (`GET/DELETE /api/control/sessions`)
+- Channel operations APIs:
+  - `GET /api/control/channels/catalog`
+  - `GET /api/control/channels/custom`
+  - `POST /api/control/channels/custom/install`
+  - `DELETE /api/control/channels/custom/{key}`
+  - `GET/PUT /api/control/channels/accounts`
+  - `GET/PUT /api/control/bindings`
+- Runner/model operations APIs:
+  - `GET /api/control/usage`
+  - `POST /api/control/reload`
+  - `POST /api/control/config/apply`
 
 ### Changed
 
@@ -31,6 +48,17 @@ All notable changes to this project are documented in this file.
   - queued message backlog
   - in-progress channel keys
   - automation success/failure counters
+  - model usage and fallback counters
+- Agent runner now supports fallback chains and usage accounting for both non-streaming and streaming chat.
+- Channel runtime now supports account alias channels (`channel:account_id`) via `channel_accounts` config.
+- Deployment/runtime scripts:
+  - `deploy/entrypoint.sh` now starts service with `researchclaw app --host 0.0.0.0 --port ${PORT:-8088}`.
+  - `deploy/config/supervisord.conf.template` now uses `researchclaw app` (removed invalid `app start` form).
+  - `deploy/Dockerfile` now exposes `8088` to match default app port.
+- Docs and README refresh:
+  - Added dedicated deployment docs (`website/public/docs/deployment.{en,zh}.md`) and wired them into docs navigation.
+  - Updated root `README.md` / `README_zh.md` with practical deployment steps (single-machine, Docker self-build, production checklist).
+  - Updated website docs to match current runtime behavior (`config.json`, `models/channels/env` CLI, control-plane and automation observability paths).
 
 ### Tests
 
@@ -39,4 +67,8 @@ All notable changes to this project are documented in this file.
   - fan-out expansion (`*` support)
   - fallback to `last_dispatch`
   - automation run store lifecycle
-
+- Added/updated tests for milestone features:
+  - `tests/test_multi_agent_runner.py` (bindings routing, usage aggregation, per-agent sessions)
+  - `tests/test_control_router.py` (config apply hooks, usage endpoint, bindings, plugin install/remove)
+  - `tests/test_runner_manager_usage.py` (stream fallback + usage stats)
+  - `tests/test_channel_accounts_runtime.py` (account alias channel materialization)

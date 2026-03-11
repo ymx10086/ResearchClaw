@@ -1,65 +1,60 @@
 # FAQ
 
 <details>
-<summary>What LLM models does ResearchClaw support?</summary>
+<summary>What model providers are supported?</summary>
 
-Supports OpenAI (GPT-4o, GPT-4, etc.), Anthropic (Claude 3.5, etc.), Qwen, DeepSeek, Ollama (local models), and more.
-
-</details>
-
-<details>
-<summary>Where is data stored? Is it secure?</summary>
-
-All data is stored locally in the working directory (`~/.researchclaw/`) by default and is never uploaded to the cloud. Sensitive data like API keys is encrypted.
+ResearchClaw supports OpenAI, Anthropic, DashScope, DeepSeek, Ollama, and custom OpenAI-compatible providers.
 
 </details>
 
 <details>
-<summary>How do I switch languages?</summary>
+<summary>Where is my data stored?</summary>
 
-ResearchClaw supports both Chinese and English. Click the language toggle in the console UI. The CLI defaults to the system language.
+By default:
 
-</details>
-
-<details>
-<summary>Which paper databases are supported?</summary>
-
-Currently supports ArXiv and Semantic Scholar. More databases and paper sources can be added through the Skills system.
+- Workspace data: `~/.researchclaw`
+- Secret data (envs/providers): `~/.researchclaw.secret`
 
 </details>
 
 <details>
-<summary>How do I develop a custom Skill?</summary>
+<summary>Can I deploy ResearchClaw on a server?</summary>
 
-See the [Skills documentation](./skills.md) and [Contributing guide](./contributing.md). Each Skill is an independent Python module with a `skill.json` metadata file.
+Yes. Use either:
+
+- single-machine deployment with `researchclaw app --host 0.0.0.0 --port 8088`
+- Docker self-build from `deploy/Dockerfile`
+
+See full steps in [Deployment](./deployment.md).
 
 </details>
 
 <details>
-<summary>Can I deploy on a server?</summary>
+<summary>How do I secure automation triggers?</summary>
 
-Yes. Docker deployment is recommended:
+Set `RESEARCHCLAW_AUTOMATION_TOKEN` on the server and pass the same token via `Authorization: Bearer <token>` (or `x-researchclaw-token`).
+
+</details>
+
+<details>
+<summary>Why does `/` show "Console not found"?</summary>
+
+The backend can run without prebuilt frontend assets. Build console assets with:
 
 ```bash
-docker pull researchclaw/researchclaw:latest
-docker run -d -p 8088:8088 -v researchclaw-data:/app/working researchclaw/researchclaw:latest
+cd console
+npm install
+npm run build
 ```
 
 </details>
 
 <details>
-<summary>Channel won't connect after configuration?</summary>
+<summary>Channel integration fails after configuration. What should I check?</summary>
 
-1. Check that API Key / Secret are correct
-2. Verify network access to the platform
-3. Check log files for error messages
-4. Ensure a Bot application has been created on the platform with proper permissions
-
-</details>
-
-<details>
-<summary>What is the relationship between ResearchClaw and CoPaw?</summary>
-
-ResearchClaw is built on CoPaw's architecture, customized and optimized for research scenarios including paper search, reference management, and experiment tracking.
+1. Platform credentials are correct.
+2. Bot app permissions and callback/webhook URLs are valid.
+3. Service network can reach platform APIs.
+4. Restart service after channel credential changes.
 
 </details>

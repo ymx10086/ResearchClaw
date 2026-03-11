@@ -22,7 +22,9 @@ def test_list_sessions_prefers_multi_agent_runner() -> None:
             {"session_id": "s1", "agent_id": agent_id or "main"},
         ],
     )
-    req = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace(runner=runner)))
+    req = SimpleNamespace(
+        app=SimpleNamespace(state=SimpleNamespace(runner=runner)),
+    )
     rows = asyncio.run(control_router.list_sessions(req, agent_id="papers"))
     assert rows == [{"session_id": "s1", "agent_id": "papers"}]
 
@@ -30,8 +32,14 @@ def test_list_sessions_prefers_multi_agent_runner() -> None:
 def test_apply_config_calls_runtime_hooks(monkeypatch) -> None:
     saved = {}
 
-    monkeypatch.setattr(control_router, "load_config", lambda: {"a": {"b": 1}})
-    monkeypatch.setattr(control_router, "save_config", lambda data: saved.update(data))
+    def _load_config():
+        return {"a": {"b": 1}}
+
+    def _save_config(data):
+        saved.update(data)
+
+    monkeypatch.setattr(control_router, "load_config", _load_config)
+    monkeypatch.setattr(control_router, "save_config", _save_config)
 
     class _Watcher:
         def __init__(self):
@@ -81,7 +89,9 @@ def test_usage_stats_prefers_runner_usage_api() -> None:
             "agents": [],
         },
     )
-    req = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace(runner=runner)))
+    req = SimpleNamespace(
+        app=SimpleNamespace(state=SimpleNamespace(runner=runner)),
+    )
     result = asyncio.run(control_router.usage_stats(req))
     assert result["requests"] == 3
     assert result["fallbacks"] == 1
@@ -89,12 +99,19 @@ def test_usage_stats_prefers_runner_usage_api() -> None:
 
 def test_update_bindings_updates_root_and_agents(monkeypatch) -> None:
     saved = {}
+
+    def _load_config():
+        return {"agents": {"defaults": {"default_agent_id": "main"}}}
+
+    def _save_config(data):
+        saved.update(data)
+
     monkeypatch.setattr(
         control_router,
         "load_config",
-        lambda: {"agents": {"defaults": {"default_agent_id": "main"}}},
+        _load_config,
     )
-    monkeypatch.setattr(control_router, "save_config", lambda data: saved.update(data))
+    monkeypatch.setattr(control_router, "save_config", _save_config)
 
     req = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace()))
     payload = control_router.BindingsUpdateRequest(
@@ -108,17 +125,28 @@ def test_update_bindings_updates_root_and_agents(monkeypatch) -> None:
 
 def test_install_and_remove_custom_channel(monkeypatch, tmp_path) -> None:
     saved = {}
+
+    def _load_config():
+        return {"channels": {}}
+
+    def _save_config(data):
+        saved.update(data)
+
     monkeypatch.setattr(control_router, "CUSTOM_CHANNELS_DIR", str(tmp_path))
-    monkeypatch.setattr(control_router, "load_config", lambda: {"channels": {}})
-    monkeypatch.setattr(control_router, "save_config", lambda data: saved.update(data))
+    monkeypatch.setattr(control_router, "load_config", _load_config)
+    monkeypatch.setattr(control_router, "save_config", _save_config)
 
     req = SimpleNamespace(app=SimpleNamespace(state=SimpleNamespace()))
     install_payload = control_router.ChannelInstallRequest(key="mychannel")
-    installed = asyncio.run(control_router.install_custom_channel(req, install_payload))
+    installed = asyncio.run(
+        control_router.install_custom_channel(req, install_payload),
+    )
     assert installed["installed"] is True
     assert (tmp_path / "mychannel.py").exists()
     assert "mychannel" in saved["channels"]["available"]
 
-    removed = asyncio.run(control_router.remove_custom_channel(req, "mychannel"))
+    removed = asyncio.run(
+        control_router.remove_custom_channel(req, "mychannel"),
+    )
     assert removed["removed"] is True
     assert not (tmp_path / "mychannel.py").exists()

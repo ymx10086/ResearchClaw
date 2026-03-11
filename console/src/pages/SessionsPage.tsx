@@ -9,7 +9,12 @@ import {
   PlayCircle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { getSessions, getSessionDetail, deleteSession } from "../api";
+import {
+  getAgents,
+  getSessionsByAgent,
+  getSessionDetail,
+  deleteSession,
+} from "../api";
 import type { SessionItem } from "../types";
 import { PageHeader, EmptyState, Badge, DetailModal } from "../components/ui";
 
@@ -23,24 +28,39 @@ function formatTs(ts?: number): string {
 export default function SessionsPage() {
   const navigate = useNavigate();
   const [sessions, setSessions] = useState<SessionItem[]>([]);
+  const [agents, setAgents] = useState<any[]>([]);
+  const [activeAgent, setActiveAgent] = useState<string>("all");
   const [selected, setSelected] = useState<any>(null);
   const [loaded, setLoaded] = useState(false);
 
   async function onLoad() {
-    setSessions(await getSessions());
+    const [sessionRows, agentRows] = await Promise.all([
+      getSessionsByAgent(activeAgent === "all" ? undefined : activeAgent),
+      getAgents(),
+    ]);
+    setSessions(sessionRows);
+    setAgents(agentRows);
     setLoaded(true);
   }
 
   useEffect(() => {
     void onLoad();
-  }, []);
+  }, [activeAgent]);
 
   async function onOpen(sessionId: string) {
-    setSelected(await getSessionDetail(sessionId));
+    setSelected(
+      await getSessionDetail(
+        sessionId,
+        activeAgent === "all" ? undefined : activeAgent,
+      ),
+    );
   }
 
   async function onDelete(sessionId: string) {
-    await deleteSession(sessionId);
+    await deleteSession(
+      sessionId,
+      activeAgent === "all" ? undefined : activeAgent,
+    );
     if (selected?.session_id === sessionId) {
       setSelected(null);
     }
@@ -57,10 +77,23 @@ export default function SessionsPage() {
         title="会话管理"
         description="管理 Agent 交互会话记录"
         actions={
-          <button onClick={onLoad}>
-            <RefreshCw size={15} />
-            刷新会话
-          </button>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <select
+              value={activeAgent}
+              onChange={(e) => setActiveAgent(e.target.value)}
+            >
+              <option value="all">全部 Agent</option>
+              {agents.map((agent) => (
+                <option key={String(agent.id)} value={String(agent.id)}>
+                  {String(agent.id)}
+                </option>
+              ))}
+            </select>
+            <button onClick={onLoad}>
+              <RefreshCw size={15} />
+              刷新会话
+            </button>
+          </div>
         }
       />
 
@@ -101,7 +134,9 @@ export default function SessionsPage() {
             </div>
             <div className="data-row-actions">
               <Badge variant="neutral">
-                {session.session_id.slice(0, 8)}...
+                {(session.agent_id || "main") +
+                  ":" +
+                  session.session_id.slice(0, 8)}
               </Badge>
               <button
                 className="btn-sm btn-secondary"

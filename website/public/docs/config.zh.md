@@ -1,69 +1,109 @@
 # 配置与工作目录
 
-## 工作目录
+ResearchClaw 将运行数据与密钥数据分目录存储。
 
-ResearchClaw 的所有数据和配置文件都存储在工作目录中。默认工作目录为 `~/.researchclaw/`。
+## 默认路径
 
-### 目录结构
+- 工作目录：`~/.researchclaw`
+- 密钥目录：`~/.researchclaw.secret`
 
-```
+可通过环境变量覆盖：
+
+- `RESEARCHCLAW_WORKING_DIR`
+- `RESEARCHCLAW_SECRET_DIR`
+
+## 工作目录结构
+
+```text
 ~/.researchclaw/
-├── config.yaml          # 主配置文件
-├── channels.yaml        # 频道配置
-├── mcp.yaml             # MCP 配置
-├── PROFILE.md           # 助手人设描述
-├── skills/              # Skills 文件夹
-│   ├── built_in/        # 内置 Skills
-│   └── custom/          # 自定义 Skills
-├── memory/              # 对话记忆
-└── logs/                # 日志文件
+├── config.json            # 主配置
+├── jobs.json              # 持久化 cron 任务
+├── chats.json             # 会话历史
+├── PROFILE.md             # 用户/研究画像
+├── HEARTBEAT.md           # 心跳检查清单
+├── active_skills/         # 已启用技能
+├── customized_skills/     # 本地自定义技能
+├── papers/                # 论文缓存
+├── references/            # 文献/BibTeX 数据
+├── experiments/           # 实验追踪数据
+├── memory/                # 记忆数据
+└── researchclaw.log       # 运行日志
 ```
 
-## 配置文件
+## 密钥目录结构
 
-### config.yaml
-
-主配置文件，包含 LLM、Memory、Heartbeat 等配置：
-
-```yaml
-llm:
-  provider: openai
-  model: gpt-4o
-  api_key: "sk-xxx"
-
-memory:
-  compact:
-    enabled: true
-    max_messages: 50
-
-heartbeat:
-  enabled: true
-  interval: 60
-
-server:
-  host: "0.0.0.0"
-  port: 8088
+```text
+~/.researchclaw.secret/
+├── envs.json              # 持久化环境变量
+└── providers.json         # 模型提供商配置
 ```
 
-### PROFILE.md
+## 关键配置（`config.json`）示例
 
-定义 AI 助手的人设和行为风格。你可以自定义助手的性格、专长领域和回答风格。
+```json
+{
+  "language": "zh",
+  "show_tool_details": true,
+  "channels": {
+    "console": { "enabled": true, "bot_prefix": "[BOT] " },
+    "dingtalk": { "enabled": false },
+    "feishu": { "enabled": false },
+    "available": ["console"]
+  },
+  "channel_accounts": {
+    "telegram": {
+      "lab": { "enabled": true, "bot_prefix": "[LAB] " }
+    }
+  },
+  "bindings": [
+    {
+      "agent_id": "research",
+      "match": { "channel": "telegram", "account_id": "lab" }
+    }
+  ],
+  "model_fallbacks": [
+    { "provider": "anthropic", "model_name": "claude-sonnet-4-20250514" }
+  ],
+  "agents": {
+    "defaults": {
+      "heartbeat": {
+        "enabled": false,
+        "every": "30m",
+        "target": "last"
+      }
+    }
+  },
+  "mcp": {
+    "clients": {}
+  }
+}
+```
 
-## 环境变量
-
-部分敏感配置可通过环境变量设置：
-
-| 变量名                     | 说明              |
-| -------------------------- | ----------------- |
-| `RESEARCHCLAW_WORKING_DIR` | 工作目录路径      |
-| `OPENAI_API_KEY`           | OpenAI API Key    |
-| `ANTHROPIC_API_KEY`        | Anthropic API Key |
-
-## CLI 配置
-
-使用 CLI 命令管理配置：
+## 常用配置命令
 
 ```bash
-researchclaw config show     # 显示当前配置
-researchclaw config set key value  # 设置配置项
+researchclaw init
+researchclaw channels config
+researchclaw models config
+researchclaw env list
+researchclaw env set OPENAI_API_KEY sk-...
 ```
+
+## 重要高级字段
+
+- `channel_accounts`：频道账号级覆盖配置；每个账号会映射为 `channel:account_id`。
+- `bindings`：多 Agent 路由规则，可按 channel/account/user/session 进行分流。
+- `model_fallbacks`：主模型失败时的备用 provider/model 链。
+
+## 与部署相关的环境变量
+
+| 变量                            | 说明                            |
+| ------------------------------- | ------------------------------- |
+| `RESEARCHCLAW_HOST`             | `researchclaw app` 默认绑定地址 |
+| `RESEARCHCLAW_PORT`             | `researchclaw app` 默认端口     |
+| `RESEARCHCLAW_AUTOMATION_TOKEN` | 自动化触发 API 鉴权 token       |
+| `RESEARCHCLAW_CORS_ORIGINS`     | CORS 白名单                     |
+| `RESEARCHCLAW_DOCS_ENABLED`     | 是否启用 FastAPI `/docs`        |
+| `RESEARCHCLAW_LOG_LEVEL`        | 运行日志级别                    |
+
+生产部署请参考 [部署指南](./deployment.md)。

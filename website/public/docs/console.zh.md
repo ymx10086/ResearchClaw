@@ -1,37 +1,43 @@
 # 控制台
 
-ResearchClaw 内置 Web 控制台，提供可视化的管理界面。
+ResearchClaw 内置 Web 控制台，用于日常使用与运维观测。
 
 ## 访问
 
-启动 ResearchClaw 后，访问 `http://localhost:8088` 即可进入控制台。
+服务启动后访问 `http://<host>:<port>`（默认 `http://127.0.0.1:8088`）。
 
-## 功能
+## 核心页面
 
 ### 对话
 
-- 直接与 AI 助手对话
-- 查看对话历史
+- 与 Scholar 助手对话
 - 多会话管理
+- 查看历史消息
 
 ### 设置
 
-- 模型提供商配置
-- API Key 管理
-- 频道开关
-- Skills 管理
+- 配置模型提供商与模型
+- 管理频道开关与凭证
+- 管理持久化环境变量
+- 管理技能（启用/禁用）
 
-### 环境变量
+### 状态页 / 控制面
 
-- 管理环境变量
-- 配置论文源 API Key（如 Semantic Scholar）
+- 运行健康状态与 uptime
+- 模型用量指标（请求数/成功率/回退次数/token 估算）
+- 频道队列/worker 运行指标
+- cron 运行指标
+- 自动化任务统计（queued/running/succeeded/failed）
+- Agent 列表与会话可观测
 
-### Skills 管理
+## 相关 API
 
-- 查看已安装的 Skills
-- 启用 / 禁用 Skills
-- 配置定时任务
+- `GET /api/control/status`
+- `GET /api/control/usage`
+- `GET /api/control/channels/runtime`
+- `GET /api/control/automation/runs`
+- `GET /api/control/agents`
+- `GET /api/control/sessions`
+- `POST /api/control/reload`
 
-## 技术栈
-
-控制台使用 React + TypeScript 构建，通过 WebSocket 与后端实时通信。
+生产部署访问建议请参考 [部署指南](./deployment.md)。

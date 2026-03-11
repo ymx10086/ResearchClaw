@@ -1,31 +1,46 @@
 # MCP (Model Context Protocol)
 
-ResearchClaw supports the MCP protocol, allowing integration with external tools and services.
+ResearchClaw supports MCP clients so the agent can use external tools and data services.
 
-## What is MCP
+## Where MCP Config Lives
 
-MCP (Model Context Protocol) is a standardized protocol that allows AI assistants to interact with external tools. Through MCP, you can connect more tools and data sources to ResearchClaw.
+MCP client definitions are stored in `~/.researchclaw/config.json` under `mcp.clients`.
 
-## Configure MCP Servers
+## Example
 
-Configure MCP servers in `mcp.yaml`:
-
-```yaml
-servers:
-  - name: "my-mcp-server"
-    url: "http://localhost:3000"
-    enabled: true
+```json
+{
+  "mcp": {
+    "clients": {
+      "local-tools": {
+        "name": "Local Tools",
+        "enabled": true,
+        "transport": "stdio",
+        "command": "python",
+        "args": ["/opt/mcp/server.py"],
+        "env": {
+          "API_KEY": "xxx"
+        }
+      },
+      "http-tools": {
+        "name": "HTTP Tools",
+        "enabled": true,
+        "transport": "streamable_http",
+        "url": "http://127.0.0.1:3000"
+      }
+    }
+  }
+}
 ```
 
-## Use Cases
+## Supported Transport Types
 
-- Connect local knowledge bases
-- Query databases
-- Call custom API services
-- Extend file system capabilities
+- `stdio`
+- `streamable_http` (also accepts `http` alias)
+- `sse`
 
-## Notes
+## Operational Notes
 
-- MCP servers need to be deployed and running separately
-- Ensure MCP server ports are accessible
-- Recommended for use in secure network environments
+- MCP services are deployed separately from ResearchClaw.
+- When MCP config changes, runtime clients are hot-reloaded.
+- Keep MCP credentials in secret env vars where possible.

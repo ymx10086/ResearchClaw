@@ -5,56 +5,52 @@
 - Python 3.10+
 - pip or uv
 
-## Installation
+## Install
 
-### Option 1: pip install (Recommended)
+### Option 1: Install from source (recommended for contributors)
+
+```bash
+git clone https://github.com/ymx10086/ResearchClaw.git
+cd ResearchClaw
+pip install -e ".[dev]"
+```
+
+### Option 2: Install from package
 
 ```bash
 pip install researchclaw
 ```
 
-### Option 2: One-click install script (macOS / Linux)
+## Initialize Workspace
 
 ```bash
-curl -fsSL https://researchclaw.dev/install.sh | bash
+researchclaw init --defaults --accept-security
 ```
 
-### Option 3: Docker
+This creates your working directory at `~/.researchclaw` by default.
+
+## Configure Model Provider
 
 ```bash
-docker pull researchclaw/researchclaw:latest
-docker run -p 8088:8088 -v researchclaw-data:/app/working researchclaw/researchclaw:latest
+researchclaw models config
+# or directly:
+researchclaw models add openai --type openai --model gpt-4o --api-key sk-...
 ```
 
-## Initialize
-
-Before first use, initialize the working directory:
+## Start Service
 
 ```bash
-researchclaw init --defaults
+researchclaw app --host 127.0.0.1 --port 8088
 ```
 
-This creates default configuration files and the working directory.
+Visit `http://127.0.0.1:8088`.
 
-## Start
+## Deployment Next Step
 
-```bash
-researchclaw app
-```
+If you want server deployment (Docker/systemd/Nginx), see [Deployment](./deployment.md).
 
-Visit `http://localhost:8088` to access the console.
+## Next
 
-## Configure LLM
-
-Configure your LLM provider and API key in the console:
-
-1. Open Console → Settings
-2. Select a model provider (OpenAI, Claude, Qwen, etc.)
-3. Enter your API Key
-4. Save and start using
-
-## Next Steps
-
-- [Channels](./channels.md) — Connect DingTalk, Feishu, and other IM platforms
-- [Skills](./skills.md) — Learn about and extend research skills
-- [Config & Working Dir](./config.md) — Detailed configuration guide
+- [Console](./console.md) — UI overview and operations
+- [Channels](./channels.md) — multi-channel setup
+- [Config & Working Dir](./config.md) — files, env vars, and persistence

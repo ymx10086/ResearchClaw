@@ -18,6 +18,8 @@ import {
   getHealth,
   getStatus,
   getControlStatus,
+  getControlLogs,
+  reloadControlRuntime,
   listActiveSkills,
   getHeartbeat,
 } from "../api";
@@ -31,6 +33,7 @@ export default function StatusPage() {
   const [activeSkills, setActiveSkills] = useState<number>(0);
   const [heartbeatEnabled, setHeartbeatEnabled] = useState<boolean>(false);
   const [control, setControl] = useState<any>(null);
+  const [logTail, setLogTail] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
   async function onRefreshStatus() {
@@ -55,6 +58,13 @@ export default function StatusPage() {
       setControl(await getControlStatus());
     } catch {
       setControl(null);
+    }
+
+    try {
+      const logs = await getControlLogs(80);
+      setLogTail(String(logs?.content || ""));
+    } catch {
+      setLogTail("");
     }
 
     try {
@@ -83,10 +93,27 @@ export default function StatusPage() {
         title="系统状态"
         description="查看 ResearchClaw 服务的运行状态"
         actions={
-          <button onClick={onRefreshStatus} disabled={loading}>
-            <RefreshCw size={15} className={loading ? "spinner" : ""} />
-            刷新状态
-          </button>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              onClick={async () => {
+                setLoading(true);
+                try {
+                  await reloadControlRuntime();
+                  await onRefreshStatus();
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              disabled={loading}
+            >
+              <Zap size={15} />
+              热重载
+            </button>
+            <button onClick={onRefreshStatus} disabled={loading}>
+              <RefreshCw size={15} className={loading ? "spinner" : ""} />
+              刷新状态
+            </button>
+          </div>
         }
       />
 
@@ -158,6 +185,28 @@ export default function StatusPage() {
               icon={<RefreshCw size={20} />}
               variant="warning"
             />
+            <StatCard
+              label="Agent 实例"
+              value={
+                Array.isArray(control?.runtime?.runner?.agents)
+                  ? control.runtime.runner.agents.length
+                  : 0
+              }
+              icon={<Bot size={20} />}
+              variant="info"
+            />
+            <StatCard
+              label="模型请求数"
+              value={control?.runtime?.runner?.usage?.requests ?? 0}
+              icon={<Activity size={20} />}
+              variant="brand"
+            />
+            <StatCard
+              label="回退次数"
+              value={control?.runtime?.runner?.usage?.fallbacks ?? 0}
+              icon={<RefreshCw size={20} />}
+              variant="warning"
+            />
           </div>
 
           <div className="stat-row">
@@ -194,6 +243,13 @@ export default function StatusPage() {
           </div>
         </>
       )}
+
+      <div style={{ marginTop: 16 }}>
+        <h3 style={{ margin: "8px 0" }}>运行日志（最近 80 行）</h3>
+        <pre className="pre" style={{ maxHeight: 280, overflow: "auto" }}>
+          {logTail || "暂无日志"}
+        </pre>
+      </div>
     </div>
   );
 }

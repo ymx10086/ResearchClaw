@@ -1,69 +1,109 @@
 # Configuration & Working Directory
 
-## Working Directory
+ResearchClaw keeps runtime data in a workspace directory and secrets in a separate secret directory.
 
-All ResearchClaw data and configuration files are stored in the working directory. The default is `~/.researchclaw/`.
+## Default Paths
 
-### Directory Structure
+- Working directory: `~/.researchclaw`
+- Secret directory: `~/.researchclaw.secret`
 
-```
+You can override both with environment variables:
+
+- `RESEARCHCLAW_WORKING_DIR`
+- `RESEARCHCLAW_SECRET_DIR`
+
+## Working Directory Layout
+
+```text
 ~/.researchclaw/
-├── config.yaml          # Main config file
-├── channels.yaml        # Channel configuration
-├── mcp.yaml             # MCP configuration
-├── PROFILE.md           # Assistant persona
-├── skills/              # Skills folder
-│   ├── built_in/        # Built-in skills
-│   └── custom/          # Custom skills
-├── memory/              # Conversation memory
-└── logs/                # Log files
+├── config.json            # Main runtime config
+├── jobs.json              # Persistent cron jobs
+├── chats.json             # Chat/session history
+├── PROFILE.md             # User/research profile
+├── HEARTBEAT.md           # Heartbeat checklist
+├── active_skills/         # Enabled skills
+├── customized_skills/     # Local custom skills
+├── papers/                # Cached/downloaded papers
+├── references/            # References/BibTeX related data
+├── experiments/           # Experiment tracking data
+├── memory/                # Memory artifacts
+└── researchclaw.log       # Runtime logs
 ```
 
-## Configuration Files
+## Secret Directory Layout
 
-### config.yaml
-
-Main configuration file with LLM, Memory, Heartbeat, etc.:
-
-```yaml
-llm:
-  provider: openai
-  model: gpt-4o
-  api_key: "sk-xxx"
-
-memory:
-  compact:
-    enabled: true
-    max_messages: 50
-
-heartbeat:
-  enabled: true
-  interval: 60
-
-server:
-  host: "0.0.0.0"
-  port: 8088
+```text
+~/.researchclaw.secret/
+├── envs.json              # Persisted env vars
+└── providers.json         # Model provider configs
 ```
 
-### PROFILE.md
+## Key Runtime Config (`config.json`)
 
-Defines the AI assistant's persona and behavior style. You can customize the assistant's personality, expertise areas, and response style.
+```json
+{
+  "language": "en",
+  "show_tool_details": true,
+  "channels": {
+    "console": { "enabled": true, "bot_prefix": "[BOT] " },
+    "dingtalk": { "enabled": false },
+    "feishu": { "enabled": false },
+    "available": ["console"]
+  },
+  "channel_accounts": {
+    "telegram": {
+      "lab": { "enabled": true, "bot_prefix": "[LAB] " }
+    }
+  },
+  "bindings": [
+    {
+      "agent_id": "research",
+      "match": { "channel": "telegram", "account_id": "lab" }
+    }
+  ],
+  "model_fallbacks": [
+    { "provider": "anthropic", "model_name": "claude-sonnet-4-20250514" }
+  ],
+  "agents": {
+    "defaults": {
+      "heartbeat": {
+        "enabled": false,
+        "every": "30m",
+        "target": "last"
+      }
+    }
+  },
+  "mcp": {
+    "clients": {}
+  }
+}
+```
 
-## Environment Variables
-
-Sensitive configurations can be set via environment variables:
-
-| Variable                   | Description            |
-| -------------------------- | ---------------------- |
-| `RESEARCHCLAW_WORKING_DIR` | Working directory path |
-| `OPENAI_API_KEY`           | OpenAI API Key         |
-| `ANTHROPIC_API_KEY`        | Anthropic API Key      |
-
-## CLI Configuration
-
-Manage configuration using CLI commands:
+## CLI for Configuration
 
 ```bash
-researchclaw config show     # Show current config
-researchclaw config set key value  # Set a config value
+researchclaw init
+researchclaw channels config
+researchclaw models config
+researchclaw env list
+researchclaw env set OPENAI_API_KEY sk-...
 ```
+
+## Important Advanced Keys
+
+- `channel_accounts`: per-channel account overrides; each account becomes `channel:account_id`.
+- `bindings`: routing rules to map channel/account/user/session to different agent instances.
+- `model_fallbacks`: backup provider/model chain used when the primary model call fails.
+
+## Deployment-related Environment Variables
+
+| Variable                        | Purpose                                |
+| ------------------------------- | -------------------------------------- |
+| `RESEARCHCLAW_HOST`             | Default host for `researchclaw app`    |
+| `RESEARCHCLAW_PORT`             | Default port for `researchclaw app`    |
+| `RESEARCHCLAW_AUTOMATION_TOKEN` | Auth token for automation trigger APIs |
+| `RESEARCHCLAW_CORS_ORIGINS`     | CORS allow-list                        |
+| `RESEARCHCLAW_DOCS_ENABLED`     | Enable FastAPI docs (`/docs`)          |
+| `RESEARCHCLAW_LOG_LEVEL`        | Runtime log level                      |
+
+See [Deployment](./deployment.md) for production setup.

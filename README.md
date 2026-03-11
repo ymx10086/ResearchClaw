@@ -29,31 +29,39 @@ ResearchClaw is an AI research assistant that runs on **your own machine**. Buil
 
 ## 🚀 Quick Start
 
-### Installation
+### 1) Install (from this repository)
 
 ```bash
 pip install -e ".[dev]"
 ```
 
-Run this in the repository root directory.
+Run this in the repository root.
 
-### Initialize
+### 2) Initialize workspace
 
 ```bash
 researchclaw init --defaults --accept-security
 ```
 
-This sets up your working directory (`~/.researchclaw`) and configures your LLM provider.
+This creates `~/.researchclaw` and bootstrap files.
 
-### Launch
+### 3) Configure your model provider
 
 ```bash
-researchclaw app
+researchclaw models config
+# or:
+researchclaw models add openai --type openai --model gpt-4o --api-key sk-...
 ```
 
-Open [http://127.0.0.1:8088/](http://127.0.0.1:8088/) in your browser.
+### 4) Start service
 
-### Frontend (Console) Development
+```bash
+researchclaw app --host 127.0.0.1 --port 8088
+```
+
+Open [http://127.0.0.1:8088](http://127.0.0.1:8088).
+
+### 5) Frontend (Console) development
 
 Run backend first:
 
@@ -81,13 +89,13 @@ npm run build
 
 `console/dist` will be served automatically by the backend when available.
 
-### One-liner Install
+### 6) One-liner install (macOS / Linux)
 
 ```bash
 curl -fsSL https://researchclaw.github.io/install.sh | bash
 ```
 
-### Local CI Checks
+### Local CI checks
 
 Run the same checks used by GitHub Actions before pushing:
 
@@ -101,6 +109,49 @@ If dependencies are already installed, use:
 scripts/check-ci.sh --skip-install
 ```
 
+## 🚢 Deployment
+
+### Single-machine deployment (recommended baseline)
+
+1. Set persistent paths and bind address.
+2. Start with a process manager.
+
+```bash
+export RESEARCHCLAW_WORKING_DIR=/data/researchclaw
+export RESEARCHCLAW_SECRET_DIR=/data/researchclaw.secret
+export RESEARCHCLAW_HOST=0.0.0.0
+export RESEARCHCLAW_PORT=8088
+export RESEARCHCLAW_AUTOMATION_TOKEN=change-me
+
+researchclaw app --host 0.0.0.0 --port 8088
+```
+
+Health check endpoint: `GET /api/health`
+
+### Docker deployment (self-build)
+
+```bash
+docker build -f deploy/Dockerfile -t researchclaw:local .
+docker run -d \
+  --name researchclaw \
+  -p 8088:8088 \
+  -e PORT=8088 \
+  -e RESEARCHCLAW_WORKING_DIR=/app/working \
+  -e RESEARCHCLAW_SECRET_DIR=/app/working.secret \
+  -e RESEARCHCLAW_AUTOMATION_TOKEN=change-me \
+  -v researchclaw-working:/app/working \
+  -v researchclaw-secret:/app/working.secret \
+  researchclaw:local
+```
+
+### Production checklist
+
+- Put ResearchClaw behind Nginx/Caddy and enable HTTPS.
+- Persist both working dir and secret dir.
+- Set `RESEARCHCLAW_AUTOMATION_TOKEN` before exposing automation APIs.
+- Restrict inbound IPs for admin/internal endpoints when possible.
+- Monitor `/api/health` and `/api/control/status`.
+
 ## 📝 Recent Updates
 
 ### 2026-03-11
@@ -109,8 +160,12 @@ scripts/check-ci.sh --skip-install
   token-protected `/api/automation/triggers/agent` supports async execution, stored run history, and optional multi-channel fan-out delivery (`dispatches` / `fanout_channels`).
 - Expanded control-plane observability:
   `/api/control/status` now includes runtime snapshots for runner sessions, channel queues/workers, cron runtime stats, and automation success/failure counters.
+- Added model fallback + usage observability:
+  streaming and non-streaming chat now support fallback chains, and control plane exposes usage/fallback counters via `/api/control/usage` and `runtime.runner.usage`.
 - Upgraded Console Status page with operational metrics:
   registered channel count, queue backlog, in-progress keys, and automation success/failure cards.
+- Added channel operations APIs and console controls:
+  custom channel plugin install/remove (`/api/control/channels/custom/*`), account mapping management (`/api/control/channels/accounts`), and routing bindings management (`/api/control/bindings`).
 - Added a richer model/provider configuration UI:
   multiple preset platforms, per-provider `base_url`, selectable preset models, and manual model entry in the same card.
 - Extended provider storage and APIs to support multiple models per provider while keeping backward compatibility with the old single-model format.
@@ -119,6 +174,7 @@ scripts/check-ci.sh --skip-install
 - Hardened skill compatibility and routing:
   `SKILL.md` now recognizes OpenClaw/ClawHub-style metadata such as `user-invocable` and `disable-model-invocation`, and Python skills can be loaded from normalized runtime exports like `tools`, `TOOLS`, `register()`, and `get_tools()`.
 - Fixed experiment tracker skill argument compatibility so extra fields such as `status` and alternate `experiment_id` casing no longer crash tool execution.
+- Refreshed README and website docs to match current runtime behavior, with a dedicated deployment guide (single-machine, Docker self-build, and production checklist).
 
 ## 🏗️ Architecture
 
@@ -193,13 +249,13 @@ ResearchClaw supports multiple LLM providers:
 
 ```bash
 # Set up with OpenAI
-researchclaw env set OPENAI_API_KEY=sk-...
+researchclaw models add openai --type openai --model gpt-4o --api-key sk-...
 
 # Or Anthropic
-researchclaw env set ANTHROPIC_API_KEY=sk-ant-...
+researchclaw models add anthropic --type anthropic --model claude-3-5-sonnet --api-key sk-ant-...
 
 # Or use local models via Ollama
-researchclaw providers add ollama
+researchclaw models add ollama --type ollama --model qwen3:8b --base-url http://localhost:11434/v1
 ```
 
 ## 🤖 Agent Commands
@@ -220,13 +276,12 @@ In the chat interface, use these commands:
 ```bash
 researchclaw init          # Interactive setup wizard
 researchclaw app           # Start the web server
-researchclaw papers search # Search for papers from CLI
-researchclaw papers list   # List saved papers
+researchclaw models list   # List model providers
+researchclaw channels list # List channel configuration
+researchclaw env list      # List persisted environment variables
 researchclaw skills list   # List available skills
-researchclaw skills add    # Install a skill from the hub
-researchclaw env list      # List environment variables
-researchclaw providers     # Manage LLM providers
-researchclaw cron          # Manage scheduled tasks
+researchclaw cron list     # List scheduled jobs via API
+researchclaw daemon status # Runtime status from control plane
 ```
 
 ## 🛡️ Privacy & Security
