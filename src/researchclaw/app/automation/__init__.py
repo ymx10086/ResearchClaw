@@ -3,4 +3,3 @@
 from .trigger_store import AutomationRunStore
 
 __all__ = ["AutomationRunStore"]
-

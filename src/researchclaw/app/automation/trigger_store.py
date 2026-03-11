@@ -30,11 +30,13 @@ class AutomationRunStore:
         deliver: bool,
         dispatches: List[Dict[str, str]],
         source: str = "api",
+        agent_id: str = "",
     ) -> Dict[str, Any]:
         run = {
             "id": run_id,
             "status": "queued",
             "source": source,
+            "agent_id": agent_id,
             "message": message,
             "session_id": session_id,
             "deliver": bool(deliver),
@@ -121,4 +123,3 @@ class AutomationRunStore:
                 if status in out:
                     out[status] += 1
             return out
-

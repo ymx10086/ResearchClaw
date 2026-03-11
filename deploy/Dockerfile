@@ -18,6 +18,6 @@ RUN pip install --no-cache-dir --upgrade pip && \
 COPY deploy/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-EXPOSE 8899
+EXPOSE 8088
 
 ENTRYPOINT ["/entrypoint.sh"]

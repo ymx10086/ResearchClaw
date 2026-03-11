@@ -29,6 +29,7 @@ class ChatRequest(BaseModel):
 
     message: str
     session_id: str | None = None
+    agent_id: str | None = None
     stream: bool = False
 
 
@@ -98,6 +99,7 @@ async def chat(request: ChatRequest, req: Request):
         response = await runner.chat(
             message=request.message,
             session_id=session_id,
+            agent_id=request.agent_id,
         )
         return ChatResponse(response=response, session_id=session_id)
     except Exception as e:
@@ -132,6 +134,7 @@ async def chat_stream(request: ChatRequest, req: Request):
             async for event in runner.chat_stream(
                 message=request.message,
                 session_id=session_id,
+                agent_id=request.agent_id,
             ):
                 event["session_id"] = session_id
                 yield f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
@@ -162,12 +165,19 @@ async def list_tools(req: Request):
 async def agent_status(req: Request):
     """Get agent status."""
     runner = getattr(req.app.state, "runner", None)
+    agents = []
+    if runner and hasattr(runner, "list_agents"):
+        try:
+            agents = runner.list_agents()
+        except Exception:
+            agents = []
     return {
         "running": runner is not None and runner.is_running,
         "agent_name": "Scholar",
         "tool_count": len(runner.agent.tool_names)
         if runner and runner.agent
         else 0,
+        "agents": agents,
     }
 
 

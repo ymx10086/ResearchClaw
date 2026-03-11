@@ -44,7 +44,11 @@ def test_expand_dispatches_supports_fanout_star() -> None:
         req=req,
         default_session_id="automation:1",
     )
-    assert {item["channel"] for item in out} == {"console", "telegram", "discord"}
+    assert {item["channel"] for item in out} == {
+        "console",
+        "telegram",
+        "discord",
+    }
     assert {item["user_id"] for item in out} == {"owner"}
     assert {item["session_id"] for item in out} == {"automation:1"}
 
@@ -85,7 +89,13 @@ def test_automation_run_store_lifecycle() -> None:
             message="hello",
             session_id="automation:r1",
             deliver=True,
-            dispatches=[{"channel": "console", "user_id": "main", "session_id": "main"}],
+            dispatches=[
+                {
+                    "channel": "console",
+                    "user_id": "main",
+                    "session_id": "main",
+                },
+            ],
         )
         assert created["status"] == "queued"
 
@@ -112,3 +122,42 @@ def test_automation_run_store_lifecycle() -> None:
 
     asyncio.run(_run())
 
+
+def test_render_template_and_mapping_message() -> None:
+    body = {
+        "event": {
+            "title": "new paper",
+            "author": {"name": "alice"},
+        },
+        "message": "fallback text",
+    }
+    rendered = automation_router._render_template(
+        "Paper: {{event.title}} by {{event.author.name}}",
+        body,
+    )
+    assert rendered == "Paper: new paper by alice"
+
+    mapped = automation_router._extract_message_from_mapping(
+        {"message_template": "From {{event.author.name}}"},
+        body,
+    )
+    assert mapped == "From alice"
+
+    from_field = automation_router._extract_message_from_mapping(
+        {"message_field": "event.title"},
+        body,
+    )
+    assert from_field == "new paper"
+
+
+def test_wake_to_agent_payload_conversion() -> None:
+    wake = automation_router.WakeTriggerRequest(
+        text="cron heartbeat",
+        mode="now",
+        agent_id="research",
+        run_async=False,
+    )
+    payload = automation_router._wake_to_agent_trigger(wake)
+    assert payload.agent_id == "research"
+    assert payload.run_async is False
+    assert payload.message.startswith("[Wake trigger:now]")

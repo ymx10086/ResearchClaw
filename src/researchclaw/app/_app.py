@@ -101,6 +101,7 @@ def _build_channel_runtime_config(raw_config: dict[str, Any]) -> Any:
         "channels": channels_raw,
         "show_tool_details": bool(cfg.get("show_tool_details", True)),
         "extra_channels": cfg.get("extra_channels", {}),
+        "channel_accounts": cfg.get("channel_accounts", {}),
         "last_dispatch": cfg.get("last_dispatch", {}),
     }
     return _to_namespace(runtime_cfg)
@@ -141,12 +142,12 @@ async def lifespan(app: FastAPI):
 
     runner = None
     try:
-        from .runner.manager import AgentRunnerManager
+        from .runner.multi_manager import MultiAgentRunnerManager
 
-        runner = AgentRunnerManager()
+        runner = MultiAgentRunnerManager()
         await runner.start()
         app.state.runner = runner
-        logger.info("Agent runner started")
+        logger.info("Agent runner started (multi-agent)")
     except Exception:
         logger.exception("Failed to start agent runner")
 

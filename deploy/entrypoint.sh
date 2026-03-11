@@ -5,4 +5,4 @@ if [[ "${1:-}" == "bash" ]]; then
   exec bash
 fi
 
-exec researchclaw app start --host 0.0.0.0 --port "${PORT:-8899}"
+exec researchclaw app --host 0.0.0.0 --port "${PORT:-8088}"

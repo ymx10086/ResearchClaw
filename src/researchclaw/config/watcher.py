@@ -137,6 +137,35 @@ class ConfigWatcher:
                 available = ["console"]
             out["available"] = available
 
+        account_maps = raw_config.get("channel_accounts")
+        if isinstance(account_maps, dict):
+            for base_key, account_items in account_maps.items():
+                if not isinstance(account_items, dict):
+                    continue
+                base_cfg = out.get(base_key)
+                base_cfg = base_cfg if isinstance(base_cfg, dict) else {}
+                for account_id, account_cfg in account_items.items():
+                    account_id_s = str(account_id or "").strip()
+                    if not account_id_s:
+                        continue
+                    alias = f"{base_key}:{account_id_s}"
+                    merged = dict(base_cfg)
+                    if isinstance(account_cfg, dict):
+                        merged.update(account_cfg)
+                    merged.setdefault("enabled", True)
+                    merged["account_id"] = account_id_s
+                    merged["channel_alias"] = alias
+                    out[alias] = merged
+
+                    # If base channel is enabled in available list, enable account alias.
+                    if (
+                        isinstance(out.get("available"), list)
+                        and base_key in out["available"]
+                        and alias not in out["available"]
+                        and merged.get("enabled", True)
+                    ):
+                        out["available"].append(alias)
+
         return out
 
     @staticmethod
@@ -191,7 +220,8 @@ class ConfigWatcher:
         show_tool_details: bool,
     ):
         registry = get_channel_registry()
-        ch_cls = registry.get(name)
+        base_name = str(name).split(":", 1)[0].strip().lower()
+        ch_cls = registry.get(base_name)
         if ch_cls is None:
             logger.warning("ConfigWatcher: unknown channel '%s', skip", name)
             return None
@@ -201,7 +231,7 @@ class ConfigWatcher:
             getattr(ns_cfg, "filter_tool_messages", False),
         )
         try:
-            return ch_cls.from_config(
+            ch = ch_cls.from_config(
                 self._process,
                 ns_cfg,
                 on_reply_sent=self._on_last_dispatch,
@@ -209,12 +239,15 @@ class ConfigWatcher:
                 filter_tool_messages=filter_tool_messages,
             )
         except TypeError:
-            return ch_cls.from_config(
+            ch = ch_cls.from_config(
                 self._process,
                 ns_cfg,
                 on_reply_sent=self._on_last_dispatch,
                 show_tool_details=show_tool_details,
             )
+        if getattr(ch, "channel", "") != name:
+            setattr(ch, "channel", name)
+        return ch
 
     async def _apply_channel_changes(self, raw: dict[str, Any]) -> None:
         channels = self._normalize_channels(raw)
@@ -308,6 +341,20 @@ class ConfigWatcher:
         raw = self._load_raw_config()
         await self._apply_channel_changes(raw)
         await self._apply_heartbeat_change(raw)
+
+    async def apply_now(self) -> None:
+        """Immediately apply current config without waiting for polling tick."""
+        raw = self._load_raw_config()
+        await self._apply_channel_changes(raw)
+        await self._apply_heartbeat_change(raw)
+        try:
+            self._last_mtime = (
+                self._config_path.stat().st_mtime
+                if self._config_path.exists()
+                else 0.0
+            )
+        except Exception:
+            self._last_mtime = 0.0
 
     async def _poll_loop(self) -> None:
         while True:

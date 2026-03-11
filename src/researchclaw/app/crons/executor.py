@@ -79,6 +79,7 @@ class CronExecutor:
         *,
         job: CronJobSpec,
         result_text: str,
+        agent_id: str = "main",
     ) -> None:
         """Persist console cron output as a new chat session."""
         if str(job.dispatch.channel or "").lower() != "console":
@@ -86,7 +87,10 @@ class CronExecutor:
         if not result_text.strip():
             return
 
-        session_manager = getattr(self._runner, "session_manager", None)
+        if hasattr(self._runner, "get_session_manager"):
+            session_manager = self._runner.get_session_manager(agent_id)
+        else:
+            session_manager = getattr(self._runner, "session_manager", None)
         if session_manager is None:
             return
 
@@ -159,6 +163,13 @@ class CronExecutor:
         target_user_id = job.dispatch.target.user_id
         target_session_id = job.dispatch.target.session_id
         dispatch_meta: Dict[str, Any] = dict(job.dispatch.meta or {})
+        agent_id = str(
+            dispatch_meta.get("agent_id")
+            or dispatch_meta.get("agentId")
+            or "",
+        ).strip()
+        if not agent_id:
+            agent_id = "main"
 
         logger.info(
             "cron execute: job_id=%s channel=%s task_type=%s "
@@ -187,6 +198,7 @@ class CronExecutor:
             await self._save_console_result_as_new_chat(
                 job=job,
                 result_text=job.text.strip(),
+                agent_id=agent_id,
             )
             return
 
@@ -200,6 +212,8 @@ class CronExecutor:
         req: Dict[str, Any] = job.request.model_dump(mode="json")
         req["user_id"] = target_user_id or "cron"
         req["session_id"] = target_session_id or f"cron:{job.id}"
+        if agent_id:
+            req["agent_id"] = agent_id
         result_chunks: list[str] = []
 
         async def _run() -> None:
@@ -219,4 +233,5 @@ class CronExecutor:
         await self._save_console_result_as_new_chat(
             job=job,
             result_text="\n".join(result_chunks).strip(),
+            agent_id=agent_id,
         )

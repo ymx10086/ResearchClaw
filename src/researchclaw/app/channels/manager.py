@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from types import SimpleNamespace
 from typing import Any, Callable, Dict, List, Optional, Set
 
 from .base import BaseChannel, TextContent, ContentType
@@ -26,6 +27,26 @@ logger = logging.getLogger(__name__)
 # Tunable constants
 _CHANNEL_QUEUE_MAXSIZE = 500
 _CONSUMER_WORKERS_PER_CHANNEL = 4
+
+
+def _to_dict(obj: Any) -> dict[str, Any]:
+    if isinstance(obj, dict):
+        return dict(obj)
+    if obj is None:
+        return {}
+    if hasattr(obj, "__dict__"):
+        return {k: v for k, v in vars(obj).items() if not k.startswith("_")}
+    return {}
+
+
+def _to_namespace(value: Any) -> Any:
+    if isinstance(value, dict):
+        return SimpleNamespace(
+            **{k: _to_namespace(v) for k, v in value.items()},
+        )
+    if isinstance(value, list):
+        return [_to_namespace(v) for v in value]
+    return value
 
 
 def _drain_same_key(
@@ -160,33 +181,39 @@ class ChannelManager:
             if hasattr(config, "extra_channels")
             else {}
         )
+        account_maps = (
+            getattr(config, "channel_accounts", {})
+            if hasattr(config, "channel_accounts")
+            else {}
+        )
+        if not isinstance(account_maps, dict):
+            account_maps = {}
 
-        for key, ch_cls in registry.items():
-            if available is not None and key not in available:
-                continue
-            ch_config = getattr(
-                config.channels if hasattr(config, "channels") else config,
-                key,
-                None,
-            )
-            if ch_config is None and key in extra:
-                from types import SimpleNamespace
-
-                raw = extra[key]
-                ch_config = (
-                    SimpleNamespace(**raw) if isinstance(raw, dict) else raw
+        def _is_enabled_key(base_key: str, account_id: str = "") -> bool:
+            if available is None:
+                return True
+            if account_id:
+                return (
+                    f"{base_key}:{account_id}" in available
+                    or base_key in available
                 )
-            if ch_config is None:
-                continue
+            return base_key in available
 
+        def _build_channel(
+            *,
+            base_key: str,
+            ch_cls: Any,
+            ch_config: Any,
+            alias_channel: str | None = None,
+        ) -> BaseChannel | None:
+            if ch_config is None:
+                return None
             try:
-                if key == "console":
-                    channels.append(
-                        ch_cls.from_config(
-                            process,
-                            ch_config,
-                            on_reply_sent=on_last_dispatch,
-                        ),
+                if base_key == "console":
+                    ch_obj = ch_cls.from_config(
+                        process,
+                        ch_config,
+                        on_reply_sent=on_last_dispatch,
                     )
                 else:
                     filter_tool_messages = getattr(
@@ -195,29 +222,88 @@ class ChannelManager:
                         False,
                     )
                     try:
-                        channels.append(
-                            ch_cls.from_config(
-                                process,
-                                ch_config,
-                                on_reply_sent=on_last_dispatch,
-                                show_tool_details=show_tool_details,
-                                filter_tool_messages=filter_tool_messages,
-                            ),
+                        ch_obj = ch_cls.from_config(
+                            process,
+                            ch_config,
+                            on_reply_sent=on_last_dispatch,
+                            show_tool_details=show_tool_details,
+                            filter_tool_messages=filter_tool_messages,
                         )
                     except TypeError:
-                        channels.append(
-                            ch_cls.from_config(
-                                process,
-                                ch_config,
-                                on_reply_sent=on_last_dispatch,
-                                show_tool_details=show_tool_details,
-                            ),
+                        ch_obj = ch_cls.from_config(
+                            process,
+                            ch_config,
+                            on_reply_sent=on_last_dispatch,
+                            show_tool_details=show_tool_details,
                         )
             except Exception:
                 logger.exception(
                     "Failed to create channel from config: %s",
-                    key,
+                    alias_channel or base_key,
                 )
+                return None
+
+            if (
+                alias_channel
+                and getattr(ch_obj, "channel", "") != alias_channel
+            ):
+                setattr(ch_obj, "channel", alias_channel)
+            return ch_obj
+
+        for key, ch_cls in registry.items():
+            if not _is_enabled_key(key):
+                continue
+            ch_config = getattr(
+                config.channels if hasattr(config, "channels") else config,
+                key,
+                None,
+            )
+            if ch_config is None and key in extra:
+                raw = extra[key]
+                ch_config = (
+                    SimpleNamespace(**raw) if isinstance(raw, dict) else raw
+                )
+            if ch_config is None:
+                continue
+
+            built = _build_channel(
+                base_key=key,
+                ch_cls=ch_cls,
+                ch_config=ch_config,
+            )
+            if built is not None:
+                channels.append(built)
+
+            per_channel_accounts = account_maps.get(key)
+            if not isinstance(per_channel_accounts, dict):
+                continue
+            base_cfg = _to_dict(ch_config)
+            for account_id, account_cfg in per_channel_accounts.items():
+                account_id_s = str(account_id or "").strip()
+                if not account_id_s or not _is_enabled_key(key, account_id_s):
+                    continue
+                merged_cfg = dict(base_cfg)
+                if isinstance(account_cfg, dict):
+                    merged_cfg.update(account_cfg)
+                merged_cfg.setdefault("enabled", True)
+                if not bool(merged_cfg.get("enabled", True)):
+                    continue
+                merged_cfg.setdefault(
+                    "bot_prefix",
+                    base_cfg.get("bot_prefix", ""),
+                )
+                merged_cfg["account_id"] = account_id_s
+                alias_name = f"{key}:{account_id_s}"
+                merged_cfg["channel_alias"] = alias_name
+                built_account = _build_channel(
+                    base_key=key,
+                    ch_cls=ch_cls,
+                    ch_config=_to_namespace(merged_cfg),
+                    alias_channel=alias_name,
+                )
+                if built_account is None:
+                    continue
+                channels.append(built_account)
 
         return cls(channels)
 
@@ -515,10 +601,16 @@ class ChannelManager:
         meta: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Send a runner event to a specific channel."""
-        ch = await self.get_channel(channel)
+        requested = str(channel or "").strip().lower()
+        base, _, account_id = requested.partition(":")
+        ch = await self.get_channel(requested)
+        if not ch and base:
+            ch = await self.get_channel(base)
         if not ch:
             raise KeyError(f"channel not found: {channel}")
         merged_meta = dict(meta or {})
+        if account_id:
+            merged_meta.setdefault("account_id", account_id)
         merged_meta["session_id"] = session_id
         merged_meta["user_id"] = user_id
         bot_prefix = getattr(ch, "bot_prefix", None) or getattr(
@@ -545,7 +637,11 @@ class ChannelManager:
         meta: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Send plain text to a specific channel (for cron / proactive)."""
-        ch = await self.get_channel(channel.lower())
+        requested = str(channel or "").strip().lower()
+        base, _, account_id = requested.partition(":")
+        ch = await self.get_channel(requested)
+        if not ch and base:
+            ch = await self.get_channel(base)
         if not ch:
             raise KeyError(f"channel not found: {channel}")
 
@@ -562,6 +658,8 @@ class ChannelManager:
         )
 
         merged_meta = dict(meta or {})
+        if account_id:
+            merged_meta.setdefault("account_id", account_id)
         bot_prefix = getattr(ch, "bot_prefix", None) or getattr(
             ch,
             "_bot_prefix",
@@ -610,7 +708,9 @@ class ChannelManager:
             worker_total = len(workers)
             worker_alive = sum(1 for task in workers if not task.done())
             in_progress = sum(
-                1 for (channel_id, _) in self._in_progress if channel_id == name
+                1
+                for (channel_id, _) in self._in_progress
+                if channel_id == name
             )
             pending_items = sum(
                 len(items)
