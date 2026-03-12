@@ -58,3 +58,52 @@ def test_chat_stream_fallback_records_usage(tmp_path) -> None:
         m["role"] == "assistant" and m["content"] == "hello world"
         for m in session.messages
     )
+
+
+def test_start_loads_active_provider_from_provider_store(
+    tmp_path, monkeypatch
+) -> None:
+    from researchclaw.app.runner.manager import AgentRunnerManager
+    import researchclaw.providers.store as provider_store
+
+    (tmp_path / "config.json").write_text(
+        '{"language":"zh"}',
+        encoding="utf-8",
+    )
+
+    class _FakeProvider:
+        def to_dict(self):
+            return {
+                "name": "lab-openai",
+                "provider_type": "openai",
+                "model_name": "gpt-lab",
+                "api_key": "sk-test",
+                "base_url": "https://example.test/v1",
+                "enabled": True,
+            }
+
+    class _FakeStore:
+        def get_active_provider(self):
+            return _FakeProvider()
+
+    class _BootRunner:
+        def __init__(self):
+            self.is_running = False
+            self.started_with = None
+
+        async def start(self, model_config):
+            self.started_with = dict(model_config)
+            self.is_running = True
+
+    monkeypatch.setattr(provider_store, "ProviderStore", _FakeStore)
+
+    manager = AgentRunnerManager(working_dir=str(tmp_path))
+    manager.runner = _BootRunner()
+
+    asyncio.run(manager.start())
+
+    assert manager.runner.started_with is not None
+    assert manager.runner.started_with["provider"] == "openai"
+    assert manager.runner.started_with["model_name"] == "gpt-lab"
+    assert manager.runner.started_with["api_key"] == "sk-test"
+    assert manager.runner.started_with["base_url"] == "https://example.test/v1"

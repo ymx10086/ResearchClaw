@@ -97,6 +97,44 @@ def test_usage_stats_prefers_runner_usage_api() -> None:
     assert result["fallbacks"] == 1
 
 
+def test_runner_runtime_stats_prefers_status_snapshot() -> None:
+    runner = SimpleNamespace(
+        is_running=False,
+        get_status_snapshot=lambda: {
+            "running": True,
+            "agents": [{"id": "lab", "running": True}],
+        },
+        get_status_manager=lambda: (
+            "lab",
+            SimpleNamespace(
+                runner=SimpleNamespace(
+                    _last_model_config={
+                        "provider": "openai",
+                        "model_name": "gpt-test",
+                    },
+                ),
+            ),
+        ),
+        list_sessions=lambda: [{"session_id": "s1"}],
+        list_usage_stats=lambda: {
+            "requests": 0,
+            "succeeded": 0,
+            "failed": 0,
+            "fallbacks": 0,
+            "providers": [],
+            "agents": [],
+        },
+        list_agents=lambda: [{"id": "main", "running": False}],
+    )
+
+    stats = control_router._get_runner_runtime_stats(runner)
+
+    assert stats["running"] is True
+    assert stats["model_provider"] == "openai"
+    assert stats["model_name"] == "gpt-test"
+    assert stats["agents"] == [{"id": "lab", "running": True}]
+
+
 def test_update_bindings_updates_root_and_agents(monkeypatch) -> None:
     saved = {}
 
