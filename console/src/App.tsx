@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import { NavLink, Route, Routes, useLocation } from "react-router-dom";
 import {
   MessageSquare,
@@ -13,6 +14,9 @@ import {
   Settings,
   Cpu,
   KeyRound,
+  Menu,
+  X,
+  Sparkles,
 } from "lucide-react";
 import ChatPage from "./pages/ChatPage";
 import PapersPage from "./pages/PapersPage";
@@ -185,10 +189,47 @@ const navSections: NavSection[] = [
 export default function App() {
   const location = useLocation();
   const { locale, setLocale } = useI18n();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const currentSection = useMemo(() => {
+    for (const section of navSections) {
+      for (const item of section.items) {
+        if (
+          location.pathname === item.to ||
+          (item.to === "/chat" && location.pathname === "/")
+        ) {
+          return {
+            section: section.title,
+            label: item.label,
+          };
+        }
+      }
+    }
+    return {
+      section: "研究",
+      label: "AI 对话",
+    };
+  }, [location.pathname]);
+
+  const pageDescriptions: Record<string, string> = {
+    "AI 对话": "围绕论文检索、分析、写作和实验设计持续推进研究任务。",
+    论文检索: "组织检索结果、筛选候选文献，并快速沉淀研究线索。",
+    频道: "管理多渠道接入、账号绑定和自定义插件，让入口更稳定。",
+    会话: "按 Agent 追踪会话流转，快速恢复历史上下文。",
+    定时任务: "用计划任务驱动自动化触发，减少人工操作。",
+    心跳: "维持定期唤醒与调度，让自动化链路保持在线。",
+    系统状态: "集中查看服务健康、自动化执行和控制面运行态。",
+    工作区: "围绕配置、技能、心跳和任务文件统一维护研究工作区。",
+    技能: "管理当前启用技能，明确各类能力边界和状态。",
+    MCP: "连接外部工具、资源和服务，扩展 Agent 的研究能力。",
+    "Agent 配置": "调整运行参数，平衡成本、上下文和推理深度。",
+    模型: "配置主模型、回退链和模型能力分配。",
+    环境变量: "管理部署时依赖的外部密钥和运行参数。",
+  };
 
   return (
     <div className="layout">
-      <aside className="sidebar">
+      <aside className={`sidebar${sidebarOpen ? " open" : ""}`}>
         <div className="brand">
           <div className="brand-title">
             <div className="brand-logo">
@@ -220,6 +261,7 @@ export default function App() {
                   className={({ isActive }) =>
                     `nav-link${isActive ? " active" : ""}`
                   }
+                  onClick={() => setSidebarOpen(false)}
                 >
                   <span className="nav-icon">{item.icon}</span>
                   {item.label}
@@ -230,6 +272,11 @@ export default function App() {
         </nav>
 
         <div className="sidebar-footer">
+          <div className="sidebar-spotlight">
+            <div className="sidebar-spotlight-label">Research Ops</div>
+            <strong>多渠道 + 自动化 + 中控台</strong>
+            <p>当前控制台已覆盖运行态、渠道接入与工作区编辑。</p>
+          </div>
           <div className="sidebar-footer-badge">
             <span className="sidebar-footer-dot" />
             ResearchClaw 运行中
@@ -253,7 +300,47 @@ export default function App() {
         </div>
       </aside>
 
+      {sidebarOpen && (
+        <button
+          type="button"
+          className="sidebar-backdrop"
+          aria-label="关闭导航"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       <main className="content">
+        <header className="app-topbar">
+          <div className="app-topbar-main">
+            <button
+              type="button"
+              className="app-topbar-menu"
+              aria-label={sidebarOpen ? "关闭导航" : "打开导航"}
+              onClick={() => setSidebarOpen((value) => !value)}
+            >
+              {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
+            </button>
+            <div>
+              <div className="app-topbar-breadcrumb">
+                <span>{currentSection.section}</span>
+                <span>/</span>
+                <span>{currentSection.label}</span>
+              </div>
+              <div className="app-topbar-title">{currentSection.label}</div>
+              <p>
+                {pageDescriptions[currentSection.label] ||
+                  "ResearchClaw 控制台"}
+              </p>
+            </div>
+          </div>
+          <div className="app-topbar-status">
+            <div className="app-topbar-pill">
+              <Sparkles size={14} />
+              Scholar Console
+            </div>
+            <div className="app-topbar-pill subtle">{locale.toUpperCase()}</div>
+          </div>
+        </header>
         <ConsoleCronBubble />
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<ChatPage />} />

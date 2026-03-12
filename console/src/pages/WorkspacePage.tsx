@@ -1,25 +1,31 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  FolderOpen,
-  RefreshCw,
   FileText,
-  Save,
-  RotateCcw,
+  FolderOpen,
+  Heart,
   MessageCircle,
   Puzzle,
-  Timer,
-  Heart,
+  RefreshCw,
+  RotateCcw,
+  Save,
   Settings,
+  Timer,
 } from "lucide-react";
 import {
+  getWorkspaceFileContent,
   getWorkspaceInfo,
   getWorkspaceRelations,
-  getWorkspaceFileContent,
   listWorkspaceFiles,
   saveWorkspaceFileContent,
 } from "../api";
 import type { WorkspaceFileItem } from "../types";
-import { PageHeader, EmptyState, Badge } from "../components/ui";
+import {
+  Badge,
+  EmptyState,
+  MetricPill,
+  PageHeader,
+  SurfaceCard,
+} from "../components/ui";
 import { IconBadge } from "../components/icons";
 
 function fmtBytes(bytes?: number): string {
@@ -131,8 +137,19 @@ export default function WorkspacePage() {
   return (
     <div className="panel">
       <PageHeader
+        eyebrow="Workspace Control"
         title="工作区文件"
-        description="查看并编辑关键工作区文件：配置、心跳、定时、会话、技能与记忆文件"
+        description="集中查看并编辑关键运行文件，把配置、技能、心跳、定时和记忆内容维持在同一工作区里。"
+        meta={
+          <div className="page-header-meta-row">
+            <MetricPill label="关键文件" value={files.length} />
+            <MetricPill label="当前文件" value={selectedPath || "-"} />
+            <MetricPill
+              label="编辑状态"
+              value={hasChanges ? "Unsaved" : "Synced"}
+            />
+          </div>
+        }
         actions={
           <button onClick={onLoad}>
             <RefreshCw size={15} />
@@ -160,8 +177,11 @@ export default function WorkspacePage() {
       )}
 
       {relations && (
-        <div className="card mb-4">
-          <h3>对话 / 技能 / 定时 / 心跳 关系</h3>
+        <SurfaceCard
+          title="工作区关系图"
+          description="帮助你快速确认会话、技能、定时任务、心跳和配置之间的连接关系。"
+          className="mb-4"
+        >
           <div className="workspace-rel-grid mt-3">
             <div className="workspace-rel-card">
               <div className="workspace-rel-title">对话</div>
@@ -238,12 +258,19 @@ export default function WorkspacePage() {
               ))}
             </div>
           )}
-        </div>
+        </SurfaceCard>
       )}
 
       <div className="workspace-layout">
-        <div className="workspace-file-list card">
-          <h3>关键文件</h3>
+        <div className="workspace-file-list surface-card">
+          <div className="surface-card-head">
+            <div>
+              <h3>关键文件</h3>
+              <p>
+                按分类快速切换，适合维护 `config.json`、`AGENTS.md` 等核心文件。
+              </p>
+            </div>
+          </div>
           {Array.from(grouped.entries()).map(([group, items]) => (
             <div key={group} className="workspace-group">
               <div className="workspace-group-title">{group}</div>
@@ -270,7 +297,7 @@ export default function WorkspacePage() {
           ))}
         </div>
 
-        <div className="workspace-editor card">
+        <div className="workspace-editor surface-card">
           <div className="workspace-editor-head">
             <div>
               <h3>{selectedPath || "请选择文件"}</h3>

@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import type { ChangeEvent } from "react";
-import { Settings, Download, Save, SlidersHorizontal } from "lucide-react";
+import { Download, Save, Settings, SlidersHorizontal } from "lucide-react";
 import { getAgentRunningConfig, updateAgentRunningConfig } from "../api";
 import type { AgentRunningConfig } from "../types";
-import { PageHeader } from "../components/ui";
+import { MetricPill, PageHeader, SurfaceCard } from "../components/ui";
 
 export default function AgentConfigPage() {
   const [config, setConfig] = useState<AgentRunningConfig>({
@@ -35,8 +35,15 @@ export default function AgentConfigPage() {
   return (
     <div className="panel">
       <PageHeader
+        eyebrow="Runtime Tuning"
         title="Agent 配置"
-        description="调整 Agent 的运行参数"
+        description="把高频运行参数放在一处调优，平衡推理深度、上下文长度和交互速度。"
+        meta={
+          <div className="page-header-meta-row">
+            <MetricPill label="最大迭代" value={config.max_iters} />
+            <MetricPill label="上下文上限" value={config.max_input_length} />
+          </div>
+        }
         actions={
           <div className="row">
             <button className="btn-secondary" onClick={onLoad}>
@@ -66,47 +73,60 @@ export default function AgentConfigPage() {
           </div>
         </div>
       ) : (
-        <div className="card-grid">
-          <div className="config-card">
-            <div className="config-label">
-              <SlidersHorizontal
-                size={14}
-                style={{ marginRight: 6, verticalAlign: "middle" }}
+        <div className="dashboard-grid">
+          <SurfaceCard
+            title="推理步数"
+            description="适合控制任务深度。数值越高，复杂任务成功率更高，但成本和时延也会上升。"
+            className="span-6"
+          >
+            <div className="config-card refined">
+              <div className="config-label">
+                <SlidersHorizontal
+                  size={14}
+                  style={{ marginRight: 6, verticalAlign: "middle" }}
+                />
+                最大迭代次数
+              </div>
+              <div className="config-desc">Agent 单次任务的最大推理步数</div>
+              <input
+                type="number"
+                value={config.max_iters}
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                  setConfig((prev: AgentRunningConfig) => ({
+                    ...prev,
+                    max_iters: Number(e.target.value) || 1,
+                  }))
+                }
               />
-              最大迭代次数
             </div>
-            <div className="config-desc">Agent 单次任务的最大推理步数</div>
-            <input
-              type="number"
-              value={config.max_iters}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                setConfig((prev: AgentRunningConfig) => ({
-                  ...prev,
-                  max_iters: Number(e.target.value) || 1,
-                }))
-              }
-            />
-          </div>
-          <div className="config-card">
-            <div className="config-label">
-              <SlidersHorizontal
-                size={14}
-                style={{ marginRight: 6, verticalAlign: "middle" }}
+          </SurfaceCard>
+
+          <SurfaceCard
+            title="上下文容量"
+            description="适合控制单次任务能容纳的上下文长度，直接影响长论文和长工具输出的可处理范围。"
+            className="span-6"
+          >
+            <div className="config-card refined">
+              <div className="config-label">
+                <SlidersHorizontal
+                  size={14}
+                  style={{ marginRight: 6, verticalAlign: "middle" }}
+                />
+                最大输入长度
+              </div>
+              <div className="config-desc">单次输入的最大 token 数量</div>
+              <input
+                type="number"
+                value={config.max_input_length}
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                  setConfig((prev: AgentRunningConfig) => ({
+                    ...prev,
+                    max_input_length: Number(e.target.value) || 1000,
+                  }))
+                }
               />
-              最大输入长度
             </div>
-            <div className="config-desc">单次输入的最大 token 数量</div>
-            <input
-              type="number"
-              value={config.max_input_length}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                setConfig((prev: AgentRunningConfig) => ({
-                  ...prev,
-                  max_input_length: Number(e.target.value) || 1000,
-                }))
-              }
-            />
-          </div>
+          </SurfaceCard>
         </div>
       )}
     </div>

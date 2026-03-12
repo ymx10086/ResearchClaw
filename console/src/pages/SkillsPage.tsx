@@ -7,7 +7,14 @@ import {
   disableSkill,
 } from "../api";
 import type { SkillItem } from "../types";
-import { PageHeader, EmptyState, Badge, Toggle } from "../components/ui";
+import {
+  PageHeader,
+  EmptyState,
+  Badge,
+  Toggle,
+  MetricPill,
+  SurfaceCard,
+} from "../components/ui";
 
 export default function SkillsPage() {
   const [skills, setSkills] = useState<SkillItem[]>([]);
@@ -36,8 +43,15 @@ export default function SkillsPage() {
   return (
     <div className="panel">
       <PageHeader
+        eyebrow="Capability Switches"
         title="技能管理"
-        description="启用或禁用 Agent 技能（同时影响聊天与 task_type=agent 的定时任务）"
+        description="启用或禁用 Agent 技能，同时影响聊天和 `task_type=agent` 的定时任务。"
+        meta={
+          <div className="page-header-meta-row">
+            <MetricPill label="技能总数" value={skills.length} />
+            <MetricPill label="已启用" value={active.length} />
+          </div>
+        }
         actions={
           <button onClick={onLoad}>
             <RefreshCw size={15} />
@@ -60,39 +74,44 @@ export default function SkillsPage() {
         />
       )}
 
-      <div className="card-list animate-list">
-        {skills.map((skill: SkillItem, idx: number) => {
-          const skillName = skill.name || `skill-${idx}`;
-          const isActive = active.includes(skillName);
-          return (
-            <div key={skillName} className="data-row">
-              <div className="data-row-info">
-                <div className="data-row-title">
-                  <Puzzle
-                    size={14}
-                    style={{ marginRight: 6, verticalAlign: "middle" }}
-                  />
-                  {skillName}
-                  {isActive ? (
-                    <Badge variant="success">已启用</Badge>
-                  ) : (
-                    <Badge variant="neutral">已禁用</Badge>
+      <SurfaceCard
+        title="技能开关"
+        description="建议只启用你当前需要的能力，避免让 Agent 在低价值技能上分散注意力。"
+      >
+        <div className="card-list animate-list">
+          {skills.map((skill: SkillItem, idx: number) => {
+            const skillName = skill.name || `skill-${idx}`;
+            const isActive = active.includes(skillName);
+            return (
+              <div key={skillName} className="data-row">
+                <div className="data-row-info">
+                  <div className="data-row-title">
+                    <Puzzle
+                      size={14}
+                      style={{ marginRight: 6, verticalAlign: "middle" }}
+                    />
+                    {skillName}
+                    {isActive ? (
+                      <Badge variant="success">已启用</Badge>
+                    ) : (
+                      <Badge variant="neutral">已禁用</Badge>
+                    )}
+                  </div>
+                  {skill.description && (
+                    <div className="data-row-meta">{skill.description}</div>
                   )}
                 </div>
-                {skill.description && (
-                  <div className="data-row-meta">{skill.description}</div>
-                )}
+                <div className="data-row-actions">
+                  <Toggle
+                    checked={isActive}
+                    onChange={() => onToggle(skillName, isActive)}
+                  />
+                </div>
               </div>
-              <div className="data-row-actions">
-                <Toggle
-                  checked={isActive}
-                  onChange={() => onToggle(skillName, isActive)}
-                />
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      </SurfaceCard>
     </div>
   );
 }

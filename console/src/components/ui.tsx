@@ -2,18 +2,30 @@ import type { ReactNode } from "react";
 
 /* ---------- Page Header ---------- */
 export function PageHeader({
+  eyebrow,
   title,
   description,
   actions,
+  meta,
 }: {
+  eyebrow?: string;
   title: string;
   description?: string;
   actions?: ReactNode;
+  meta?: ReactNode;
 }) {
   return (
     <div className="page-header">
-      <h2>{title}</h2>
-      {description && <p>{description}</p>}
+      <div className="page-header-copy">
+        {eyebrow && <div className="page-eyebrow">{eyebrow}</div>}
+        <div className="page-header-heading">
+          <div>
+            <h2>{title}</h2>
+            {description && <p>{description}</p>}
+          </div>
+          {meta && <div className="page-header-meta">{meta}</div>}
+        </div>
+      </div>
       {actions && <div className="page-header-actions">{actions}</div>}
     </div>
   );
@@ -51,6 +63,50 @@ export function Badge({
   variant?: "success" | "warning" | "danger" | "info" | "neutral";
 }) {
   return <span className={`badge badge-${variant}`}>{children}</span>;
+}
+
+export function MetricPill({
+  label,
+  value,
+}: {
+  label: string;
+  value: ReactNode;
+}) {
+  return (
+    <div className="metric-pill">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  );
+}
+
+export function SurfaceCard({
+  title,
+  description,
+  actions,
+  children,
+  className = "",
+}: {
+  title?: string;
+  description?: string;
+  actions?: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={`surface-card${className ? ` ${className}` : ""}`}>
+      {(title || description || actions) && (
+        <div className="surface-card-head">
+          <div>
+            {title && <h3>{title}</h3>}
+            {description && <p>{description}</p>}
+          </div>
+          {actions && <div className="surface-card-actions">{actions}</div>}
+        </div>
+      )}
+      {children}
+    </section>
+  );
 }
 
 /* ---------- Toggle ---------- */

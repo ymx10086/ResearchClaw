@@ -12,7 +12,13 @@ import {
   updateChannelAccounts,
 } from "../api";
 import type { ChannelItem } from "../types";
-import { PageHeader, EmptyState, Badge } from "../components/ui";
+import {
+  Badge,
+  EmptyState,
+  MetricPill,
+  PageHeader,
+  SurfaceCard,
+} from "../components/ui";
 import { ChannelGlyph, IconBadge } from "../components/icons";
 
 export default function ChannelsPage() {
@@ -80,8 +86,16 @@ export default function ChannelsPage() {
   return (
     <div className="panel">
       <PageHeader
+        eyebrow="Multi-channel Ingress"
         title="频道管理"
-        description="查看已注册频道，并管理账号映射与自定义插件"
+        description="把内建频道、自定义插件、账号映射和路由绑定放在同一控制面里管理。"
+        meta={
+          <div className="page-header-meta-row">
+            <MetricPill label="已注册" value={channels.length} />
+            <MetricPill label="目录总数" value={catalog.length} />
+            <MetricPill label="自定义插件" value={customChannels.length} />
+          </div>
+        }
         actions={
           <button onClick={onLoad}>
             <RefreshCw size={15} />
@@ -108,114 +122,145 @@ export default function ChannelsPage() {
         />
       )}
 
-      <div className="card-list animate-list">
-        {channels.map((item: ChannelItem, idx: number) => (
-          <div key={idx} className="data-row">
-            <div className="data-row-info">
-              <div className="data-row-title">
-                <ChannelGlyph channel={item.name} />
-                {item.name}
-              </div>
-            </div>
-            <div className="data-row-actions">
-              <Badge variant="info">{item.type}</Badge>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div style={{ marginTop: 16 }}>
-        <h3 style={{ margin: "8px 0" }}>频道目录</h3>
-        <div className="card-list animate-list">
-          {catalog.map((item: any) => (
-            <div key={String(item.key)} className="data-row">
-              <div className="data-row-info">
-                <div className="data-row-title">
-                  <ChannelGlyph channel={String(item.key)} />
-                  {String(item.key)}
+      <div className="dashboard-grid">
+        <SurfaceCard
+          title="已注册频道"
+          description="运行时真正可用的入口，适合先看状态和类型。"
+          className="span-7"
+        >
+          <div className="card-list animate-list">
+            {channels.map((item: ChannelItem, idx: number) => (
+              <div key={idx} className="data-row">
+                <div className="data-row-info">
+                  <div className="data-row-title">
+                    <ChannelGlyph channel={item.name} />
+                    {item.name}
+                  </div>
+                  <div className="data-row-meta">
+                    当前实例已经注册到运行时消息分发链路。
+                  </div>
+                </div>
+                <div className="data-row-actions">
+                  <Badge variant="info">{item.type}</Badge>
                 </div>
               </div>
-              <div className="data-row-actions">
-                <Badge variant={item.builtin ? "info" : "warning"}>
-                  {item.builtin ? "builtin" : "custom"}
-                </Badge>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+            ))}
+          </div>
+        </SurfaceCard>
 
-      <div style={{ marginTop: 16 }}>
-        <h3 style={{ margin: "8px 0" }}>自定义频道插件</h3>
-        <div style={{ display: "grid", gap: 8 }}>
-          <input
-            placeholder="channel key (e.g. webhook)"
-            value={installKey}
-            onChange={(e) => setInstallKey(e.target.value)}
-          />
-          <input
-            placeholder="local path (optional)"
-            value={installPath}
-            onChange={(e) => setInstallPath(e.target.value)}
-          />
-          <input
-            placeholder="remote url (optional)"
-            value={installUrl}
-            onChange={(e) => setInstallUrl(e.target.value)}
-          />
-          <button
-            onClick={onInstallCustom}
-            disabled={saving || !installKey.trim()}
-          >
-            <Plug size={15} />
-            安装/更新插件
-          </button>
-        </div>
-        <div className="card-list animate-list" style={{ marginTop: 8 }}>
-          {customChannels.map((item: any) => (
-            <div key={String(item.key)} className="data-row">
-              <div className="data-row-info">
-                <div className="data-row-title">{String(item.key)}</div>
-                <div className="hint">{String(item.path || "")}</div>
+        <SurfaceCard
+          title="频道目录"
+          description="内建与外部插件的统一目录，方便确认装载来源。"
+          className="span-5"
+        >
+          <div className="card-list animate-list">
+            {catalog.map((item: any) => (
+              <div key={String(item.key)} className="data-row compact">
+                <div className="data-row-info">
+                  <div className="data-row-title">
+                    <ChannelGlyph channel={String(item.key)} />
+                    {String(item.key)}
+                  </div>
+                </div>
+                <div className="data-row-actions">
+                  <Badge variant={item.builtin ? "info" : "warning"}>
+                    {item.builtin ? "builtin" : "custom"}
+                  </Badge>
+                </div>
               </div>
-              <div className="data-row-actions">
-                <button
-                  onClick={async () => {
-                    await removeCustomChannel(String(item.key));
-                    await onLoad();
-                  }}
-                >
-                  <Trash2 size={14} />
-                  删除
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+            ))}
+          </div>
+        </SurfaceCard>
 
-      <div style={{ marginTop: 16 }}>
-        <h3 style={{ margin: "8px 0" }}>账号与绑定配置</h3>
-        <div style={{ display: "grid", gap: 8 }}>
-          <label className="hint">channel_accounts (JSON)</label>
-          <textarea
-            className="pre"
-            style={{ minHeight: 180 }}
-            value={accountsJson}
-            onChange={(e) => setAccountsJson(e.target.value)}
-          />
-          <label className="hint">bindings (JSON)</label>
-          <textarea
-            className="pre"
-            style={{ minHeight: 140 }}
-            value={bindingsJson}
-            onChange={(e) => setBindingsJson(e.target.value)}
-          />
-          <button onClick={onSaveAccountsAndBindings} disabled={saving}>
-            <Save size={15} />
-            保存并热重载
-          </button>
-        </div>
+        <SurfaceCard
+          title="安装自定义频道"
+          description="可从本地路径或远程 URL 安装/更新，适合接 webhook、企业 IM 或自定义消息入口。"
+          className="span-5"
+        >
+          <div className="form-stack">
+            <input
+              placeholder="channel key (e.g. webhook)"
+              value={installKey}
+              onChange={(e) => setInstallKey(e.target.value)}
+            />
+            <input
+              placeholder="local path (optional)"
+              value={installPath}
+              onChange={(e) => setInstallPath(e.target.value)}
+            />
+            <input
+              placeholder="remote url (optional)"
+              value={installUrl}
+              onChange={(e) => setInstallUrl(e.target.value)}
+            />
+            <button
+              onClick={onInstallCustom}
+              disabled={saving || !installKey.trim()}
+            >
+              <Plug size={15} />
+              安装/更新插件
+            </button>
+          </div>
+
+          <div className="card-list animate-list mt-4">
+            {customChannels.length === 0 && (
+              <div className="empty-inline">暂无自定义插件</div>
+            )}
+            {customChannels.map((item: any) => (
+              <div key={String(item.key)} className="data-row compact">
+                <div className="data-row-info">
+                  <div className="data-row-title">{String(item.key)}</div>
+                  <div className="data-row-meta">{String(item.path || "")}</div>
+                </div>
+                <div className="data-row-actions">
+                  <button
+                    className="btn-secondary btn-sm"
+                    onClick={async () => {
+                      await removeCustomChannel(String(item.key));
+                      await onLoad();
+                    }}
+                  >
+                    <Trash2 size={14} />
+                    删除
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </SurfaceCard>
+
+        <SurfaceCard
+          title="账号与绑定配置"
+          description="账号实例和 bindings 直接影响消息路由，保存后会热重载到运行时。"
+          className="span-7"
+          actions={
+            <button onClick={onSaveAccountsAndBindings} disabled={saving}>
+              <Save size={15} />
+              保存并热重载
+            </button>
+          }
+        >
+          <div className="config-grid">
+            <div className="code-editor-card">
+              <label className="hint">channel_accounts (JSON)</label>
+              <textarea
+                className="pre"
+                style={{ minHeight: 260 }}
+                value={accountsJson}
+                onChange={(e) => setAccountsJson(e.target.value)}
+              />
+            </div>
+            <div className="code-editor-card">
+              <label className="hint">bindings (JSON)</label>
+              <textarea
+                className="pre"
+                style={{ minHeight: 260 }}
+                value={bindingsJson}
+                onChange={(e) => setBindingsJson(e.target.value)}
+              />
+            </div>
+          </div>
+        </SurfaceCard>
       </div>
     </div>
   );

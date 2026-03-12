@@ -25,6 +25,8 @@ import {
   Badge,
   Toggle,
   DetailModal,
+  MetricPill,
+  SurfaceCard,
 } from "../components/ui";
 import { ChannelGlyph, IconBadge } from "../components/icons";
 import { useI18n } from "../i18n";
@@ -306,8 +308,19 @@ export default function CronJobsPage() {
   return (
     <div className="panel">
       <PageHeader
+        eyebrow="Automation Scheduler"
         title="定时任务"
-        description="管理周期性执行的自动化任务（支持编辑、删除、立即执行、通道设置）"
+        description="管理周期性执行的自动化任务，覆盖编辑、删除、立即执行、通道设置和运行时限制。"
+        meta={
+          <div className="page-header-meta-row">
+            <MetricPill label="任务数" value={jobs.length} />
+            <MetricPill
+              label="启用中"
+              value={jobs.filter((job) => job.enabled).length}
+            />
+            <MetricPill label="可用通道" value={channelOptions.length} />
+          </div>
+        }
         actions={
           <>
             <button className="btn-secondary" onClick={onCreate}>
@@ -358,73 +371,80 @@ export default function CronJobsPage() {
         />
       )}
 
-      <div className="card-list animate-list">
-        {jobs.map((job) => (
-          <div key={job.id || job.name} className="data-row">
-            <div className="data-row-info">
-              <div className="data-row-title">
-                <Timer
-                  size={14}
-                  style={{ marginRight: 6, verticalAlign: "middle" }}
-                />
-                {job.name}
+      {jobs.length > 0 && (
+        <SurfaceCard
+          title="任务列表"
+          description="建议把高价值、可重复的研究流程沉淀为定时任务，并明确通道和目标会话。"
+        >
+          <div className="card-list animate-list">
+            {jobs.map((job) => (
+              <div key={job.id || job.name} className="data-row">
+                <div className="data-row-info">
+                  <div className="data-row-title">
+                    <Timer
+                      size={14}
+                      style={{ marginRight: 6, verticalAlign: "middle" }}
+                    />
+                    {job.name}
+                  </div>
+                  <div className="data-row-meta">
+                    Cron: {job.cron} ({job.timezone})
+                    <span style={{ margin: "0 6px" }}>·</span>
+                    类型: {job.task_type}
+                    <span style={{ margin: "0 6px" }}>·</span>
+                    通道:{" "}
+                    <span className="inline-row">
+                      <ChannelGlyph channel={job.channel || "console"} />
+                      {job.channel || "console"}
+                    </span>
+                    <span style={{ margin: "0 6px" }}>·</span>
+                    目标: {job.target_user_id || "main"}/
+                    {job.target_session_id || "main"}
+                    <span style={{ margin: "0 6px" }}>·</span>
+                    模式: {job.mode}
+                    <span style={{ margin: "0 6px" }}>·</span>
+                    {job.enabled ? (
+                      <Badge variant="success">已启用</Badge>
+                    ) : (
+                      <Badge variant="neutral">已暂停</Badge>
+                    )}
+                  </div>
+                </div>
+                <div className="data-row-actions">
+                  <button
+                    className="btn-sm"
+                    onClick={() => onRunNow(job.id)}
+                    disabled={runningJobId === job.id}
+                  >
+                    <Play size={14} />
+                    {runningJobId === job.id ? "运行中..." : "马上运行"}
+                  </button>
+                  <button
+                    className="btn-sm btn-secondary"
+                    onClick={() => onEdit(job)}
+                  >
+                    <Pencil size={14} />
+                    编辑
+                  </button>
+                  <button
+                    className="btn-sm danger"
+                    onClick={() => onDelete(job)}
+                    disabled={deletingJobId === job.id}
+                  >
+                    <Trash2 size={14} />
+                    {deletingJobId === job.id ? "删除中..." : "删除"}
+                  </button>
+                  <Toggle
+                    checked={job.enabled}
+                    disabled={togglingJobId === job.id}
+                    onChange={(checked) => onToggle(job.id, checked)}
+                  />
+                </div>
               </div>
-              <div className="data-row-meta">
-                Cron: {job.cron} ({job.timezone})
-                <span style={{ margin: "0 6px" }}>·</span>
-                类型: {job.task_type}
-                <span style={{ margin: "0 6px" }}>·</span>
-                通道:{" "}
-                <span className="inline-row">
-                  <ChannelGlyph channel={job.channel || "console"} />
-                  {job.channel || "console"}
-                </span>
-                <span style={{ margin: "0 6px" }}>·</span>
-                目标: {job.target_user_id || "main"}/
-                {job.target_session_id || "main"}
-                <span style={{ margin: "0 6px" }}>·</span>
-                模式: {job.mode}
-                <span style={{ margin: "0 6px" }}>·</span>
-                {job.enabled ? (
-                  <Badge variant="success">已启用</Badge>
-                ) : (
-                  <Badge variant="neutral">已暂停</Badge>
-                )}
-              </div>
-            </div>
-            <div className="data-row-actions">
-              <button
-                className="btn-sm"
-                onClick={() => onRunNow(job.id)}
-                disabled={runningJobId === job.id}
-              >
-                <Play size={14} />
-                {runningJobId === job.id ? "运行中..." : "马上运行"}
-              </button>
-              <button
-                className="btn-sm btn-secondary"
-                onClick={() => onEdit(job)}
-              >
-                <Pencil size={14} />
-                编辑
-              </button>
-              <button
-                className="btn-sm danger"
-                onClick={() => onDelete(job)}
-                disabled={deletingJobId === job.id}
-              >
-                <Trash2 size={14} />
-                {deletingJobId === job.id ? "删除中..." : "删除"}
-              </button>
-              <Toggle
-                checked={job.enabled}
-                disabled={togglingJobId === job.id}
-                onChange={(checked) => onToggle(job.id, checked)}
-              />
-            </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </SurfaceCard>
+      )}
 
       {form && (
         <DetailModal

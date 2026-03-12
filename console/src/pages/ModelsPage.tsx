@@ -23,7 +23,14 @@ import {
   listAvailableModels,
 } from "../api";
 import type { ProviderItem } from "../types";
-import { PageHeader, EmptyState, Badge, Toggle } from "../components/ui";
+import {
+  PageHeader,
+  EmptyState,
+  Badge,
+  Toggle,
+  MetricPill,
+  SurfaceCard,
+} from "../components/ui";
 import { useI18n } from "../i18n";
 
 const PROVIDER_TYPES = [
@@ -558,7 +565,7 @@ export default function ModelsPage() {
               <Plus size={13} />
               添加模型
             </button>
-            <span style={{ fontSize: 12, color: "var(--color-text-muted)" }}>
+            <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
               可直接输入一个新模型名；第一个模型会作为当前默认模型，用于「应用到
               Agent」
             </span>
@@ -594,7 +601,7 @@ export default function ModelsPage() {
             style={{
               marginTop: 6,
               fontSize: 12,
-              color: "var(--color-text-muted)",
+              color: "var(--text-muted)",
             }}
           >
             {preset.description}
@@ -677,8 +684,25 @@ export default function ModelsPage() {
   return (
     <div className="panel">
       <PageHeader
+        eyebrow="Model Routing"
         title="模型 & 供应商"
-        description="一个卡片对应一个平台入口（名称 + base_url + API Key），同一卡片可预先挂多个模型，下拉选择并保存"
+        description="一个供应商卡片对应一个平台入口，可挂多个模型，并直接应用到当前 Agent 运行配置。"
+        meta={
+          <div className="page-header-meta-row">
+            <MetricPill label="供应商" value={providers.length} />
+            <MetricPill
+              label="已启用"
+              value={providers.filter((provider) => provider.enabled).length}
+            />
+            <MetricPill
+              label="可发现模型"
+              value={Object.values(availableModels).reduce(
+                (total, items) => total + items.length,
+                0,
+              )}
+            />
+          </div>
+        }
         actions={
           <div className="row">
             <button className="btn-secondary" onClick={startAdd}>
@@ -715,11 +739,11 @@ export default function ModelsPage() {
       )}
 
       {showAdd && (
-        <div
-          className="card mb-4"
-          style={{ border: "1.5px solid var(--color-brand)", padding: 20 }}
+        <SurfaceCard
+          title="新增供应商"
+          description="可先用平台模板快速填充，再按实际部署环境修改 Base URL、模型列表和 Key。"
+          className="mb-4"
         >
-          <h4 style={{ marginBottom: 14, fontWeight: 600 }}>新增供应商</h4>
           {renderProviderForm(addForm, "add")}
           <div
             className="row"
@@ -734,7 +758,7 @@ export default function ModelsPage() {
               {addSaving ? "保存中..." : "添加"}
             </button>
           </div>
-        </div>
+        </SurfaceCard>
       )}
 
       {!loaded && !showAdd && (
@@ -760,164 +784,172 @@ export default function ModelsPage() {
               description="点击右上角「新增供应商」添加第一个 LLM 供应商"
             />
           ) : (
-            <div className="card-list animate-list">
-              {providers.map((provider) => {
-                const models = normalizeModelNames(provider).filter(Boolean);
-                return (
-                  <div key={provider.name}>
-                    <div
-                      className="data-row"
-                      style={
-                        provider.enabled
-                          ? { borderLeft: "3px solid var(--color-brand)" }
-                          : undefined
-                      }
-                    >
-                      <div className="data-row-info">
-                        <div className="data-row-title">
-                          {provider.name}
-                          <span style={{ marginLeft: 8 }}>
-                            <Badge variant="info">
-                              {provider.provider_type}
-                            </Badge>
-                          </span>
-                          {provider.enabled && (
-                            <span style={{ marginLeft: 6 }}>
-                              <Badge variant="success">已启用</Badge>
-                            </span>
-                          )}
-                        </div>
-                        <div
-                          className="data-row-meta"
-                          style={{
-                            display: "flex",
-                            gap: 12,
-                            marginTop: 6,
-                            flexWrap: "wrap",
-                          }}
-                        >
-                          {models.map((model) => (
-                            <Badge key={model} variant="neutral">
-                              {model}
-                            </Badge>
-                          ))}
-                        </div>
-                        <div
-                          className="data-row-meta"
-                          style={{
-                            display: "flex",
-                            gap: 16,
-                            marginTop: 6,
-                            flexWrap: "wrap",
-                          }}
-                        >
-                          {provider.api_key && (
-                            <span>
-                              <Key
-                                size={11}
-                                style={{
-                                  marginRight: 3,
-                                  verticalAlign: "middle",
-                                }}
-                              />
-                              {provider.api_key}
-                            </span>
-                          )}
-                          {provider.base_url && (
-                            <span>
-                              <Globe
-                                size={11}
-                                style={{
-                                  marginRight: 3,
-                                  verticalAlign: "middle",
-                                }}
-                              />
-                              {provider.base_url}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="data-row-actions" style={{ gap: 8 }}>
-                        <Toggle
-                          checked={!!provider.enabled}
-                          onChange={() => onToggleEnabled(provider)}
-                        />
-                        {provider.enabled && (
-                          <button
-                            className="btn-secondary btn-sm"
-                            onClick={() => onApply(provider.name)}
-                            disabled={applyingName === provider.name}
-                            title="应用到 Agent（热重载）"
-                          >
-                            <Play size={13} />
-                            {applyingName === provider.name
-                              ? "应用中..."
-                              : "应用"}
-                          </button>
-                        )}
-                        <button
-                          className="btn-secondary btn-sm"
-                          onClick={() =>
-                            editingName === provider.name
-                              ? cancelEdit()
-                              : startEdit(provider)
-                          }
-                          title="编辑设置"
-                        >
-                          {editingName === provider.name ? (
-                            <X size={13} />
-                          ) : (
-                            <Edit2 size={13} />
-                          )}
-                        </button>
-                        <button
-                          className="btn-danger btn-sm"
-                          onClick={() => onDelete(provider.name)}
-                          title="删除"
-                        >
-                          <Trash2 size={13} />
-                        </button>
-                      </div>
-                    </div>
-
-                    {editingName === provider.name && (
+            <SurfaceCard
+              title="供应商列表"
+              description="启用仅代表该入口可用；“应用”会把当前入口写入 Agent 的活动模型配置。"
+            >
+              <div className="card-list animate-list">
+                {providers.map((provider) => {
+                  const models = normalizeModelNames(provider).filter(Boolean);
+                  return (
+                    <div key={provider.name}>
                       <div
-                        className="card"
-                        style={{
-                          margin: "0 0 4px 0",
-                          padding: 16,
-                          borderTop: "none",
-                          borderRadius: "0 0 8px 8px",
-                          background: "var(--color-surface-alt, #f9fafb)",
-                        }}
+                        className="data-row"
+                        style={
+                          provider.enabled
+                            ? { borderLeft: "3px solid var(--brand-500)" }
+                            : undefined
+                        }
                       >
-                        {renderProviderForm(editForm, "edit")}
-                        <div
-                          className="row"
-                          style={{ marginTop: 12, justifyContent: "flex-end" }}
-                        >
+                        <div className="data-row-info">
+                          <div className="data-row-title">
+                            {provider.name}
+                            <span style={{ marginLeft: 8 }}>
+                              <Badge variant="info">
+                                {provider.provider_type}
+                              </Badge>
+                            </span>
+                            {provider.enabled && (
+                              <span style={{ marginLeft: 6 }}>
+                                <Badge variant="success">已启用</Badge>
+                              </span>
+                            )}
+                          </div>
+                          <div
+                            className="data-row-meta"
+                            style={{
+                              display: "flex",
+                              gap: 12,
+                              marginTop: 6,
+                              flexWrap: "wrap",
+                            }}
+                          >
+                            {models.map((model) => (
+                              <Badge key={model} variant="neutral">
+                                {model}
+                              </Badge>
+                            ))}
+                          </div>
+                          <div
+                            className="data-row-meta"
+                            style={{
+                              display: "flex",
+                              gap: 16,
+                              marginTop: 6,
+                              flexWrap: "wrap",
+                            }}
+                          >
+                            {provider.api_key && (
+                              <span>
+                                <Key
+                                  size={11}
+                                  style={{
+                                    marginRight: 3,
+                                    verticalAlign: "middle",
+                                  }}
+                                />
+                                {provider.api_key}
+                              </span>
+                            )}
+                            {provider.base_url && (
+                              <span>
+                                <Globe
+                                  size={11}
+                                  style={{
+                                    marginRight: 3,
+                                    verticalAlign: "middle",
+                                  }}
+                                />
+                                {provider.base_url}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="data-row-actions" style={{ gap: 8 }}>
+                          <Toggle
+                            checked={!!provider.enabled}
+                            onChange={() => onToggleEnabled(provider)}
+                          />
+                          {provider.enabled && (
+                            <button
+                              className="btn-secondary btn-sm"
+                              onClick={() => onApply(provider.name)}
+                              disabled={applyingName === provider.name}
+                              title="应用到 Agent（热重载）"
+                            >
+                              <Play size={13} />
+                              {applyingName === provider.name
+                                ? "应用中..."
+                                : "应用"}
+                            </button>
+                          )}
                           <button
                             className="btn-secondary btn-sm"
-                            onClick={cancelEdit}
+                            onClick={() =>
+                              editingName === provider.name
+                                ? cancelEdit()
+                                : startEdit(provider)
+                            }
+                            title="编辑设置"
                           >
-                            <X size={13} />
-                            取消
+                            {editingName === provider.name ? (
+                              <X size={13} />
+                            ) : (
+                              <Edit2 size={13} />
+                            )}
                           </button>
                           <button
-                            className="btn-sm"
-                            onClick={() => onSaveEdit(provider.name)}
-                            disabled={editSaving}
+                            className="btn-danger btn-sm"
+                            onClick={() => onDelete(provider.name)}
+                            title="删除"
                           >
-                            <Save size={13} />
-                            {editSaving ? "保存中..." : "保存设置"}
+                            <Trash2 size={13} />
                           </button>
                         </div>
                       </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+
+                      {editingName === provider.name && (
+                        <div
+                          className="card"
+                          style={{
+                            margin: "0 0 4px 0",
+                            padding: 16,
+                            borderTop: "none",
+                            borderRadius: "0 0 12px 12px",
+                            background: "rgba(248, 250, 252, 0.88)",
+                          }}
+                        >
+                          {renderProviderForm(editForm, "edit")}
+                          <div
+                            className="row"
+                            style={{
+                              marginTop: 12,
+                              justifyContent: "flex-end",
+                            }}
+                          >
+                            <button
+                              className="btn-secondary btn-sm"
+                              onClick={cancelEdit}
+                            >
+                              <X size={13} />
+                              取消
+                            </button>
+                            <button
+                              className="btn-sm"
+                              onClick={() => onSaveEdit(provider.name)}
+                              disabled={editSaving}
+                            >
+                              <Save size={13} />
+                              {editSaving ? "保存中..." : "保存设置"}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </SurfaceCard>
           )}
         </>
       )}

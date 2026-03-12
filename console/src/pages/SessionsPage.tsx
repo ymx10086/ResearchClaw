@@ -1,22 +1,29 @@
 import { useEffect, useState } from "react";
 import {
-  MessageCircle,
-  RefreshCw,
-  Eye,
-  Trash2,
   Clock,
+  Eye,
   Hash,
+  MessageCircle,
   PlayCircle,
+  RefreshCw,
+  Trash2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
-  getAgents,
-  getSessionsByAgent,
-  getSessionDetail,
   deleteSession,
+  getAgents,
+  getSessionDetail,
+  getSessionsByAgent,
 } from "../api";
 import type { SessionItem } from "../types";
-import { PageHeader, EmptyState, Badge, DetailModal } from "../components/ui";
+import {
+  Badge,
+  DetailModal,
+  EmptyState,
+  MetricPill,
+  PageHeader,
+  SurfaceCard,
+} from "../components/ui";
 
 function formatTs(ts?: number): string {
   if (!ts) return "-";
@@ -74,8 +81,16 @@ export default function SessionsPage() {
   return (
     <div className="panel">
       <PageHeader
+        eyebrow="Conversation Archive"
         title="会话管理"
-        description="管理 Agent 交互会话记录"
+        description="按 Agent 查看历史会话，快速恢复研究线程并继续推进当前任务。"
+        meta={
+          <div className="page-header-meta-row">
+            <MetricPill label="会话数" value={sessions.length} />
+            <MetricPill label="Agent 视图" value={activeAgent} />
+            <MetricPill label="可选 Agent" value={agents.length} />
+          </div>
+        }
         actions={
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <select
@@ -111,58 +126,63 @@ export default function SessionsPage() {
         />
       )}
 
-      <div className="card-list animate-list">
-        {sessions.map((session: SessionItem) => (
-          <div key={session.session_id} className="data-row">
-            <div className="data-row-info">
-              <div className="data-row-title">
-                {session.title || session.session_id}
+      <SurfaceCard
+        title="会话列表"
+        description="可以直接查看详情、继续对话，或者按 Agent 范围清理历史会话。"
+      >
+        <div className="card-list animate-list">
+          {sessions.map((session: SessionItem) => (
+            <div key={session.session_id} className="data-row">
+              <div className="data-row-info">
+                <div className="data-row-title">
+                  {session.title || session.session_id}
+                </div>
+                <div className="data-row-meta">
+                  <Clock
+                    size={11}
+                    style={{ marginRight: 3, verticalAlign: "middle" }}
+                  />
+                  {formatTs(session.updated_at)}
+                  <span style={{ margin: "0 6px" }}>·</span>
+                  <Hash
+                    size={11}
+                    style={{ marginRight: 2, verticalAlign: "middle" }}
+                  />
+                  {session.message_count ?? 0} 条消息
+                </div>
               </div>
-              <div className="data-row-meta">
-                <Clock
-                  size={11}
-                  style={{ marginRight: 3, verticalAlign: "middle" }}
-                />
-                {formatTs(session.updated_at)}
-                <span style={{ margin: "0 6px" }}>·</span>
-                <Hash
-                  size={11}
-                  style={{ marginRight: 2, verticalAlign: "middle" }}
-                />
-                {session.message_count ?? 0} 条消息
+              <div className="data-row-actions">
+                <Badge variant="neutral">
+                  {(session.agent_id || "main") +
+                    ":" +
+                    session.session_id.slice(0, 8)}
+                </Badge>
+                <button
+                  className="btn-sm btn-secondary"
+                  onClick={() => onOpen(session.session_id)}
+                >
+                  <Eye size={14} />
+                  查看
+                </button>
+                <button
+                  className="btn-sm"
+                  onClick={() => onContinue(session.session_id)}
+                >
+                  <PlayCircle size={14} />
+                  继续对话
+                </button>
+                <button
+                  className="btn-sm danger"
+                  onClick={() => onDelete(session.session_id)}
+                >
+                  <Trash2 size={14} />
+                  删除
+                </button>
               </div>
             </div>
-            <div className="data-row-actions">
-              <Badge variant="neutral">
-                {(session.agent_id || "main") +
-                  ":" +
-                  session.session_id.slice(0, 8)}
-              </Badge>
-              <button
-                className="btn-sm btn-secondary"
-                onClick={() => onOpen(session.session_id)}
-              >
-                <Eye size={14} />
-                查看
-              </button>
-              <button
-                className="btn-sm"
-                onClick={() => onContinue(session.session_id)}
-              >
-                <PlayCircle size={14} />
-                继续对话
-              </button>
-              <button
-                className="btn-sm danger"
-                onClick={() => onDelete(session.session_id)}
-              >
-                <Trash2 size={14} />
-                删除
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </SurfaceCard>
 
       {selected && (
         <DetailModal title="会话详情" onClose={() => setSelected(null)}>

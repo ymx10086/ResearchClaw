@@ -2,6 +2,18 @@
 
 All notable changes to this project are documented in this file.
 
+## 2026-03-12
+
+### Changed
+
+- Console frontend refresh:
+  - added a clearer app shell with topbar context, mobile sidebar toggle, and stronger navigation hierarchy
+  - upgraded shared UI primitives (`PageHeader`, metric pills, surface cards) for denser but more consistent control-plane pages
+  - redesigned chat view with session summary, better empty state prompts, improved message surfaces, and a more deliberate composer area
+  - reorganized status/channel/agent-config pages into sectioned dashboards with clearer visual grouping and more polished settings/editing surfaces
+  - extended the same visual system to sessions, workspace, cron jobs, models, heartbeat, and skills pages
+  - refined global visual tokens for spacing, surfaces, shadows, and gradients while keeping existing information architecture intact
+
 ## 2026-03-11
 
 ### Added

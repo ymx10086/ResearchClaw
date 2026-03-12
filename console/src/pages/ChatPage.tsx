@@ -27,6 +27,7 @@ import { useSearchParams } from "react-router-dom";
 import { getSessionDetail, getSessions } from "../api";
 import type { ChatMessage, SessionItem, ToolCallInfo } from "../types";
 import { preprocessMarkdown } from "../utils/markdown";
+import { MetricPill, PageHeader } from "../components/ui";
 import {
   getChatRuntimeState,
   replaceChatConversation,
@@ -77,6 +78,7 @@ export default function ChatPage() {
   );
 
   const querySessionId = searchParams.get("session_id") || undefined;
+  const latestSession = sessions[0];
 
   const loadSessionList = useCallback(async () => {
     setSessionsLoading(true);
@@ -201,152 +203,227 @@ export default function ChatPage() {
     setChatInput("");
   }
 
+  function usePrompt(prompt: string) {
+    setChatInput(prompt);
+  }
+
   return (
-    <div className="panel chat-layout">
-      <aside className="chat-history-panel">
-        <div className="chat-history-header">
-          <button className="btn-secondary btn-sm" onClick={onNewConversation}>
-            <PlusCircle size={14} />
-            新对话
-          </button>
-          <button
-            className="btn-ghost btn-sm"
-            onClick={() => void loadSessionList()}
-            disabled={sessionsLoading}
-          >
-            <RefreshCw
-              size={14}
-              className={sessionsLoading ? "spin-icon" : undefined}
+    <div className="panel">
+      <PageHeader
+        eyebrow="Research Workflow"
+        title="AI 对话"
+        description="把论文检索、摘要归纳、实验设计和写作修改放进同一条研究线程，减少上下文切换。"
+        meta={
+          <div className="page-header-meta-row">
+            <MetricPill label="历史会话" value={sessions.length} />
+            <MetricPill
+              label="当前模式"
+              value={chatLoading ? "推理中" : "可交互"}
             />
-            刷新
-          </button>
-        </div>
+            <MetricPill
+              label="最近更新"
+              value={latestSession ? formatTs(latestSession.updated_at) : "-"}
+            />
+          </div>
+        }
+      />
 
-        <div className="chat-history-list">
-          {sessions.length === 0 && (
-            <div className="chat-history-empty">暂无历史会话</div>
-          )}
-          {sessions.map((session) => (
+      <div className="chat-layout">
+        <aside className="chat-history-panel">
+          <div className="chat-history-summary">
+            <span className="chat-history-kicker">Conversation Hub</span>
+            <h3>研究线程</h3>
+            <p>保留连续上下文，随时回到某条会话继续推进。</p>
+          </div>
+
+          <div className="chat-history-header">
             <button
-              key={session.session_id}
-              className={`chat-history-item${
-                session.session_id === sessionId ? " active" : ""
-              }`}
-              onClick={() => void onOpenSession(session.session_id)}
+              className="btn-secondary btn-sm"
+              onClick={onNewConversation}
             >
-              <div className="chat-history-title">
-                {session.title || session.session_id}
-              </div>
-              <div className="chat-history-meta">
-                {formatTs(session.updated_at)} · {session.message_count ?? 0} 条
-              </div>
+              <PlusCircle size={14} />
+              新对话
             </button>
-          ))}
-        </div>
-      </aside>
-
-      <div className="chat-container">
-        <div className="chat-toolbar">
-          <div className="chat-toolbar-session">
-            当前会话: {sessionId || "未创建"}
+            <button
+              className="btn-ghost btn-sm"
+              onClick={() => void loadSessionList()}
+              disabled={sessionsLoading}
+            >
+              <RefreshCw
+                size={14}
+                className={sessionsLoading ? "spin-icon" : undefined}
+              />
+              刷新
+            </button>
           </div>
-          <button className="btn-secondary btn-sm" onClick={onNewConversation}>
-            <PlusCircle size={14} />
-            新对话
-          </button>
-        </div>
 
-        <div className="messages">
-          {messages.length === 0 && !chatLoading && (
-            <div className="chat-empty">
-              <div className="chat-empty-icon">
-                <MessageSquare size={28} />
-              </div>
-              <h3>开始一段研究对话</h3>
-              <p>
-                你可以询问文献综述、实验设计、论文写作、数据分析等任何学术问题。Scholar
-                将为你提供专业帮助。
-              </p>
-            </div>
-          )}
-
-          {messages.map((msg, idx) => (
-            <div key={idx} className={`msg ${msg.role}`}>
-              <div className="msg-avatar">
-                {msg.role === "user" ? "你" : "S"}
-              </div>
-              <div className="msg-bubble">
-                {msg.thinking && <ThinkingBlock content={msg.thinking} />}
-                {msg.toolCalls && <ToolCallsBlock calls={msg.toolCalls} />}
-                <MessageContent content={msg.content} />
-              </div>
-            </div>
-          ))}
-
-          {chatLoading && (
-            <div className="msg assistant">
-              <div className="msg-avatar">S</div>
-              <div className="msg-bubble">
-                {streamThinking && (
-                  <ThinkingBlock content={streamThinking} streaming />
-                )}
-                {streamToolCalls.length > 0 && (
-                  <ToolCallsBlock calls={streamToolCalls} />
-                )}
-                {streamContent ? (
-                  <MessageContent content={streamContent} />
-                ) : (
-                  !streamThinking &&
-                  streamToolCalls.length === 0 && (
-                    <span className="stream-cursor">
-                      <Loader2 size={14} className="spinner" />
-                    </span>
-                  )
-                )}
-              </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-
-        <div className="chat-input-bar">
-          <input
-            value={chatInput}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              setChatInput(e.target.value)
-            }
-            placeholder="例如：帮我总结 Diffusion Models 近两年趋势..."
-            onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
-              if (e.key === "Enter" && canSend) onSendChat();
-            }}
-          />
-          {chatLoading ? (
-            <button onClick={handleStop} className="btn-stop">
-              <Square size={14} />
-              停止
-            </button>
-          ) : (
-            <button onClick={onSendChat} disabled={!canSend}>
-              <Send size={16} />
-              发送
-            </button>
-          )}
-        </div>
-
-        {sessionId && (
-          <div className="chat-session-label">
-            <span
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: "50%",
-                background: "var(--success)",
-                display: "inline-block",
-              }}
-            />
-            Session: {sessionId}
+          <div className="chat-history-list">
+            {sessions.length === 0 && (
+              <div className="chat-history-empty">暂无历史会话</div>
+            )}
+            {sessions.map((session) => (
+              <button
+                key={session.session_id}
+                className={`chat-history-item${
+                  session.session_id === sessionId ? " active" : ""
+                }`}
+                onClick={() => void onOpenSession(session.session_id)}
+              >
+                <div className="chat-history-title">
+                  {session.title || session.session_id}
+                </div>
+                <div className="chat-history-meta">
+                  {formatTs(session.updated_at)} · {session.message_count ?? 0}{" "}
+                  条
+                </div>
+              </button>
+            ))}
           </div>
-        )}
+        </aside>
+
+        <div className="chat-container">
+          <div className="chat-toolbar">
+            <div className="chat-toolbar-session">
+              当前会话: {sessionId || "未创建"}
+            </div>
+            <button
+              className="btn-secondary btn-sm"
+              onClick={onNewConversation}
+            >
+              <PlusCircle size={14} />
+              新对话
+            </button>
+          </div>
+
+          <div className="messages">
+            {messages.length === 0 && !chatLoading && (
+              <div className="chat-empty">
+                <div className="chat-empty-icon">
+                  <MessageSquare size={28} />
+                </div>
+                <h3>开始一段研究对话</h3>
+                <p>
+                  你可以询问文献综述、实验设计、论文写作、数据分析等任何学术问题。Scholar
+                  会把回答、思考过程和工具调用留在同一个线程中。
+                </p>
+                <div className="chat-suggestion-row">
+                  <button
+                    className="btn-secondary btn-sm"
+                    onClick={() =>
+                      usePrompt(
+                        "帮我梳理多智能体科研助手近两年的产品趋势和差异",
+                      )
+                    }
+                  >
+                    趋势梳理
+                  </button>
+                  <button
+                    className="btn-secondary btn-sm"
+                    onClick={() =>
+                      usePrompt("给我做一个关于 RAG 论文的 related work 提纲")
+                    }
+                  >
+                    Related Work
+                  </button>
+                  <button
+                    className="btn-secondary btn-sm"
+                    onClick={() =>
+                      usePrompt("基于这篇论文，给出可复现实验计划和指标表")
+                    }
+                  >
+                    实验计划
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {messages.map((msg, idx) => (
+              <div key={idx} className={`msg ${msg.role}`}>
+                <div className="msg-avatar">
+                  {msg.role === "user" ? "你" : "S"}
+                </div>
+                <div className="msg-bubble">
+                  <div className="msg-role-label">
+                    {msg.role === "user" ? "Researcher" : "Scholar"}
+                  </div>
+                  {msg.thinking && <ThinkingBlock content={msg.thinking} />}
+                  {msg.toolCalls && <ToolCallsBlock calls={msg.toolCalls} />}
+                  <MessageContent content={msg.content} />
+                </div>
+              </div>
+            ))}
+
+            {chatLoading && (
+              <div className="msg assistant">
+                <div className="msg-avatar">S</div>
+                <div className="msg-bubble">
+                  <div className="msg-role-label">Scholar</div>
+                  {streamThinking && (
+                    <ThinkingBlock content={streamThinking} streaming />
+                  )}
+                  {streamToolCalls.length > 0 && (
+                    <ToolCallsBlock calls={streamToolCalls} />
+                  )}
+                  {streamContent ? (
+                    <MessageContent content={streamContent} />
+                  ) : (
+                    !streamThinking &&
+                    streamToolCalls.length === 0 && (
+                      <span className="stream-cursor">
+                        <Loader2 size={14} className="spinner" />
+                      </span>
+                    )
+                  )}
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          <div className="chat-composer-shell">
+            <div className="chat-composer-hint">
+              支持连续追问；如果需要切换主题，建议新建对话保持上下文干净。
+            </div>
+            <div className="chat-input-bar">
+              <input
+                value={chatInput}
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                  setChatInput(e.target.value)
+                }
+                placeholder="例如：帮我总结 Diffusion Models 近两年趋势，并给出可引用的研究脉络..."
+                onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
+                  if (e.key === "Enter" && canSend) onSendChat();
+                }}
+              />
+              {chatLoading ? (
+                <button onClick={handleStop} className="btn-stop">
+                  <Square size={14} />
+                  停止
+                </button>
+              ) : (
+                <button onClick={onSendChat} disabled={!canSend}>
+                  <Send size={16} />
+                  发送
+                </button>
+              )}
+            </div>
+          </div>
+
+          {sessionId && (
+            <div className="chat-session-label">
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "50%",
+                  background: "var(--success)",
+                  display: "inline-block",
+                }}
+              />
+              Session: {sessionId}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
