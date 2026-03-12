@@ -3,7 +3,12 @@ import type { ChangeEvent } from "react";
 import { Download, Save, Settings, SlidersHorizontal } from "lucide-react";
 import { getAgentRunningConfig, updateAgentRunningConfig } from "../api";
 import type { AgentRunningConfig } from "../types";
-import { MetricPill, PageHeader, SurfaceCard } from "../components/ui";
+import {
+  MetricPill,
+  NoticeBanner,
+  PageHeader,
+  SurfaceCard,
+} from "../components/ui";
 
 export default function AgentConfigPage() {
   const [config, setConfig] = useState<AgentRunningConfig>({
@@ -12,6 +17,7 @@ export default function AgentConfigPage() {
   });
   const [loaded, setLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [notice, setNotice] = useState("");
 
   async function onLoad() {
     setConfig(await getAgentRunningConfig());
@@ -26,6 +32,7 @@ export default function AgentConfigPage() {
     setSaving(true);
     try {
       await updateAgentRunningConfig(config);
+      setNotice("Agent 运行配置已保存");
       await onLoad();
     } finally {
       setSaving(false);
@@ -57,6 +64,8 @@ export default function AgentConfigPage() {
           </div>
         }
       />
+
+      {notice && <NoticeBanner variant="success">{notice}</NoticeBanner>}
 
       {!loaded ? (
         <div className="empty-state">

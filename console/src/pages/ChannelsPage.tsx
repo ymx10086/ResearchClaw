@@ -16,6 +16,7 @@ import {
   Badge,
   EmptyState,
   MetricPill,
+  NoticeBanner,
   PageHeader,
   SurfaceCard,
 } from "../components/ui";
@@ -32,6 +33,11 @@ export default function ChannelsPage() {
   const [installUrl, setInstallUrl] = useState<string>("");
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [query, setQuery] = useState("");
+  const [notice, setNotice] = useState<{
+    variant: "success" | "danger" | "warning" | "info";
+    text: string;
+  } | null>(null);
 
   async function onLoad() {
     const [rows, cat, custom, accounts, bindings] = await Promise.all([
@@ -56,7 +62,13 @@ export default function ChannelsPage() {
       const parsedBindings = JSON.parse(bindingsJson || "[]");
       await updateChannelAccounts(parsedAccounts);
       await updateBindings(Array.isArray(parsedBindings) ? parsedBindings : []);
+      setNotice({ variant: "success", text: "账号与绑定配置已保存" });
       await onLoad();
+    } catch (error: any) {
+      setNotice({
+        variant: "danger",
+        text: error?.message || "保存账号与绑定配置失败",
+      });
     } finally {
       setSaving(false);
     }
@@ -73,7 +85,13 @@ export default function ChannelsPage() {
       });
       setInstallPath("");
       setInstallUrl("");
+      setNotice({ variant: "success", text: "自定义频道插件已安装/更新" });
       await onLoad();
+    } catch (error: any) {
+      setNotice({
+        variant: "danger",
+        text: error?.message || "安装自定义频道失败",
+      });
     } finally {
       setSaving(false);
     }
@@ -82,6 +100,21 @@ export default function ChannelsPage() {
   useEffect(() => {
     void onLoad();
   }, []);
+
+  const queryText = query.trim().toLowerCase();
+  const filteredChannels = channels.filter((item) =>
+    `${item.name} ${item.type}`.toLowerCase().includes(queryText),
+  );
+  const filteredCatalog = catalog.filter((item) =>
+    `${String(item.key)} ${item.builtin ? "builtin" : "custom"}`
+      .toLowerCase()
+      .includes(queryText),
+  );
+  const filteredCustom = customChannels.filter((item) =>
+    `${String(item.key)} ${String(item.path || "")}`
+      .toLowerCase()
+      .includes(queryText),
+  );
 
   return (
     <div className="panel">
@@ -97,12 +130,23 @@ export default function ChannelsPage() {
           </div>
         }
         actions={
-          <button onClick={onLoad}>
-            <RefreshCw size={15} />
-            刷新频道
-          </button>
+          <div className="toolbar-row">
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="搜索频道 / 目录 / 插件"
+            />
+            <button onClick={onLoad}>
+              <RefreshCw size={15} />
+              刷新频道
+            </button>
+          </div>
         }
       />
+
+      {notice && (
+        <NoticeBanner variant={notice.variant}>{notice.text}</NoticeBanner>
+      )}
 
       {!loaded && channels.length === 0 && (
         <EmptyState
@@ -129,7 +173,10 @@ export default function ChannelsPage() {
           className="span-7"
         >
           <div className="card-list animate-list">
-            {channels.map((item: ChannelItem, idx: number) => (
+            {filteredChannels.length === 0 && (
+              <div className="empty-inline">当前筛选条件下没有匹配频道</div>
+            )}
+            {filteredChannels.map((item: ChannelItem, idx: number) => (
               <div key={idx} className="data-row">
                 <div className="data-row-info">
                   <div className="data-row-title">
@@ -154,7 +201,10 @@ export default function ChannelsPage() {
           className="span-5"
         >
           <div className="card-list animate-list">
-            {catalog.map((item: any) => (
+            {filteredCatalog.length === 0 && (
+              <div className="empty-inline">当前筛选条件下没有匹配目录项</div>
+            )}
+            {filteredCatalog.map((item: any) => (
               <div key={String(item.key)} className="data-row compact">
                 <div className="data-row-info">
                   <div className="data-row-title">
@@ -203,10 +253,14 @@ export default function ChannelsPage() {
           </div>
 
           <div className="card-list animate-list mt-4">
-            {customChannels.length === 0 && (
-              <div className="empty-inline">暂无自定义插件</div>
+            {filteredCustom.length === 0 && (
+              <div className="empty-inline">
+                {customChannels.length === 0
+                  ? "暂无自定义插件"
+                  : "当前筛选条件下没有匹配插件"}
+              </div>
             )}
-            {customChannels.map((item: any) => (
+            {filteredCustom.map((item: any) => (
               <div key={String(item.key)} className="data-row compact">
                 <div className="data-row-info">
                   <div className="data-row-title">{String(item.key)}</div>
@@ -216,8 +270,24 @@ export default function ChannelsPage() {
                   <button
                     className="btn-secondary btn-sm"
                     onClick={async () => {
-                      await removeCustomChannel(String(item.key));
-                      await onLoad();
+                      if (
+                        !window.confirm(`确认删除插件 ${String(item.key)} 吗？`)
+                      ) {
+                        return;
+                      }
+                      try {
+                        await removeCustomChannel(String(item.key));
+                        setNotice({
+                          variant: "success",
+                          text: `已删除插件 ${String(item.key)}`,
+                        });
+                        await onLoad();
+                      } catch (error: any) {
+                        setNotice({
+                          variant: "danger",
+                          text: error?.message || "删除自定义频道失败",
+                        });
+                      }
                     }}
                   >
                     <Trash2 size={14} />

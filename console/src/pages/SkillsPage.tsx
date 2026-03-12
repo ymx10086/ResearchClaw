@@ -13,6 +13,7 @@ import {
   Badge,
   Toggle,
   MetricPill,
+  NoticeBanner,
   SurfaceCard,
 } from "../components/ui";
 
@@ -20,6 +21,8 @@ export default function SkillsPage() {
   const [skills, setSkills] = useState<SkillItem[]>([]);
   const [active, setActive] = useState<string[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [query, setQuery] = useState("");
+  const [notice, setNotice] = useState("");
 
   async function onLoad() {
     setSkills(await listSkills());
@@ -34,11 +37,20 @@ export default function SkillsPage() {
   async function onToggle(skillName: string, isActive: boolean) {
     if (isActive) {
       await disableSkill(skillName);
+      setNotice(`已禁用技能 ${skillName}`);
     } else {
       await enableSkill(skillName);
+      setNotice(`已启用技能 ${skillName}`);
     }
     await onLoad();
   }
+
+  const filteredSkills = skills.filter((skill, idx) => {
+    const skillName = skill.name || `skill-${idx}`;
+    return `${skillName} ${skill.description || ""}`
+      .toLowerCase()
+      .includes(query.trim().toLowerCase());
+  });
 
   return (
     <div className="panel">
@@ -53,12 +65,21 @@ export default function SkillsPage() {
           </div>
         }
         actions={
-          <button onClick={onLoad}>
-            <RefreshCw size={15} />
-            刷新技能
-          </button>
+          <div className="toolbar-row">
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="搜索技能名称或描述"
+            />
+            <button onClick={onLoad}>
+              <RefreshCw size={15} />
+              刷新技能
+            </button>
+          </div>
         }
       />
+
+      {notice && <NoticeBanner variant="success">{notice}</NoticeBanner>}
 
       {!loaded && skills.length === 0 && (
         <EmptyState
@@ -79,7 +100,10 @@ export default function SkillsPage() {
         description="建议只启用你当前需要的能力，避免让 Agent 在低价值技能上分散注意力。"
       >
         <div className="card-list animate-list">
-          {skills.map((skill: SkillItem, idx: number) => {
+          {filteredSkills.length === 0 && (
+            <div className="empty-inline">当前筛选条件下没有匹配技能</div>
+          )}
+          {filteredSkills.map((skill: SkillItem, idx: number) => {
             const skillName = skill.name || `skill-${idx}`;
             const isActive = active.includes(skillName);
             return (

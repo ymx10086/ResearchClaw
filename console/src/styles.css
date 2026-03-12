@@ -2413,6 +2413,54 @@ select {
   background: rgba(248, 250, 252, 0.6);
 }
 
+.notice-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  margin-bottom: 14px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.notice-success {
+  background: rgba(209, 250, 229, 0.72);
+  border-color: rgba(16, 185, 129, 0.28);
+  color: #065f46;
+}
+
+.notice-danger {
+  background: rgba(254, 226, 226, 0.76);
+  border-color: rgba(220, 38, 38, 0.24);
+  color: #991b1b;
+}
+
+.notice-warning {
+  background: rgba(254, 243, 199, 0.8);
+  border-color: rgba(217, 119, 6, 0.24);
+  color: #92400e;
+}
+
+.notice-info {
+  background: rgba(219, 234, 254, 0.72);
+  border-color: rgba(37, 99, 235, 0.24);
+  color: #1d4ed8;
+}
+
+.toolbar-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.toolbar-row.grow > *:first-child {
+  flex: 1;
+  min-width: 220px;
+}
+
 @media (max-width: 768px) {
   .sidebar-backdrop {
     display: block;

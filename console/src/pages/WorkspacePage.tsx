@@ -23,6 +23,7 @@ import {
   Badge,
   EmptyState,
   MetricPill,
+  NoticeBanner,
   PageHeader,
   SurfaceCard,
 } from "../components/ui";
@@ -60,12 +61,21 @@ export default function WorkspacePage() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [fileQuery, setFileQuery] = useState("");
+  const [notice, setNotice] = useState("");
 
   const hasChanges = content !== originalContent;
 
   const grouped = useMemo(() => {
     const out = new Map<string, WorkspaceFileItem[]>();
     for (const item of files) {
+      const query = fileQuery.trim().toLowerCase();
+      if (
+        query &&
+        !`${item.path} ${item.category}`.toLowerCase().includes(query)
+      ) {
+        continue;
+      }
       const group = item.category || "other";
       if (!out.has(group)) out.set(group, []);
       out.get(group)!.push(item);
@@ -74,7 +84,7 @@ export default function WorkspacePage() {
       list.sort((a, b) => a.path.localeCompare(b.path));
     }
     return out;
-  }, [files]);
+  }, [files, fileQuery]);
 
   async function selectFile(path: string) {
     setSelectedPath(path);
@@ -123,6 +133,7 @@ export default function WorkspacePage() {
     try {
       await saveWorkspaceFileContent(selectedPath, content);
       setOriginalContent(content);
+      setNotice(`已保存 ${selectedPath}`);
       await onLoad();
     } finally {
       setSaving(false);
@@ -157,6 +168,8 @@ export default function WorkspacePage() {
           </button>
         }
       />
+
+      {notice && <NoticeBanner variant="success">{notice}</NoticeBanner>}
 
       {!loaded && (
         <EmptyState
@@ -271,6 +284,12 @@ export default function WorkspacePage() {
               </p>
             </div>
           </div>
+          <input
+            value={fileQuery}
+            onChange={(e) => setFileQuery(e.target.value)}
+            placeholder="搜索文件路径或分类"
+            style={{ marginBottom: 12 }}
+          />
           {Array.from(grouped.entries()).map(([group, items]) => (
             <div key={group} className="workspace-group">
               <div className="workspace-group-title">{group}</div>
@@ -295,6 +314,9 @@ export default function WorkspacePage() {
               ))}
             </div>
           ))}
+          {grouped.size === 0 && (
+            <div className="empty-inline">当前筛选条件下没有匹配文件</div>
+          )}
         </div>
 
         <div className="workspace-editor surface-card">

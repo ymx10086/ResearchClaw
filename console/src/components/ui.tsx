@@ -109,6 +109,16 @@ export function SurfaceCard({
   );
 }
 
+export function NoticeBanner({
+  variant = "info",
+  children,
+}: {
+  variant?: "success" | "warning" | "danger" | "info";
+  children: ReactNode;
+}) {
+  return <div className={`notice-banner notice-${variant}`}>{children}</div>;
+}
+
 /* ---------- Toggle ---------- */
 export function Toggle({
   checked,

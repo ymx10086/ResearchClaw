@@ -275,6 +275,7 @@ export default function ModelsPage() {
 
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
 
   function showSuccess(msg: string) {
     setSuccessMsg(msg);
@@ -681,6 +682,18 @@ export default function ModelsPage() {
     );
   }
 
+  const filteredProviders = providers.filter((provider) => {
+    const haystack = [
+      provider.name,
+      provider.provider_type,
+      provider.base_url || "",
+      ...normalizeModelNames(provider),
+    ]
+      .join(" ")
+      .toLowerCase();
+    return haystack.includes(query.trim().toLowerCase());
+  });
+
   return (
     <div className="panel">
       <PageHeader
@@ -704,7 +717,12 @@ export default function ModelsPage() {
           </div>
         }
         actions={
-          <div className="row">
+          <div className="toolbar-row">
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="搜索供应商 / 模型 / base url"
+            />
             <button className="btn-secondary" onClick={startAdd}>
               <Plus size={15} />
               新增供应商
@@ -789,7 +807,12 @@ export default function ModelsPage() {
               description="启用仅代表该入口可用；“应用”会把当前入口写入 Agent 的活动模型配置。"
             >
               <div className="card-list animate-list">
-                {providers.map((provider) => {
+                {filteredProviders.length === 0 && (
+                  <div className="empty-inline">
+                    当前筛选条件下没有匹配供应商
+                  </div>
+                )}
+                {filteredProviders.map((provider) => {
                   const models = normalizeModelNames(provider).filter(Boolean);
                   return (
                     <div key={provider.name}>

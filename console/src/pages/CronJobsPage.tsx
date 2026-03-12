@@ -26,6 +26,7 @@ import {
   Toggle,
   DetailModal,
   MetricPill,
+  NoticeBanner,
   SurfaceCard,
 } from "../components/ui";
 import { ChannelGlyph, IconBadge } from "../components/icons";
@@ -191,6 +192,14 @@ export default function CronJobsPage() {
   const [deletingJobId, setDeletingJobId] = useState<string>("");
   const [editingJob, setEditingJob] = useState<CronJobItem | null>(null);
   const [form, setForm] = useState<CronJobForm | null>(null);
+  const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "enabled" | "paused"
+  >("all");
+  const [notice, setNotice] = useState<{
+    variant: "success" | "danger" | "warning" | "info";
+    text: string;
+  } | null>(null);
 
   const channelOptions = useMemo(() => {
     const names = new Set<string>(["console", ...channels]);
@@ -215,6 +224,10 @@ export default function CronJobsPage() {
     setTogglingJobId(jobId);
     try {
       await toggleCronJob(jobId, enabled);
+      setNotice({
+        variant: "success",
+        text: enabled ? "定时任务已启用" : "定时任务已暂停",
+      });
       await onLoad();
     } finally {
       setTogglingJobId("");
@@ -225,6 +238,7 @@ export default function CronJobsPage() {
     setRunningJobId(jobId);
     try {
       await runCronJobNow(jobId);
+      setNotice({ variant: "success", text: "已触发立即执行" });
       await onLoad();
     } finally {
       setRunningJobId("");
@@ -239,6 +253,7 @@ export default function CronJobsPage() {
     setDeletingJobId(job.id);
     try {
       await deleteCronJob(job.id);
+      setNotice({ variant: "success", text: `已删除任务 ${job.name}` });
       if (editingJob?.id === job.id) {
         setEditingJob(null);
         setForm(null);
@@ -274,19 +289,21 @@ export default function CronJobsPage() {
   async function onSave() {
     if (!form) return;
     if (!form.name.trim()) {
-      window.alert(t("任务名称不能为空"));
+      setNotice({ variant: "danger", text: t("任务名称不能为空") });
       return;
     }
     if (!form.cron.trim()) {
-      window.alert(t("Cron 表达式不能为空"));
+      setNotice({ variant: "danger", text: t("Cron 表达式不能为空") });
       return;
     }
     if (!form.content.trim()) {
-      window.alert(
-        form.task_type === "text"
-          ? t("文本内容不能为空")
-          : t("Agent 提示词不能为空"),
-      );
+      setNotice({
+        variant: "danger",
+        text:
+          form.task_type === "text"
+            ? t("文本内容不能为空")
+            : t("Agent 提示词不能为空"),
+      });
       return;
     }
 
@@ -298,12 +315,34 @@ export default function CronJobsPage() {
       } else {
         await createCronJob(payload);
       }
+      setNotice({
+        variant: "success",
+        text: editingJob ? "定时任务已更新" : "定时任务已创建",
+      });
       closeModal();
       await onLoad();
     } finally {
       setSaving(false);
     }
   }
+
+  const filteredJobs = jobs.filter((job) => {
+    const queryText = query.trim().toLowerCase();
+    if (statusFilter === "enabled" && !job.enabled) return false;
+    if (statusFilter === "paused" && job.enabled) return false;
+    if (!queryText) return true;
+    return [
+      job.name,
+      job.cron,
+      job.channel || "",
+      job.target_user_id || "",
+      job.target_session_id || "",
+      job.task_type,
+    ]
+      .join(" ")
+      .toLowerCase()
+      .includes(queryText);
+  });
 
   return (
     <div className="panel">
@@ -322,7 +361,22 @@ export default function CronJobsPage() {
           </div>
         }
         actions={
-          <>
+          <div className="toolbar-row">
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="搜索任务 / cron / 通道 / 目标"
+            />
+            <select
+              value={statusFilter}
+              onChange={(e) =>
+                setStatusFilter(e.target.value as "all" | "enabled" | "paused")
+              }
+            >
+              <option value="all">全部状态</option>
+              <option value="enabled">已启用</option>
+              <option value="paused">已暂停</option>
+            </select>
             <button className="btn-secondary" onClick={onCreate}>
               <Plus size={15} />
               新建任务
@@ -331,9 +385,13 @@ export default function CronJobsPage() {
               <RefreshCw size={15} />
               刷新任务
             </button>
-          </>
+          </div>
         }
       />
+
+      {notice && (
+        <NoticeBanner variant={notice.variant}>{notice.text}</NoticeBanner>
+      )}
 
       {!loaded && jobs.length === 0 && (
         <EmptyState
@@ -377,7 +435,10 @@ export default function CronJobsPage() {
           description="建议把高价值、可重复的研究流程沉淀为定时任务，并明确通道和目标会话。"
         >
           <div className="card-list animate-list">
-            {jobs.map((job) => (
+            {filteredJobs.length === 0 && (
+              <div className="empty-inline">当前筛选条件下没有匹配任务</div>
+            )}
+            {filteredJobs.map((job) => (
               <div key={job.id || job.name} className="data-row">
                 <div className="data-row-info">
                   <div className="data-row-title">

@@ -21,6 +21,7 @@ import {
   DetailModal,
   EmptyState,
   MetricPill,
+  NoticeBanner,
   PageHeader,
   SurfaceCard,
 } from "../components/ui";
@@ -39,6 +40,18 @@ export default function SessionsPage() {
   const [activeAgent, setActiveAgent] = useState<string>("all");
   const [selected, setSelected] = useState<any>(null);
   const [loaded, setLoaded] = useState(false);
+  const [query, setQuery] = useState("");
+
+  const filteredSessions = sessions.filter((session) => {
+    const haystack = [
+      session.title || "",
+      session.session_id,
+      session.agent_id || "",
+    ]
+      .join(" ")
+      .toLowerCase();
+    return haystack.includes(query.trim().toLowerCase());
+  });
 
   async function onLoad() {
     const [sessionRows, agentRows] = await Promise.all([
@@ -64,6 +77,7 @@ export default function SessionsPage() {
   }
 
   async function onDelete(sessionId: string) {
+    if (!window.confirm(`确认删除会话 ${sessionId.slice(0, 8)} 吗？`)) return;
     await deleteSession(
       sessionId,
       activeAgent === "all" ? undefined : activeAgent,
@@ -92,7 +106,12 @@ export default function SessionsPage() {
           </div>
         }
         actions={
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <div className="toolbar-row">
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="搜索标题 / session id / agent"
+            />
             <select
               value={activeAgent}
               onChange={(e) => setActiveAgent(e.target.value)}
@@ -126,12 +145,21 @@ export default function SessionsPage() {
         />
       )}
 
+      {loaded && query.trim() && (
+        <NoticeBanner variant="info">
+          当前筛选结果 {filteredSessions.length} / {sessions.length}
+        </NoticeBanner>
+      )}
+
       <SurfaceCard
         title="会话列表"
         description="可以直接查看详情、继续对话，或者按 Agent 范围清理历史会话。"
       >
         <div className="card-list animate-list">
-          {sessions.map((session: SessionItem) => (
+          {filteredSessions.length === 0 && (
+            <div className="empty-inline">当前筛选条件下没有匹配会话</div>
+          )}
+          {filteredSessions.map((session: SessionItem) => (
             <div key={session.session_id} className="data-row">
               <div className="data-row-info">
                 <div className="data-row-title">
