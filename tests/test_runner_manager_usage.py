@@ -63,7 +63,6 @@ def test_chat_stream_fallback_records_usage(tmp_path) -> None:
 def test_start_loads_active_provider_from_provider_store(
     tmp_path, monkeypatch
 ) -> None:
-    from researchclaw.app.runner.manager import AgentRunnerManager
     import researchclaw.providers.store as provider_store
 
     (tmp_path / "config.json").write_text(

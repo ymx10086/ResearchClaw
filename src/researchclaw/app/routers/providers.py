@@ -120,8 +120,8 @@ async def add_provider(config: ProviderConfig):
 async def enable_provider(name: str, req: Request):
     """Set this provider as the active one; disable all others."""
     del req
+    store = _get_provider_store()
     try:
-        store = _get_provider_store()
         store.set_enabled(name)
         return {"status": "ok", "name": name, "enabled": True}
     except KeyError:
@@ -129,16 +129,14 @@ async def enable_provider(name: str, req: Request):
             status_code=404,
             detail=f"Provider '{name}' not found",
         )
-    except HTTPException:
-        raise
 
 
 @router.post("/{name:path}/disable")
 async def disable_provider(name: str, req: Request):
     """Disable this provider without affecting others."""
     del req
+    store = _get_provider_store()
     try:
-        store = _get_provider_store()
         store.set_disabled(name)
         return {"status": "ok", "name": name, "enabled": False}
     except KeyError:
@@ -146,15 +144,13 @@ async def disable_provider(name: str, req: Request):
             status_code=404,
             detail=f"Provider '{name}' not found",
         )
-    except HTTPException:
-        raise
 
 
 @router.post("/{name:path}/settings")
 async def update_provider_settings(name: str, update: ProviderSettingsUpdate):
     """Update settings of an existing provider (partial update)."""
+    store = _get_provider_store()
     try:
-        store = _get_provider_store()
         fields = update.model_dump(exclude_none=True)
         if fields.get("api_key") == "":
             fields.pop("api_key")
@@ -166,8 +162,6 @@ async def update_provider_settings(name: str, update: ProviderSettingsUpdate):
             status_code=404,
             detail=f"Provider '{name}' not found",
         )
-    except HTTPException:
-        raise
 
 
 @router.put("/{name:path}")
@@ -182,29 +176,27 @@ async def apply_provider(name: str, req: Request):
 
     Reads the full config (with real API key) from store and restarts the agent.
     """
+    store = _get_provider_store()
+    provider = _get_provider_or_404(store, name)
+
+    runner = getattr(req.app.state, "runner", None)
+    if runner is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Agent runner not available",
+        )
+
+    model_config = {
+        "provider": provider.provider_type,
+        "model_name": provider.model_name or "",
+        "api_key": provider.api_key or "",
+        "base_url": provider.base_url or "",
+    }
     try:
-        store = _get_provider_store()
-        provider = _get_provider_or_404(store, name)
-
-        runner = getattr(req.app.state, "runner", None)
-        if runner is None:
-            raise HTTPException(
-                status_code=503,
-                detail="Agent runner not available",
-            )
-
-        model_config = {
-            "provider": provider.provider_type,
-            "model_name": provider.model_name or "",
-            "api_key": provider.api_key or "",
-            "base_url": provider.base_url or "",
-        }
         await runner.apply_provider(model_config)
         # Also set enabled flag in store
         store.set_enabled(name)
         return {"status": "ok", "applied": name}
-    except HTTPException:
-        raise
     except Exception as e:
         logger.exception("Failed to apply provider")
         raise HTTPException(status_code=500, detail=str(e))
@@ -213,12 +205,10 @@ async def apply_provider(name: str, req: Request):
 @router.delete("/{name:path}")
 async def remove_provider(name: str):
     """Remove a provider."""
+    store = _get_provider_store()
     try:
-        store = _get_provider_store()
         store.remove_provider(name)
         return {"status": "deleted", "provider": name}
-    except HTTPException:
-        raise
     except KeyError:
         raise HTTPException(
             status_code=404,
@@ -257,56 +247,53 @@ def _safe_join_url(base_url: str, suffix: str) -> str:
 @router.post("/{name:path}/test", response_model=ProviderTestResponse)
 async def test_provider(name: str):
     """Lightweight provider connectivity/config test."""
-    try:
-        store = _get_provider_store()
-        provider = _get_provider_or_404(store, name)
+    store = _get_provider_store()
+    provider = _get_provider_or_404(store, name)
 
-        ptype = (provider.provider_type or "").lower()
-        base_url = provider.base_url or ""
+    ptype = (provider.provider_type or "").lower()
+    base_url = provider.base_url or ""
 
-        if ptype != "ollama" and not provider.api_key:
+    if ptype != "ollama" and not provider.api_key:
+        return ProviderTestResponse(
+            success=False,
+            message="API key is empty",
+        )
+
+    # Quick network probe when base_url is available.
+    if base_url:
+        probe_url = (
+            _safe_join_url(base_url, "/models")
+            if ptype != "ollama"
+            else _safe_join_url(base_url.replace("/v1", ""), "/api/tags")
+        )
+        req = UrlRequest(probe_url, method="GET")
+        if provider.api_key and ptype != "ollama":
+            req.add_header("Authorization", f"Bearer {provider.api_key}")
+        try:
+            with urlopen(
+                req,
+                timeout=6,
+            ) as resp:  # nosec - user config URL
+                if 200 <= resp.status < 500:
+                    return ProviderTestResponse(
+                        success=True,
+                        message=f"Connected ({resp.status})",
+                    )
+        except URLError as exc:
             return ProviderTestResponse(
                 success=False,
-                message="API key is empty",
+                message=f"Connection failed: {exc}",
+            )
+        except Exception as exc:
+            return ProviderTestResponse(
+                success=False,
+                message=f"Probe error: {exc}",
             )
 
-        # Quick network probe when base_url is available.
-        if base_url:
-            probe_url = (
-                _safe_join_url(base_url, "/models")
-                if ptype != "ollama"
-                else _safe_join_url(base_url.replace("/v1", ""), "/api/tags")
-            )
-            req = UrlRequest(probe_url, method="GET")
-            if provider.api_key and ptype != "ollama":
-                req.add_header("Authorization", f"Bearer {provider.api_key}")
-            try:
-                with urlopen(
-                    req,
-                    timeout=6,
-                ) as resp:  # nosec - user config URL
-                    if 200 <= resp.status < 500:
-                        return ProviderTestResponse(
-                            success=True,
-                            message=f"Connected ({resp.status})",
-                        )
-            except URLError as exc:
-                return ProviderTestResponse(
-                    success=False,
-                    message=f"Connection failed: {exc}",
-                )
-            except Exception as exc:
-                return ProviderTestResponse(
-                    success=False,
-                    message=f"Probe error: {exc}",
-                )
-
-        return ProviderTestResponse(
-            success=True,
-            message="Configuration looks valid",
-        )
-    except HTTPException:
-        raise
+    return ProviderTestResponse(
+        success=True,
+        message="Configuration looks valid",
+    )
 
 
 @router.post(
@@ -315,48 +302,45 @@ async def test_provider(name: str):
 )
 async def discover_models(name: str):
     """Discover candidate models for a provider."""
-    try:
-        store = _get_provider_store()
-        provider = _get_provider_or_404(store, name)
+    store = _get_provider_store()
+    provider = _get_provider_or_404(store, name)
 
-        ptype = (provider.provider_type or "").lower()
-        if ptype == "ollama":
-            try:
-                from researchclaw.providers.ollama_manager import (
-                    OllamaModelManager,
+    ptype = (provider.provider_type or "").lower()
+    if ptype == "ollama":
+        try:
+            from researchclaw.providers.ollama_manager import (
+                OllamaModelManager,
+            )
+            from researchclaw.providers.store import get_ollama_host
+
+            models = [
+                {"name": m.name, "provider": "ollama"}
+                for m in OllamaModelManager.list_models(
+                    host=get_ollama_host(),
                 )
-                from researchclaw.providers.store import get_ollama_host
+            ]
+            return DiscoverModelsResponse(
+                success=True,
+                message=f"Discovered {len(models)} models from Ollama",
+                models=models,
+            )
+        except Exception as exc:
+            return DiscoverModelsResponse(
+                success=False,
+                message=f"Ollama discovery failed: {exc}",
+                models=[],
+            )
 
-                models = [
-                    {"name": m.name, "provider": "ollama"}
-                    for m in OllamaModelManager.list_models(
-                        host=get_ollama_host(),
-                    )
-                ]
-                return DiscoverModelsResponse(
-                    success=True,
-                    message=f"Discovered {len(models)} models from Ollama",
-                    models=models,
-                )
-            except Exception as exc:
-                return DiscoverModelsResponse(
-                    success=False,
-                    message=f"Ollama discovery failed: {exc}",
-                    models=[],
-                )
+    # Fallback to static registry list for remote providers.
+    from researchclaw.providers.registry import ModelRegistry
 
-        # Fallback to static registry list for remote providers.
-        from researchclaw.providers.registry import ModelRegistry
-
-        models = [
-            item
-            for item in ModelRegistry().list_models()
-            if str(item.get("provider", "")).lower() == ptype
-        ]
-        return DiscoverModelsResponse(
-            success=True,
-            message=f"Returned {len(models)} built-in model suggestions",
-            models=models,
-        )
-    except HTTPException:
-        raise
+    models = [
+        item
+        for item in ModelRegistry().list_models()
+        if str(item.get("provider", "")).lower() == ptype
+    ]
+    return DiscoverModelsResponse(
+        success=True,
+        message=f"Returned {len(models)} built-in model suggestions",
+        models=models,
+    )
