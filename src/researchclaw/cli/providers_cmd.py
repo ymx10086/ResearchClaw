@@ -105,6 +105,19 @@ def configure_providers_interactive(*, use_defaults: bool = False) -> None:
         if not click.confirm("Configure another provider?", default=False):
             break
 
+    # Ask which provider to enable
+    store = ProviderStore()
+    providers = store.list_providers()
+    if providers:
+        click.echo("\n--- Set Active Provider ---")
+        provider_names = [p["name"] for p in providers]
+        active_provider = prompt_choice(
+            "Select active provider:",
+            options=provider_names,
+        )
+        store.set_enabled(active_provider)
+        click.echo(f"✓ {active_provider} set as active provider")
+
 
 @click.group("models")
 def models_group() -> None:
