@@ -1264,6 +1264,18 @@ textarea::placeholder {
   max-width: 100%;
   border-radius: var(--radius-md);
 }
+.markdown-body .katex {
+  font-size: 1.05em;
+}
+.markdown-body .katex-display {
+  margin: 0.9em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.1em 0.2em;
+}
+.markdown-body .katex-display > .katex {
+  white-space: nowrap;
+}
 
 /* ---------- Stop Button ---------- */
 .btn-stop {
