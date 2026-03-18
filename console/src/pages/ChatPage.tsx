@@ -22,7 +22,9 @@ import {
   RefreshCw,
 } from "lucide-react";
 import Markdown from "react-markdown";
+import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
 import { useSearchParams } from "react-router-dom";
 import { getSessionDetail, getSessions } from "../api";
 import { useI18n } from "../i18n";
@@ -472,7 +474,12 @@ function MessageContent({ content }: { content: string }) {
   const normalized = preprocessMarkdown(content);
   return (
     <div className="msg-text markdown-body">
-      <Markdown remarkPlugins={[remarkGfm]}>{normalized}</Markdown>
+      <Markdown
+        remarkPlugins={[remarkGfm, remarkMath]}
+        rehypePlugins={[rehypeKatex]}
+      >
+        {normalized}
+      </Markdown>
     </div>
   );
 }
