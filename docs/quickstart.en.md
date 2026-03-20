@@ -37,6 +37,8 @@ researchclaw models config
 researchclaw models add openai --type openai --model gpt-4o --api-key sk-...
 ```
 
+The first provider added via CLI is activated automatically.
+
 ## Start Service
 
 ```bash
