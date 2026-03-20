@@ -58,6 +58,79 @@ def test_provider_store_set_enabled_is_exclusive(tmp_path: Path):
     assert store.get_provider("b").enabled is True
 
 
+def test_provider_store_auto_enables_first_provider_when_unspecified(
+    tmp_path: Path,
+):
+    store = ProviderStore(file_path=str(tmp_path / "providers.json"))
+
+    store.save_provider(
+        {
+            "name": "gemini-main",
+            "provider_type": "gemini",
+            "model_name": "gemini-2.5-flash",
+            "api_key": "AIza-demo",
+            "base_url": "https://generativelanguage.googleapis.com/v1beta/openai/",
+        },
+    )
+
+    item = store.get_provider("gemini-main")
+    assert item is not None
+    assert item.enabled is True
+    assert store.get_active_provider() is not None
+    assert store.get_active_provider().name == "gemini-main"
+
+
+def test_provider_store_respects_explicit_disabled_first_provider(
+    tmp_path: Path,
+):
+    store = ProviderStore(file_path=str(tmp_path / "providers.json"))
+
+    store.save_provider(
+        {
+            "name": "gemini-main",
+            "provider_type": "gemini",
+            "model_name": "gemini-2.5-flash",
+            "api_key": "AIza-demo",
+            "enabled": False,
+        },
+    )
+
+    item = store.get_provider("gemini-main")
+    assert item is not None
+    assert item.enabled is False
+    assert store.get_active_provider() is None
+
+
+def test_provider_store_re_save_without_active_auto_repairs_provider(
+    tmp_path: Path,
+):
+    store = ProviderStore(file_path=str(tmp_path / "providers.json"))
+
+    store.save_provider(
+        {
+            "name": "gemini-main",
+            "provider_type": "gemini",
+            "model_name": "gemini-2.5-flash",
+            "api_key": "AIza-demo",
+            "enabled": False,
+        },
+    )
+
+    store.save_provider(
+        {
+            "name": "gemini-main",
+            "provider_type": "gemini",
+            "model_name": "gemini-2.5-pro",
+            "api_key": "AIza-demo",
+        },
+    )
+
+    item = store.get_provider("gemini-main")
+    assert item is not None
+    assert item.enabled is True
+    assert item.model_name == "gemini-2.5-pro"
+
+
 def test_provider_store_multiple_models_round_trip(tmp_path: Path):
     store = ProviderStore(file_path=str(tmp_path / "providers.json"))
 

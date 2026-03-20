@@ -53,6 +53,9 @@ researchclaw models config
 researchclaw models add openai --type openai --model gpt-4o --api-key sk-...
 ```
 
+首次通过 CLI 添加 provider 时会自动设为当前激活 provider。之后如果新增多个
+provider，可在前端“模型配置”页面切换，或重新执行 `researchclaw models config`。
+
 ### 4) 启动服务
 
 ```bash
@@ -278,6 +281,7 @@ researchclaw models add ollama --type ollama --model qwen3:8b --base-url http://
 ```
 
 前端“模型配置”页面现在也提供了 `Google Gemini` 预设。
+通过 CLI 首次添加的 provider 会自动成为当前激活 provider。
 
 ## 🤖 聊天命令
 

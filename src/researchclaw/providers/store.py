@@ -263,6 +263,8 @@ class ProviderStore:
         items = self._load()
         data = _normalize_provider_dict(provider)
         config = ProviderConfig.from_dict(data)
+        explicit_enabled = "enabled" in provider
+        replaced_idx: int | None = None
 
         replaced = False
         for idx, item in enumerate(items):
@@ -271,7 +273,17 @@ class ProviderStore:
                     config.enabled = item.enabled
                 items[idx] = config
                 replaced = True
+                replaced_idx = idx
                 break
+
+        if not explicit_enabled and not any(item.enabled for item in items):
+            # Keep the first saved provider immediately usable so
+            # README/quickstart commands work without an extra enable step.
+            # This also repairs legacy single-provider entries when users save
+            # them again after upgrading.
+            config.enabled = True
+            if replaced and replaced_idx is not None:
+                items[replaced_idx] = config
 
         if not replaced:
             items.append(config)

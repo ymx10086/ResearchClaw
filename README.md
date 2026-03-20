@@ -53,6 +53,9 @@ researchclaw models config
 researchclaw models add openai --type openai --model gpt-4o --api-key sk-...
 ```
 
+The first provider you add is activated automatically. If you add more later,
+switch the active one from the Models page or rerun `researchclaw models config`.
+
 ### 4) Start service
 
 ```bash
@@ -282,6 +285,7 @@ researchclaw models add ollama --type ollama --model qwen3:8b --base-url http://
 ```
 
 The web UI also includes a `Google Gemini` preset in the Models page.
+The first provider added via CLI becomes the active provider automatically.
 
 ## 🤖 Agent Commands
 
