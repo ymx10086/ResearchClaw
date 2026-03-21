@@ -7,26 +7,30 @@ import { t, type Lang } from "../i18n";
 
 const COMMANDS = {
   pip: [
-    "pip install researchclaw",
+    "git clone https://github.com/MingxinYang/ResearchClaw.git",
+    "cd ResearchClaw",
+    "pip install -e .",
     "researchclaw init --defaults --accept-security",
     "researchclaw models config",
     "researchclaw app --host 127.0.0.1 --port 8088",
   ],
   unix: [
-    "curl -fsSL https://researchclaw.github.io/install.sh | bash",
+    "curl -fsSL https://raw.githubusercontent.com/MingxinYang/ResearchClaw/main/scripts/install.sh | bash",
     "researchclaw init --defaults --accept-security",
     "researchclaw models config",
     "researchclaw app --host 127.0.0.1 --port 8088",
   ],
   windows: [
-    "irm https://researchclaw.dev/install.ps1 | iex",
+    "git clone https://github.com/MingxinYang/ResearchClaw.git",
+    "cd ResearchClaw",
+    "py -m pip install -e .",
     "researchclaw init --defaults --accept-security",
     "researchclaw models config",
     "researchclaw app --host 127.0.0.1 --port 8088",
   ],
   docker: [
     "docker build -f deploy/Dockerfile -t researchclaw:local .",
-    "docker run -d -p 8088:8088 -e PORT=8088 researchclaw:local",
+    "docker run -d --name researchclaw -p 8088:8088 -e PORT=8088 -e RESEARCHCLAW_WORKING_DIR=/app/working -e RESEARCHCLAW_SECRET_DIR=/app/working.secret -e RESEARCHCLAW_AUTOMATION_TOKEN=change-me -v researchclaw-working:/app/working -v researchclaw-secret:/app/working.secret researchclaw:local",
   ],
 } as const;
 

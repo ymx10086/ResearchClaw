@@ -1,66 +1,97 @@
 # Skills
 
-Skills are ResearchClaw's extensible capability system, providing the AI assistant with specialized research abilities.
+ResearchClaw uses a `SKILL.md`-first skill system.
+
+## What a Skill Is
+
+A skill can be either:
+
+- a doc-only operational playbook
+- a Python-backed capability with executable tools
+
+The preferred standard format is:
+
+```text
+my-skill/
+├── SKILL.md
+├── references/
+├── scripts/
+└── __init__.py or main.py   # optional
+```
 
 ## Built-in Skills
 
-ResearchClaw includes several research-related skills:
+The repository currently ships these built-in skills:
 
-- **Paper Search**: Search papers on ArXiv, Semantic Scholar, and more
-- **Paper Tracking**: Periodically track new papers in specified fields or keywords
-- **Reference Management**: Manage BibTeX files, generate citations
-- **Weather**: Check weather info (daily utility)
+- `arxiv`
+- `browser_visible`
+- `citation_network`
+- `cron`
+- `dingtalk_channel`
+- `docx`
+- `experiment_tracker`
+- `figure_generator`
+- `file_reader`
+- `himalaya`
+- `literature_review`
+- `news`
+- `paper_summarizer`
+- `pdf`
+- `pptx`
+- `research_notes`
+- `research_workflows`
+- `xlsx`
 
-## Skill Structure
+## Discovery Locations
 
-Each Skill is an independent Python module:
+The runtime scans:
 
-```
-my_skill/
-├── __init__.py
-├── skill.json          # Skill metadata
-├── handler.py          # Main logic
-└── requirements.txt    # Dependencies (optional)
-```
+- `skills/`
+- `.agents/skills/`
+- `.researchclaw/skills/`
+- `~/.agents/skills/`
+- `~/.researchclaw/skills/`
 
-### skill.json
+Built-in skills are also synced into the active skill area.
 
-```json
-{
-  "name": "my_skill",
-  "version": "1.0.0",
-  "description": "A custom research skill",
-  "author": "Your Name",
-  "tags": ["research", "papers"]
-}
-```
+## Runtime Storage
 
-## Installing Skills
+- enabled skills live under `active_skills/`
+- local custom copies live under `customized_skills/`
 
-### From GitHub
+## How to Manage Skills
 
-Send in chat:
+CLI:
 
-```
-Install skill https://github.com/user/repo
-```
-
-### Manual Install
-
-Place the skill folder in the `skills/` directory under your working directory.
-
-## Cron Tasks
-
-Skills support cron-based scheduling:
-
-```python
-# Configure in skill.json
-{
-  "cron": "0 9 * * *",  # Run daily at 9 AM
-  "cron_prompt": "Search for LLM Agent papers published yesterday"
-}
+```bash
+researchclaw skills list
+researchclaw skills config
 ```
 
-## Custom Development
+API:
 
-See [CONTRIBUTING](./contributing.md) for how to develop custom skills.
+- `GET /api/skills`
+- `GET /api/skills/active`
+- `POST /api/skills/enable`
+- `POST /api/skills/disable`
+- `POST /api/skills/install`
+- `GET /api/skills/hub/search`
+
+Agent tools:
+
+- `skills_list()`
+- `skills_activate(name)`
+- `skills_read_file(name, path)`
+
+The runtime also ships a dedicated `research_workflows` skill module that exposes structured tools for:
+
+- projects and dashboards
+- workflows and tasks
+- notes, claims, evidence, and experiments
+- remediation lookup and task execution
+
+## Notes
+
+- `SKILL.md` is the current contract; do not rely on old `skill.json`-only docs
+- optional `references/` and `scripts/` files are readable through runtime skill tools
+- some bundled research skills are still lightweight wrappers, but `research_workflows` is now the stateful bridge into the Research OS layer

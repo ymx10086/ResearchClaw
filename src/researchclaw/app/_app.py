@@ -125,6 +125,7 @@ _router_defs: list[tuple[str, str, list[str]]] = [
     ),
     ("researchclaw.app.routers.papers", "/api/papers", ["Papers"]),
     ("researchclaw.app.routers.providers", "/api/providers", ["Providers"]),
+    ("researchclaw.app.routers.research", "/api/research", ["Research"]),
     ("researchclaw.app.routers.skills", "/api/skills", ["Skills"]),
     ("researchclaw.app.routers.workspace", "/api/workspace", ["Workspace"]),
 ]

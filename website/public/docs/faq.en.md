@@ -1,45 +1,39 @@
 # FAQ
 
-<details>
-<summary>What model providers are supported?</summary>
+This FAQ reflects the current repository state.
 
-ResearchClaw supports OpenAI, Anthropic, DashScope, DeepSeek, Ollama, and custom OpenAI-compatible providers.
+### What is already production-like today?
 
-</details>
+The strongest parts today are the runtime platform pieces and the stateful research foundation:
 
-<details>
-<summary>Where is my data stored?</summary>
+- app bootstrapping and control-plane APIs
+- channels, providers, skills, MCP, automation, and the console
+- project/workflow/task state
+- claim/evidence graph
+- experiment tracking, result-bundle ingestion, and blocker remediation
 
-By default:
+What is still incomplete is the higher-level research quality layer: evidence matrix scoring, stronger claim validators, richer external execution adapters, and submission packaging.
 
-- Workspace data: `~/.researchclaw`
-- Secret data (envs/providers): `~/.researchclaw.secret`
+### Which providers are supported?
 
-</details>
+Provider types in code today are `openai`, `anthropic`, `gemini`, `ollama`, `dashscope`, `deepseek`, `minimax`, `other`, and `custom`.
 
-<details>
-<summary>Can I deploy ResearchClaw on a server?</summary>
+### Which channels are built in?
 
-Yes. Use either:
+`console`, `telegram`, `discord`, `dingtalk`, `feishu`, `imessage`, `qq`, and `voice`.
 
-- single-machine deployment with `researchclaw app --host 0.0.0.0 --port 8088`
-- Docker self-build from `deploy/Dockerfile`
+### Where is my data stored?
 
-See full steps in [Deployment](./deployment.md).
+- working data: `~/.researchclaw`
+- secrets: `~/.researchclaw.secret`
 
-</details>
+The secret dir stores `envs.json` and `providers.json`.
 
-<details>
-<summary>How do I secure automation triggers?</summary>
+The research workflow state is stored under `~/.researchclaw/research/state.json` unless you override the research path.
 
-Set `RESEARCHCLAW_AUTOMATION_TOKEN` on the server and pass the same token via `Authorization: Bearer <token>` (or `x-researchclaw-token`).
+### Why does `/` show `Console not found`?
 
-</details>
-
-<details>
-<summary>Why does `/` show "Console not found"?</summary>
-
-The backend can run without prebuilt frontend assets. Build console assets with:
+The backend can start without prebuilt console assets. Build them once:
 
 ```bash
 cd console
@@ -47,14 +41,30 @@ npm install
 npm run build
 ```
 
-</details>
+### How do I secure automation triggers?
 
-<details>
-<summary>Channel integration fails after configuration. What should I check?</summary>
+Set `RESEARCHCLAW_AUTOMATION_TOKEN` on the server. Requests must send the same token via `Authorization: Bearer <token>`, `x-researchclaw-token`, or `x-researchclaw-automation-token`.
 
-1. Platform credentials are correct.
-2. Bot app permissions and callback/webhook URLs are valid.
-3. Service network can reach platform APIs.
-4. Restart service after channel credential changes.
+### Why can plain `pytest` fail in a fresh checkout?
 
-</details>
+If the package is not installed editable yet, Python may not find `researchclaw`. Either run:
+
+```bash
+pip install -e ".[dev]"
+```
+
+or:
+
+```bash
+PYTHONPATH=src pytest -q
+```
+
+### Does the console include research workflow controls?
+
+Yes. The current console includes a dedicated Research page with:
+
+- project dashboards
+- workflow execution
+- execution health
+- recent blockers
+- remediation drill-down and batch actions

@@ -19,4 +19,6 @@ class GatewayRuntimeSnapshot:
     mcp_watcher: Any = None
     cron_manager: Any = None
     config_watcher: Any = None
+    research_service: Any = None
+    research_runtime: Any = None
     started_at: float | None = None

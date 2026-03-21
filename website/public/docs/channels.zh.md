@@ -1,57 +1,40 @@
 # 频道配置
 
-频道用于把同一个 ResearchClaw Agent 接入多个消息入口。
+频道用于让同一个运行时从多个入口触达用户。
 
 ## 内置频道
 
-| 频道       | 说明                  |
-| ---------- | --------------------- |
-| `console`  | 内置 Web 控制台频道   |
-| `telegram` | Telegram Bot          |
-| `discord`  | Discord Bot           |
-| `dingtalk` | 钉钉机器人            |
-| `feishu`   | 飞书机器人            |
-| `qq`       | QQ 频道集成           |
-| `imessage` | 仅支持 macOS 本地部署 |
-| `voice`    | Twilio 语音频道       |
+| 频道       | 说明                |
+| ---------- | ------------------- |
+| `console`  | 内置 Web 控制台频道 |
+| `telegram` | Telegram Bot        |
+| `discord`  | Discord Bot         |
+| `dingtalk` | 钉钉机器人          |
+| `feishu`   | 飞书机器人          |
+| `imessage` | 仅限 macOS 本地集成 |
+| `qq`       | QQ 频道集成         |
+| `voice`    | Twilio 语音频道     |
 
-## 通过 CLI 配置
+## 基础配置结构
 
-```bash
-researchclaw channels config
-researchclaw channels list
-```
-
-## 通过 `config.json` 配置
-
-频道配置位于 `~/.researchclaw/config.json` 的 `channels` 字段：
+频道配置位于 `config.json`：
 
 ```json
 {
   "channels": {
     "console": { "enabled": true, "bot_prefix": "[BOT] " },
-    "dingtalk": {
-      "enabled": true,
-      "client_id": "your-client-id",
-      "client_secret": "your-client-secret",
-      "bot_prefix": "[BOT] "
-    },
-    "available": ["console", "dingtalk"]
+    "telegram": { "enabled": false, "bot_token": "" },
+    "available": ["console"]
   }
 }
 ```
 
-## 多账号频道
+## 频道账号映射
 
-可以通过 `channel_accounts` 配置同一频道的多个账号实例。
-运行时会将账号实例化为 `channel:account_id` 形式。
+运行时还支持通过 `channel_accounts` 配置同一频道的多个账号别名。
 
 ```json
 {
-  "channels": {
-    "telegram": { "enabled": true, "bot_prefix": "[BOT] " },
-    "available": ["console", "telegram", "telegram:lab"]
-  },
   "channel_accounts": {
     "telegram": {
       "lab": { "enabled": true, "bot_prefix": "[LAB] " }
@@ -60,29 +43,37 @@ researchclaw channels list
 }
 ```
 
-## 多渠道投递
+运行时中它可能表现为 `telegram:lab`。
 
-自动化触发 API 支持一对多投递：
+## 多 Agent 路由
 
-- 显式 `dispatches`
-- `fanout_channels`
-- `last_dispatch` 回退
+`bindings` 可以按 channel、account、user、session 等条件，把消息路由到指定 agent。
 
-请在部署时设置 `RESEARCHCLAW_AUTOMATION_TOKEN`，详见 [部署指南](./deployment.md)。
+```json
+{
+  "bindings": [
+    {
+      "agent_id": "research",
+      "match": {
+        "channel": "telegram",
+        "account_id": "lab"
+      }
+    }
+  ]
+}
+```
 
-## 注意事项
+## 自定义频道
 
-- 频道凭证调整后可通过控制面热重载（`POST /api/control/reload`）即时生效。
-- 需确保平台侧回调/webhook 配置和权限正确。
-- 密钥建议放在密钥目录或环境变量，不要提交到公开仓库。
+可以通过两种方式添加自定义频道：
 
-## 控制面相关 API
+- CLI：`researchclaw channels install` / `researchclaw channels remove`
+- 控制面 API：`/api/control/channels/custom/*`
 
-- `GET /api/control/channels`
-- `GET /api/control/channels/runtime`
-- `GET /api/control/channels/catalog`
-- `GET /api/control/channels/custom`
-- `POST /api/control/channels/custom/install`
-- `DELETE /api/control/channels/custom/{key}`
-- `GET /api/control/channels/accounts`
-- `PUT /api/control/channels/accounts`
+运行时代码会从 `custom_channels/` 加载这些自定义频道。
+
+## 运维说明
+
+- `last_dispatch` 会被持久化，heartbeat 和 automation fallback 会复用它
+- 频道配置变更后可通过 control reload 应用
+- 凭证尽量放在 secret store 或持久化 env 中管理

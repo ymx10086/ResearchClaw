@@ -18,6 +18,7 @@ const EN_DICT: Record<string, string> = {
   智能体: "Agent",
   设置: "Settings",
   "AI 对话": "AI Chat",
+  研究项目: "Research Projects",
   论文检索: "Paper Search",
   频道: "Channels",
   会话: "Sessions",
@@ -183,6 +184,83 @@ const EN_DICT: Record<string, string> = {
     "Network error: please ensure backend service is running and check browser network/proxy settings.",
   "从 ArXiv 搜索最新学术论文，快速了解研究动态":
     "Search the latest papers from ArXiv and get up to speed on current research quickly.",
+  "按课题查看 workflow、claim、evidence、notes 和主动提醒。":
+    "Inspect workflows, claims, evidence, notes, and proactive reminders by project.",
+  活跃工作流: "Active Workflows",
+  结构化笔记: "Structured Notes",
+  证据项: "Evidence Items",
+  项目列表: "Projects",
+  "选择一个项目，下钻查看 workflow、claim 与提醒。":
+    "Select a project to drill into workflows, claims, and reminders.",
+  暂无研究项目: "No Research Projects",
+  "先通过 API 创建 project，再在这里查看闭环进展。":
+    "Create a project through the API first, then inspect closed-loop progress here.",
+  项目概览: "Project Overview",
+  "选择项目后显示聚合统计与近期活动。":
+    "Aggregated stats and recent activity appear after you select a project.",
+  "等待项目上下文": "Waiting For Project Context",
+  "选中一个 project 后，这里会显示聚合指标。":
+    "Select a project to display aggregate metrics here.",
+  "工作流": "Workflows",
+  "聚焦当前 stage、状态以及是否已经进入阻塞或写作阶段。":
+    "Focus on the current stage, status, and whether the workflow is blocked or in writing.",
+  "暂无工作流": "No Workflows",
+  "当前项目还没有 workflow。": "This project does not have a workflow yet.",
+  "执行健康度": "Execution Health",
+  "汇总 project 下 experiment contract、bundle 校验和 remediation 压力。":
+    "Summarize experiment contracts, bundle validation, and remediation pressure in the current project.",
+  "等待健康度统计": "Waiting For Health Stats",
+  "选中一个 project 后，这里会显示 execution health。":
+    "Select a project to display execution health here.",
+  "近期阻塞": "Recent Blockers",
+  "优先显示 blocked workflow、未收口 remediation 和可重试实验。":
+    "Prioritize blocked workflows, unresolved remediation, and retry-ready experiments.",
+  "暂无显著阻塞": "No Major Blockers",
+  "当前 project 没有需要优先处理的 contract 或 workflow blocker。":
+    "This project has no contract or workflow blockers that need immediate attention.",
+  "详情": "Details",
+  "派发中...": "Dispatching...",
+  派发: "Dispatch",
+  "执行中...": "Executing...",
+  执行: "Execute",
+  "项目派发中...": "Dispatching Project Blockers...",
+  "项目批量派发": "Dispatch Project Blockers",
+  "项目执行中...": "Executing Project Blockers...",
+  "项目批量执行": "Execute Project Blockers",
+  "恢复可重试": "Resume Retry-Ready Workflows",
+  "恢复中...": "Resuming...",
+  "任务已派发。": "Task dispatched.",
+  "任务已执行。": "Task executed.",
+  "批量派发中...": "Dispatching Batch...",
+  "批量派发": "Dispatch Batch",
+  "批量执行中...": "Executing Batch...",
+  "批量执行": "Execute Batch",
+  "Remediation 详情": "Remediation Detail",
+  "加载 remediation 上下文...": "Loading remediation context...",
+  "暂无 remediation 摘要": "No remediation summary yet.",
+  "Contract Failures": "Contract Failures",
+  "暂无 contract failure": "No contract failures.",
+  "Remediation Tasks": "Remediation Tasks",
+  "暂无 remediation task": "No remediation tasks.",
+  "继续推进": "Continue Workflow",
+  "暂无 remediation 详情": "No Remediation Detail",
+  "当前 workflow 没有可用的 remediation context。":
+    "The current workflow does not have an available remediation context.",
+  "Project blocker 操作失败": "Project blocker action failed",
+  "主动提醒": "Proactive Reminders",
+  "这里展示当前到期的 follow-up、写作待办和实验回看提醒。":
+    "Shows due follow-ups, writing todos, and experiment review reminders.",
+  "暂无到期提醒": "No Due Reminders",
+  "当前没有需要主动推进的研究提醒。":
+    "There are no active research reminders to push right now.",
+  "Claim 与证据链": "Claims & Evidence",
+  "打开某个 claim，查看它当前连接的 evidence、notes、artifacts 与 experiments。":
+    "Open a claim to inspect linked evidence, notes, artifacts, and experiments.",
+  "暂无 claim": "No Claims",
+  "当前项目还没有结构化 claim。":
+    "This project does not have structured claims yet.",
+  "Claim 证据详情": "Claim Evidence Detail",
+  "暂无证据": "No Evidence",
   "输入主题或关键词，从 ArXiv 获取相关研究论文":
     "Enter a topic or keywords to fetch relevant papers from ArXiv.",
   "输入研究主题关键词...": "Enter research topic keywords...",

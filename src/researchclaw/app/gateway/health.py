@@ -95,6 +95,8 @@ def runtime_component_flags(
         "cron_manager": snapshot.cron_manager is not None,
         "config_watcher": snapshot.config_watcher is not None,
         "automation_store": snapshot.automation_store is not None,
+        "research_service": snapshot.research_service is not None,
+        "research_runtime": snapshot.research_runtime is not None,
     }
 
 
@@ -297,6 +299,35 @@ async def get_automation_runtime_stats(store: Any) -> dict[str, Any]:
     return empty_automation_stats()
 
 
+async def get_research_runtime_stats(service: Any, runtime: Any) -> dict[str, Any]:
+    if runtime is not None and hasattr(runtime, "get_runtime_stats"):
+        try:
+            stats = await runtime.get_runtime_stats()
+            if isinstance(stats, dict):
+                return stats
+        except Exception:
+            pass
+    if service is not None and hasattr(service, "get_runtime_stats"):
+        try:
+            stats = await service.get_runtime_stats()
+            if isinstance(stats, dict):
+                return stats
+        except Exception:
+            pass
+    return {
+        "projects": 0,
+        "workflows": 0,
+        "active_workflows": 0,
+        "notes": 0,
+        "claims": 0,
+        "evidences": 0,
+        "experiments": 0,
+        "artifacts": 0,
+        "due_reminders": 0,
+        "state_path": "",
+    }
+
+
 async def build_control_status_payload(app: FastAPI) -> dict[str, Any]:
     """Build the control-plane status payload from the gateway runtime."""
     runtime = get_gateway_runtime(app)
@@ -310,6 +341,10 @@ async def build_control_status_payload(app: FastAPI) -> dict[str, Any]:
     runner_stats = get_runner_runtime_stats(snapshot.runner)
     automation_stats = await get_automation_runtime_stats(
         snapshot.automation_store,
+    )
+    research_stats = await get_research_runtime_stats(
+        snapshot.research_service,
+        snapshot.research_runtime,
     )
     skills_stats = get_skills_runtime_stats()
     heartbeat_stats = get_heartbeat_runtime_stats()
@@ -329,7 +364,9 @@ async def build_control_status_payload(app: FastAPI) -> dict[str, Any]:
             "channels": channel_stats,
             "cron": cron_stats,
             "automation": automation_stats,
+            "research": research_stats,
             "skills": skills_stats,
             "heartbeat": heartbeat_stats,
+            "components": runtime_component_flags(snapshot),
         },
     }

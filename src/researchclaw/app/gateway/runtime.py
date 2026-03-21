@@ -107,6 +107,8 @@ class GatewayRuntime:
             mcp_watcher=self.get("mcp_watcher"),
             cron_manager=self.get("cron_manager", self.get("cron")),
             config_watcher=self.get("config_watcher"),
+            research_service=self.get("research_service"),
+            research_runtime=self.get("research_runtime"),
             started_at=self.get("started_at"),
         )
 
@@ -142,6 +144,16 @@ async def bootstrap_gateway_runtime(app: FastAPI) -> GatewayRuntime:
         logger.info("Automation run store initialized")
     except Exception:
         logger.debug("Automation run store not initialized", exc_info=True)
+
+    try:
+        from ...research import JsonResearchStore, ResearchService
+
+        research_service = ResearchService(store=JsonResearchStore())
+        os.environ["RESEARCHCLAW_RESEARCH_STATE_PATH"] = str(research_service.path)
+        runtime.bind("research_service", research_service)
+        logger.info("Research service initialized")
+    except Exception:
+        logger.debug("Research service not initialized", exc_info=True)
 
     runner = None
     try:
@@ -194,6 +206,21 @@ async def bootstrap_gateway_runtime(app: FastAPI) -> GatewayRuntime:
         logger.debug("Channel manager not started", exc_info=True)
 
     try:
+        from ...research import ResearchWorkflowRuntime
+
+        if runtime.get("research_service") is None:
+            raise RuntimeError("research_service not initialized")
+        research_runtime = ResearchWorkflowRuntime(
+            service=runtime.get("research_service"),
+            channel_manager=runtime.get("channel_manager"),
+            runner=runtime.get("runner"),
+        )
+        runtime.bind("research_runtime", research_runtime)
+        logger.info("Research runtime initialized")
+    except Exception:
+        logger.debug("Research runtime not initialized", exc_info=True)
+
+    try:
         from ...config import load_config
         from ...config.config import config_path
         from ..mcp.manager import MCPManager
@@ -231,7 +258,12 @@ async def bootstrap_gateway_runtime(app: FastAPI) -> GatewayRuntime:
         logger.debug("MCP manager not started", exc_info=True)
 
     try:
-        from ...constant import HEARTBEAT_ENABLED, HEARTBEAT_INTERVAL_MINUTES
+        from ...constant import (
+            HEARTBEAT_ENABLED,
+            HEARTBEAT_INTERVAL_MINUTES,
+            RESEARCH_FOLLOWUP_ENABLED,
+            RESEARCH_FOLLOWUP_INTERVAL_MINUTES,
+        )
         from ..crons.deadline_reminder import deadline_reminder
         from ..crons.heartbeat import run_heartbeat_once
         from ..crons.manager import CronManager
@@ -273,6 +305,19 @@ async def bootstrap_gateway_runtime(app: FastAPI) -> GatewayRuntime:
             interval_seconds=12 * 3600,
             enabled=True,
         )
+        research_runtime = runtime.get("research_runtime")
+        if research_runtime is not None:
+
+            async def research_followup_job() -> None:
+                await research_runtime.run_proactive_cycle()
+
+            cron.register(
+                "research_followup",
+                research_followup_job,
+                interval_seconds=max(1, RESEARCH_FOLLOWUP_INTERVAL_MINUTES)
+                * 60,
+                enabled=RESEARCH_FOLLOWUP_ENABLED,
+            )
         await cron.start()
         runtime.bind("cron", cron)
         runtime.bind("cron_manager", cron)

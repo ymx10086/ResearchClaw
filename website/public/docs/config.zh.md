@@ -1,44 +1,77 @@
 # 配置与工作目录
 
-ResearchClaw 将运行数据与密钥数据分目录存储。
+ResearchClaw 把运行数据和密钥数据分开放。
 
 ## 默认路径
 
 - 工作目录：`~/.researchclaw`
 - 密钥目录：`~/.researchclaw.secret`
 
-可通过环境变量覆盖：
+可通过下面两个环境变量覆盖：
 
 - `RESEARCHCLAW_WORKING_DIR`
 - `RESEARCHCLAW_SECRET_DIR`
+- `RESEARCHCLAW_RESEARCH_DIR`
+- `RESEARCHCLAW_RESEARCH_STATE_FILE`
 
 ## 工作目录结构
 
 ```text
 ~/.researchclaw/
-├── config.json            # 主配置
-├── jobs.json              # 持久化 cron 任务
-├── chats.json             # 会话历史
-├── PROFILE.md             # 用户/研究画像
-├── HEARTBEAT.md           # 心跳检查清单
-├── active_skills/         # 已启用技能
-├── customized_skills/     # 本地自定义技能
-├── papers/                # 论文缓存
-├── references/            # 文献/BibTeX 数据
-├── experiments/           # 实验追踪数据
-├── memory/                # 记忆数据
-└── researchclaw.log       # 运行日志
+├── config.json
+├── jobs.json
+├── chats.json
+├── research/
+│   └── state.json
+├── PROFILE.md
+├── SOUL.md
+├── AGENTS.md
+├── HEARTBEAT.md
+├── md_files/
+├── sessions/
+├── active_skills/
+├── customized_skills/
+├── papers/
+├── references/
+├── experiments/
+├── memory/
+├── custom_channels/
+└── researchclaw.log
 ```
+
+运行过程中还可能生成 `heartbeat.json`、digest、reminder、project research state、agent workspace 等额外产物。
+
+## Research 状态层
+
+Research OS 层把结构化状态单独存放在 chat/session memory 之外：
+
+- 默认目录：`~/.researchclaw/research/`
+- 默认文件：`state.json`
+
+这里会保存 projects、workflows、tasks、claims、evidences、notes、experiments、artifacts、drafts。
 
 ## 密钥目录结构
 
 ```text
 ~/.researchclaw.secret/
-├── envs.json              # 持久化环境变量
-└── providers.json         # 模型提供商配置
+├── envs.json
+└── providers.json
 ```
 
-## 关键配置（`config.json`）示例
+`providers.json` 是 provider 的规范存储位置，`envs.json` 是持久化环境变量的规范存储位置。
+
+## 引导 Markdown 文件
+
+初始化 / bootstrap 流程要求这些文件存在并完成个性化：
+
+- `SOUL.md`
+- `AGENTS.md`
+- `PROFILE.md`
+- `HEARTBEAT.md`
+
+这些文件对 agent 行为的影响，实际上比很多旧式配置项都更直接。
+
+## `config.json` 示例
 
 ```json
 {
@@ -46,8 +79,6 @@ ResearchClaw 将运行数据与密钥数据分目录存储。
   "show_tool_details": true,
   "channels": {
     "console": { "enabled": true, "bot_prefix": "[BOT] " },
-    "dingtalk": { "enabled": false },
-    "feishu": { "enabled": false },
     "available": ["console"]
   },
   "channel_accounts": {
@@ -61,49 +92,38 @@ ResearchClaw 将运行数据与密钥数据分目录存储。
       "match": { "channel": "telegram", "account_id": "lab" }
     }
   ],
-  "model_fallbacks": [
-    { "provider": "anthropic", "model_name": "claude-sonnet-4-20250514" }
-  ],
   "agents": {
     "defaults": {
+      "agent_id": "main",
       "heartbeat": {
-        "enabled": false,
-        "every": "30m",
-        "target": "last"
+        "enabled": true,
+        "every": "1h",
+        "target": "last",
+        "active_hours": { "start": "08:00", "end": "22:00" }
       }
-    }
+    },
+    "list": [
+      { "id": "main", "enabled": true },
+      {
+        "id": "research",
+        "workspace": "agents/research",
+        "enabled": true,
+        "autostart": true
+      }
+    ]
   },
   "mcp": {
     "clients": {}
+  },
+  "automation": {
+    "mappings": {}
   }
 }
 ```
 
-## 常用配置命令
+## 说明
 
-```bash
-researchclaw init
-researchclaw channels config
-researchclaw models config
-researchclaw env list
-researchclaw env set OPENAI_API_KEY sk-...
-```
-
-## 重要高级字段
-
-- `channel_accounts`：频道账号级覆盖配置；每个账号会映射为 `channel:account_id`。
-- `bindings`：多 Agent 路由规则，可按 channel/account/user/session 进行分流。
-- `model_fallbacks`：主模型失败时的备用 provider/model 链。
-
-## 与部署相关的环境变量
-
-| 变量                            | 说明                            |
-| ------------------------------- | ------------------------------- |
-| `RESEARCHCLAW_HOST`             | `researchclaw app` 默认绑定地址 |
-| `RESEARCHCLAW_PORT`             | `researchclaw app` 默认端口     |
-| `RESEARCHCLAW_AUTOMATION_TOKEN` | 自动化触发 API 鉴权 token       |
-| `RESEARCHCLAW_CORS_ORIGINS`     | CORS 白名单                     |
-| `RESEARCHCLAW_DOCS_ENABLED`     | 是否启用 FastAPI `/docs`        |
-| `RESEARCHCLAW_LOG_LEVEL`        | 运行日志级别                    |
-
-生产部署请参考 [部署指南](./deployment.md)。
+- 激活 provider 的真实凭证通常来自 `providers.json`，而不是 `config.json`
+- `bindings` 也可以放在 `agents.bindings` 下，运行时两种都兼容
+- heartbeat 仍兼容旧字段，但推荐使用 `agents.defaults.heartbeat`
+- gateway runtime 会在内部写入 `RESEARCHCLAW_RESEARCH_STATE_PATH`，让 research API、skills、runner 共用同一份状态文件

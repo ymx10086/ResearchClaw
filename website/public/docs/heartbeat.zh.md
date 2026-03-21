@@ -1,16 +1,17 @@
-# Heartbeat 心跳
+# Heartbeat
 
-Heartbeat 是 ResearchClaw 的周期调度机制，用于执行主动任务。
+Heartbeat 是当前运行时自带的主动循环。
 
-## 主要用途
+它和 research runtime 的主动 workflow cycle 是分开的。Heartbeat 仍然是更轻量的 check-in 机制；research runtime 负责 workflow 执行、blocker reminder 和 remediation action。
 
-- 执行技能中配置的 cron prompt
-- 执行内置周期任务
-- 向已配置频道进行主动投递
+## 查询内容来自哪里
 
-## 配置位置
+运行时会按这个顺序读取：
 
-心跳配置来自 `config.json`（并兼容旧字段回退）：
+1. 如果存在，则优先读取 `md_files/HEARTBEAT.md`
+2. 否则读取 working dir 根目录下的 `HEARTBEAT.md`
+
+## 推荐配置结构
 
 ```json
 {
@@ -19,20 +20,34 @@ Heartbeat 是 ResearchClaw 的周期调度机制，用于执行主动任务。
       "heartbeat": {
         "enabled": true,
         "every": "30m",
-        "target": "last"
+        "target": "last",
+        "active_hours": {
+          "start": "08:00",
+          "end": "22:00"
+        }
       }
     }
   }
 }
 ```
 
-也可通过环境变量设置默认值：
+旧的顶层 heartbeat 字段仍然兼容，但只是 fallback。
 
-- `RESEARCHCLAW_HEARTBEAT_ENABLED`
-- `RESEARCHCLAW_HEARTBEAT_INTERVAL`（分钟）
+## 运行时行为
 
-## 运维建议
+- 能解析 `30m`、`1h`、`2h30m` 这类间隔
+- 可以受 active hours 约束
+- 当 `target` 为 `last` 时，可以向上一次活跃通道回推
+- 会把状态写入 `heartbeat.json`
 
-- 心跳间隔建议设为 `30m` 或 `1h` 这类实用值。
-- 主动消息投递需保证至少有一个可用频道。
-- 通过 `/api/control/status` 观察 cron/heartbeat 运行状态。
+## 相关主动循环
+
+除了 heartbeat 之外，运行时还包括：
+
+- paper digest
+- deadline reminder
+- research workflow proactive cycle
+
+## 运维提示
+
+Heartbeat 更适合做轻量 check-in 和提醒。真正的 project/workflow 自动推进应该交给 Research OS 的结构化 workflow loop。

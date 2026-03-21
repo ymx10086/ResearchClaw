@@ -2,6 +2,52 @@
 
 All notable changes to this project are documented in this file.
 
+## 2026-03-21
+
+### Added
+
+- Research workflow runtime and project state:
+  - persistent projects, workflows, stages, tasks, notes, claims, evidences, experiments, artifacts, and drafts
+  - structured stage workers from literature search through review/follow-up
+  - claim/evidence graph queries and structured research notes
+- Experiment execution and remediation:
+  - execution bindings, external result ingest, event timeline, heartbeat, and compare APIs
+  - artifact contracts and result bundle validation
+  - remediation actions, remediation tasks, task-level dispatch/execute, and safe auto-remediation for outputs, artifacts, and metrics
+- Project-level blocker operations:
+  - `POST /api/research/projects/{project_id}/blockers/dispatch`
+  - `POST /api/research/projects/{project_id}/blockers/execute`
+  - `POST /api/research/projects/{project_id}/blockers/resume`
+
+### Changed
+
+- Gateway/runtime wiring:
+  - research service and research runtime are now part of the gateway runtime bootstrap and health snapshots
+  - proactive cycles now cover workflow execution, blocker reminders, remediation tasks, and research runtime stats
+- Console:
+  - added a dedicated Research page for project dashboards, execution health, recent blockers, claim graph viewing, remediation details, and batch blocker actions
+  - blocker handling can now be done at task, workflow, and project scope without removing the older single-surface entrypoints
+- Documentation refresh:
+  - updated README, Chinese README, roadmap, architecture notes, console docs, website docs, and landing-page copy to match the current Research OS feature set
+  - updated docs to reflect the research state directory, structured notes, experiment/result bundle handling, and project blocker actions
+
+### Tests
+
+- Expanded research runtime coverage:
+  - workflow execution and stage-worker regressions
+  - experiment execution/result-bundle validation
+  - remediation dispatch/execute/resume at task, workflow, and project scope
+  - console-facing research router endpoints and skill wrappers
+
+## 2026-03-20
+
+### Changed
+
+- Documentation refresh based on the current codebase:
+  - rewrote root README, Chinese README, roadmap, architecture notes, contributor guides, and frontend READMEs to match the actual runtime and feature set
+  - updated website docs pages to reflect current channels, providers, skills, memory, compaction, MCP, console, deployment, and CLI behavior
+  - removed outdated references to `skill.json`, `config.yaml`-based compaction, old repository URLs, and package-install-only quick starts that no longer matched the repository-first workflow
+
 ## 2026-03-12
 
 ### Changed

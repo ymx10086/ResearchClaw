@@ -1,10 +1,10 @@
 import type { LucideProps } from "lucide-react";
 import {
-  Search,
-  BookMarked,
+  FolderKanban,
+  Network,
   FlaskConical,
-  MessageSquare,
-  Puzzle,
+  BellRing,
+  Wrench,
   Lock,
 } from "lucide-react";
 import { motion } from "motion/react";
@@ -14,11 +14,11 @@ const items: Array<{
   key: string;
   icon: React.ComponentType<LucideProps>;
 }> = [
-  { key: "papers", icon: Search },
-  { key: "references", icon: BookMarked },
+  { key: "papers", icon: FolderKanban },
+  { key: "references", icon: Network },
   { key: "analysis", icon: FlaskConical },
-  { key: "channels", icon: MessageSquare },
-  { key: "skills", icon: Puzzle },
+  { key: "channels", icon: BellRing },
+  { key: "skills", icon: Wrench },
   { key: "private", icon: Lock },
 ];
 

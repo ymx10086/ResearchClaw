@@ -35,6 +35,8 @@ class AgentTriggerRequest(BaseModel):
 
     message: str = Field(..., min_length=1)
     agent_id: Optional[str] = None
+    project_id: Optional[str] = None
+    workflow_id: Optional[str] = None
     session_id: Optional[str] = None
     user_id: str = "automation"
     deliver: bool = True
@@ -49,6 +51,8 @@ class WakeTriggerRequest(BaseModel):
     text: str = Field(..., min_length=1)
     mode: str = "now"  # now | next-heartbeat
     agent_id: Optional[str] = None
+    project_id: Optional[str] = None
+    workflow_id: Optional[str] = None
     session_id: Optional[str] = None
     user_id: str = "automation"
     deliver: bool = False
@@ -313,6 +317,23 @@ async def _run_agent_trigger(
                     result["error"] = str(e)
                 delivery_results.append(result)
 
+    research_runtime = getattr(req.app.state, "research_runtime", None)
+    if (
+        research_runtime is not None
+        and payload.workflow_id
+        and hasattr(research_runtime, "note_automation_run")
+    ):
+        try:
+            await research_runtime.note_automation_run(
+                workflow_id=payload.workflow_id,
+                run_id=run_id,
+                summary=response_text[:400],
+                session_id=session_id,
+                dispatches=dispatches,
+            )
+        except Exception:
+            pass
+
     return (
         await store.mark_success(
             run_id,
@@ -401,6 +422,8 @@ def _wake_to_agent_trigger(payload: WakeTriggerRequest) -> AgentTriggerRequest:
     return AgentTriggerRequest(
         message=wake_message,
         agent_id=payload.agent_id,
+        project_id=payload.project_id,
+        workflow_id=payload.workflow_id,
         session_id=payload.session_id,
         user_id=payload.user_id,
         deliver=payload.deliver,

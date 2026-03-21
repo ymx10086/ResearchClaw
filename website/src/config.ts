@@ -9,9 +9,9 @@ export interface SiteConfig {
 
 const defaultConfig: SiteConfig = {
   projectName: "ResearchClaw",
-  projectTaglineEn: "Your AI Research Assistant",
-  projectTaglineZh: "你的 AI 科研助手",
-  repoUrl: "https://github.com/ymx10086/ResearchClaw",
+  projectTaglineEn: "Local-first Research OS",
+  projectTaglineZh: "本地优先的 Research OS",
+  repoUrl: "https://github.com/MingxinYang/ResearchClaw",
   docsPath: "/docs/",
   showTestimonials: true,
 };

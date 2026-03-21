@@ -1,16 +1,17 @@
 # Heartbeat
 
-Heartbeat is the periodic scheduler loop used by ResearchClaw for proactive tasks.
+Heartbeat is the built-in proactive loop for the current runtime.
 
-## What It Drives
+It is separate from the research runtime's proactive workflow cycle. Heartbeat is still the lighter-weight check-in mechanism; the research runtime handles workflow execution, blocker reminders, and remediation actions.
 
-- Skill cron prompts (when configured in skills)
-- Built-in periodic checks
-- Delivery to configured channels
+## Where the Query Comes From
 
-## Where to Configure
+The runtime reads:
 
-Heartbeat settings are read from `config.json` (with legacy fallback):
+1. `md_files/HEARTBEAT.md` if it exists
+2. otherwise `HEARTBEAT.md` at the working-dir root
+
+## Preferred Config Shape
 
 ```json
 {
@@ -19,20 +20,34 @@ Heartbeat settings are read from `config.json` (with legacy fallback):
       "heartbeat": {
         "enabled": true,
         "every": "30m",
-        "target": "last"
+        "target": "last",
+        "active_hours": {
+          "start": "08:00",
+          "end": "22:00"
+        }
       }
     }
   }
 }
 ```
 
-Also available via env defaults:
+Legacy top-level heartbeat keys are still accepted as a fallback.
 
-- `RESEARCHCLAW_HEARTBEAT_ENABLED`
-- `RESEARCHCLAW_HEARTBEAT_INTERVAL` (minutes)
+## Runtime Behavior
 
-## Operational Tips
+- parses intervals like `30m`, `1h`, or `2h30m`
+- can respect active hours
+- can dispatch to the last active channel target when `target` is `last`
+- writes status to `heartbeat.json`
 
-- Keep interval practical (for example `30m` or `1h`).
-- Ensure at least one dispatch channel is available for proactive messages.
-- Use `/api/control/status` to inspect cron/heartbeat runtime state.
+## Related Proactive Loops
+
+Separately from heartbeat, the runtime also includes:
+
+- paper digest
+- deadline reminder
+- research workflow proactive cycle
+
+## Operational Tip
+
+Heartbeat is useful for lightweight check-ins and reminders. It should be treated as complementary to the Research OS workflow loop, not as a replacement for structured project/workflow automation.

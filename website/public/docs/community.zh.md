@@ -1,29 +1,29 @@
 # 社区
 
-欢迎加入 ResearchClaw 社区！
+ResearchClaw 以 GitHub 开源协作的方式开发。
 
-## 参与方式
+## 主要入口
 
-### GitHub
+- 仓库：<https://github.com/MingxinYang/ResearchClaw>
+- Issues：<https://github.com/MingxinYang/ResearchClaw/issues>
 
-- [项目仓库](https://github.com/MingxinYang/ResearchClaw) — 源码、Issues、Pull Requests
-- 提交 Issue 报告 Bug 或提出功能建议
-- 提交 Pull Request 贡献代码
+## 比较适合的贡献方式
 
-### 讨论
+- 用最小复现报告 bug
+- 修正文档落后于代码的部分
+- 提交 provider、channel、MCP、control-plane 相关修复
+- 为路由、automation、runtime 可靠性补测试
 
-- GitHub Discussions — 提问、分享经验、讨论功能
-- 分享你开发的自定义 Skills
+## Skills 与扩展
 
-## 行为准则
+如果你提交可复用的 skill 或自定义 channel，请把这些内容写清楚：
 
-我们致力于营造友好、包容的社区环境。参与社区时请：
+- 需要哪些 secrets
+- 依赖什么运行环境
+- 默认信任边界是什么
 
-- 尊重他人
-- 友善沟通
-- 聚焦技术讨论
-- 帮助新成员融入
+这些信息比宣传式文案更重要。
 
-## 贡献
+## 更多
 
-想要贡献代码？请参阅 [贡献指南](./contributing.md)。
+完整说明见 [贡献指南](./contributing.md)。

@@ -8,6 +8,7 @@ import {
   Timer,
   Heart,
   Activity,
+  Workflow,
   FolderOpen,
   Puzzle,
   Cable,
@@ -25,6 +26,7 @@ import {
 } from "lucide-react";
 import ChatPage from "./pages/ChatPage";
 import PapersPage from "./pages/PapersPage";
+import ResearchPage from "./pages/ResearchPage";
 import StatusPage from "./pages/StatusPage";
 import ChannelsPage from "./pages/ChannelsPage";
 import SessionsPage from "./pages/SessionsPage";
@@ -81,6 +83,12 @@ const navSectionConfigs: NavSectionConfig[] = [
   {
     title: "研究",
     items: [
+      {
+        to: "/research",
+        label: "研究项目",
+        icon: Workflow,
+        tone: "amber",
+      },
       {
         to: "/chat",
         label: "AI 对话",
@@ -344,6 +352,7 @@ export default function App() {
         <ConsoleCronBubble />
         <Routes location={location} key={location.pathname}>
           <Route path="/" element={<ChatPage />} />
+          <Route path="/research" element={<ResearchPage />} />
           <Route path="/chat" element={<ChatPage />} />
           <Route path="/papers" element={<PapersPage />} />
           <Route path="/channels" element={<ChannelsPage />} />

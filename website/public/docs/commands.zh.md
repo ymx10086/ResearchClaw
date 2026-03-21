@@ -1,35 +1,38 @@
 # 对话命令
 
-ResearchClaw 支持在对话中使用斜杠命令（slash commands）。
+ResearchClaw 会在对话消息里解析 slash commands。
 
-## 可用命令
+## 主要命令
 
-| 命令                    | 说明                 |
-| ----------------------- | -------------------- |
-| `/new` 或 `/start`      | 新建会话             |
-| `/compact`              | 压缩对话记忆         |
-| `/clear`                | 清空历史与摘要       |
-| `/history`              | 查看会话统计         |
-| `/papers`               | 查看最近讨论论文     |
-| `/refs`                 | 查看文献库概览       |
-| `/skills`               | 查看已启用技能       |
-| `/skills debug [query]` | 查看技能路由调试信息 |
-| `/compact_str`          | 查看当前压缩摘要     |
-| `/daemon status`        | 查看运行状态         |
-| `/daemon logs [n]`      | 查看 daemon 日志     |
-| `/help`                 | 查看命令帮助         |
+| 命令                    | 行为                           |
+| ----------------------- | ------------------------------ |
+| `/new` 或 `/start`      | 开启新的研究会话               |
+| `/compact`              | 压缩对话记忆                   |
+| `/clear`                | 清空记忆、摘要、讨论论文和笔记 |
+| `/history`              | 查看记忆统计                   |
+| `/papers`               | 列出最近讨论的论文             |
+| `/refs`                 | 汇总当前 BibTeX 文献库         |
+| `/skills`               | 列出当前启用的 skills          |
+| `/skills debug [query]` | 查看 skill 选择调试细节        |
+| `/compact_str`          | 查看当前 compact summary       |
+| `/help`                 | 查看命令帮助                   |
 
-## 用法示例
+## Daemon 风格命令
 
-在任意会话中直接输入：
+对话解析器也支持这些 daemon 风格命令：
 
-```text
-/help
-/skills
-/skills debug summarize arxiv papers this week
-```
+- `/daemon status`
+- `/daemon logs [n]`
+- `/daemon reload-config`
+- `/daemon version`
 
-## 说明
+同时也支持简写：
 
-- 未识别的 slash 命令会回退到自然语言处理。
-- `/daemon restart` 在对话路径中受限，建议使用 CLI 执行。
+- `/status`
+- `/logs`
+- `/reload-config`
+- `/version`
+
+## 关于重启的说明
+
+`/daemon restart` 虽然能被识别，但对话路径并不直接持有 app 生命周期，所以它实际返回的是重启提示，而不是强制重启服务。

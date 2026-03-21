@@ -8,6 +8,18 @@ import type {
   PaperItem,
   ProviderItem,
   PushMessage,
+  ResearchClaimGraph,
+  ResearchClaimItem,
+  ResearchDashboard,
+  ResearchOverview,
+  ResearchProjectBlockerBatchResult,
+  ResearchProjectItem,
+  ResearchReminderItem,
+  ResearchWorkflowExecutionResult,
+  ResearchWorkflowItem,
+  ResearchWorkflowRemediationBatchResult,
+  ResearchWorkflowRemediationContext,
+  ResearchWorkflowTaskActionResult,
   SessionItem,
   SkillItem,
   StreamEvent,
@@ -112,6 +124,199 @@ export async function getStatus(): Promise<{
   tool_count: number;
 }> {
   return requestJson("/api/agent/status", "Status request failed");
+}
+
+export async function getResearchOverview(): Promise<ResearchOverview> {
+  return requestJson(
+    "/api/research/overview",
+    "Research overview request failed",
+  );
+}
+
+export async function listResearchProjects(): Promise<ResearchProjectItem[]> {
+  return requestJson(
+    "/api/research/projects",
+    "Research projects request failed",
+  );
+}
+
+export async function getResearchProjectDashboard(
+  projectId: string,
+): Promise<ResearchDashboard> {
+  return requestJson(
+    `/api/research/projects/${encodeURIComponent(projectId)}/dashboard`,
+    "Research project dashboard request failed",
+  );
+}
+
+export async function listResearchWorkflows(
+  projectId?: string,
+): Promise<ResearchWorkflowItem[]> {
+  return requestJson(
+    withQuery("/api/research/workflows", { project_id: projectId }),
+    "Research workflows request failed",
+  );
+}
+
+export async function listResearchClaims(
+  projectId?: string,
+): Promise<ResearchClaimItem[]> {
+  return requestJson(
+    withQuery("/api/research/claims", { project_id: projectId }),
+    "Research claims request failed",
+  );
+}
+
+export async function getResearchClaimGraph(
+  claimId: string,
+): Promise<ResearchClaimGraph> {
+  return requestJson(
+    `/api/research/claims/${encodeURIComponent(claimId)}/graph`,
+    "Claim graph request failed",
+  );
+}
+
+export async function previewResearchReminders(
+  projectId?: string,
+): Promise<ResearchReminderItem[]> {
+  return requestJson(
+    withQuery("/api/research/reminders", { project_id: projectId }),
+    "Research reminders request failed",
+  );
+}
+
+export async function executeResearchWorkflow(
+  workflowId: string,
+  payload?: { agent_id?: string; session_id?: string },
+): Promise<ResearchWorkflowExecutionResult> {
+  return requestJson(
+    `/api/research/workflows/${encodeURIComponent(workflowId)}/execute`,
+    "Research workflow execution failed",
+    {
+      method: "POST",
+      body: {
+        agent_id: payload?.agent_id ?? "",
+        session_id: payload?.session_id ?? "",
+      },
+    },
+  );
+}
+
+export async function dispatchResearchWorkflowTask(
+  workflowId: string,
+  taskId: string,
+): Promise<ResearchWorkflowTaskActionResult> {
+  return requestJson(
+    `/api/research/workflows/${encodeURIComponent(workflowId)}/tasks/${encodeURIComponent(taskId)}/dispatch`,
+    "Research workflow task dispatch failed",
+    {
+      method: "POST",
+    },
+  );
+}
+
+export async function executeResearchWorkflowTask(
+  workflowId: string,
+  taskId: string,
+): Promise<ResearchWorkflowTaskActionResult> {
+  return requestJson(
+    `/api/research/workflows/${encodeURIComponent(workflowId)}/tasks/${encodeURIComponent(taskId)}/execute`,
+    "Research workflow task execution failed",
+    {
+      method: "POST",
+    },
+  );
+}
+
+export async function getResearchWorkflowRemediation(
+  workflowId: string,
+): Promise<ResearchWorkflowRemediationContext> {
+  return requestJson(
+    `/api/research/workflows/${encodeURIComponent(workflowId)}/remediation`,
+    "Research workflow remediation request failed",
+  );
+}
+
+export async function dispatchResearchWorkflowRemediation(
+  workflowId: string,
+  limit = 3,
+): Promise<ResearchWorkflowRemediationBatchResult> {
+  return requestJson(
+    withQuery(
+      `/api/research/workflows/${encodeURIComponent(workflowId)}/remediation/dispatch`,
+      { limit },
+    ),
+    "Research workflow remediation dispatch failed",
+    {
+      method: "POST",
+    },
+  );
+}
+
+export async function executeResearchWorkflowRemediation(
+  workflowId: string,
+  limit = 3,
+): Promise<ResearchWorkflowRemediationBatchResult> {
+  return requestJson(
+    withQuery(
+      `/api/research/workflows/${encodeURIComponent(workflowId)}/remediation/execute`,
+      { limit },
+    ),
+    "Research workflow remediation execution failed",
+    {
+      method: "POST",
+    },
+  );
+}
+
+export async function dispatchResearchProjectBlockers(
+  projectId: string,
+  workflowLimit = 3,
+  taskLimit = 2,
+): Promise<ResearchProjectBlockerBatchResult> {
+  return requestJson(
+    withQuery(
+      `/api/research/projects/${encodeURIComponent(projectId)}/blockers/dispatch`,
+      { workflow_limit: workflowLimit, task_limit: taskLimit },
+    ),
+    "Research project blocker dispatch failed",
+    {
+      method: "POST",
+    },
+  );
+}
+
+export async function executeResearchProjectBlockers(
+  projectId: string,
+  workflowLimit = 3,
+  taskLimit = 2,
+): Promise<ResearchProjectBlockerBatchResult> {
+  return requestJson(
+    withQuery(
+      `/api/research/projects/${encodeURIComponent(projectId)}/blockers/execute`,
+      { workflow_limit: workflowLimit, task_limit: taskLimit },
+    ),
+    "Research project blocker execution failed",
+    {
+      method: "POST",
+    },
+  );
+}
+
+export async function resumeResearchProjectBlockers(
+  projectId: string,
+  workflowLimit = 3,
+): Promise<ResearchProjectBlockerBatchResult> {
+  return requestJson(
+    withQuery(
+      `/api/research/projects/${encodeURIComponent(projectId)}/blockers/resume`,
+      { workflow_limit: workflowLimit },
+    ),
+    "Research project blocker resume failed",
+    {
+      method: "POST",
+    },
+  );
 }
 
 export async function getControlStatus(): Promise<any> {

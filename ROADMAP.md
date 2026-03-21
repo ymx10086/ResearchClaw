@@ -1,167 +1,242 @@
 # ResearchClaw 路线图
 
-## 定位
+这份路线图按当前代码状态重写，目标是明确：
 
-ResearchClaw 不是“只在终端里跑命令”的工具集合，而是：
+- 哪些能力已经落地
+- 哪些能力已经进入 Alpha 可用
+- 哪些能力仍然是下一阶段重点
 
-- 一个可被 IM 控制的个人科研 Agent 工作台
-- 交互入口以 IM/Console 为主，CLI 负责初始化、配置、运维
-- 参考 CoPaw/OpenClaw 的运行范式：多通道接入 + 常驻运行 + 定时任务 + 可扩展 Skills/MCP
+## 当前定位
 
-一句话目标：
-**用户在 IM 中下达任务，Agent 持续推进文献调研、问题提出、实验执行、写作产出，并把关键进展主动推送回来。**
+ResearchClaw 现在更准确的定义是：
 
-## 北极星场景
+- 一个本地优先的 Research OS
+- 一个带控制面、消息通道、Automation、Cron、Skills、MCP 的长期运行 Agent 平台
+- 一个已经有 project / workflow / claim / evidence / experiment / artifact 主链路的科研工作流系统
 
-用户在飞书发送：
+一句话目标仍然不变：
 
-1. “帮我调研 diffusion model 在医学分割的最新进展，给出空白点”
-2. “基于空白点给 3 个可验证假设，选风险最低的一个”
-3. “开始实验，今晚给我 baseline + ablation 结果”
-4. “按论文结构起草方法和实验章节，附引用”
+**用户在 Console 或 IM 中提出研究任务，系统持续推进，并把过程沉淀成可追踪、可恢复、可复用的科研状态。**
 
-Agent 能在同一会话持续推进，并通过 IM/Console 回传阶段性产物与告警。
+## 当前代码快照
 
-## 目标交互模型（IM 主、CLI 辅）
+### 已经落地
 
-### IM 层（主入口）
+- [x] Gateway Lite 与控制面
+  - `app/gateway/runtime.py`
+  - `app/gateway/health.py`
+  - `app/gateway/schemas.py`
+  - `/api/control/*`
+- [x] 多 Agent / channels / providers / skills / MCP
+  - multi-agent runner
+  - bindings / channel accounts
+  - provider fallback chains
+  - `SKILL.md` + Skills Hub
+  - MCP client 管理
+- [x] Research service / runtime 已接入 gateway
+  - `research_service`
+  - `research_runtime`
+  - proactive cycle 与 health snapshot
+- [x] Research project 抽象
+  - project
+  - workflows
+  - notes
+  - experiments
+  - claims
+  - artifacts
+  - drafts
+- [x] Research workflow runtime
+  - stage / task / artifact / status / dependency
+  - workflow create / pause / resume / cancel / retry
+  - session / channel / automation / cron binding
+  - 持久化 store
+- [x] 结构化 stage worker
+  - `literature_search`
+  - `paper_reading`
+  - `note_synthesis`
+  - `hypothesis_queue`
+  - `experiment_plan`
+  - `experiment_run`
+  - `result_analysis`
+  - `writing_tasks`
+  - `review_and_followup`
+- [x] Claim / evidence graph
+  - claim / evidence / source / artifact schema
+  - paper / note / experiment / citation / generated artifact 关联
+  - claim graph 查询 API
+- [x] Experiment tracking
+  - run schema
+  - parameters / inputs / metrics / outputs / notes
+  - baseline / ablation / comparison
+  - execution binding / event timeline / heartbeat / result ingest
+  - artifact contract / result bundle validation
+- [x] Structured research notes
+  - paper note
+  - idea note
+  - experiment note
+  - writing note
+  - decision log
+- [x] Proactive automation
+  - stale workflow reminder
+  - blocked workflow reminder
+  - remediation task follow-up
+  - paper watch reminder
+  - batch dispatch / execute / resume
+- [x] Console Research 页面
+  - project dashboard
+  - execution health
+  - recent blockers
+  - claim graph
+  - remediation detail / batch actions
 
-- 自然语言任务驱动
-- 轻量控制指令（示例）：
-  - `/plan`
-  - `/status`
-  - `/pause`
-  - `/resume`
-  - `/deliver`
-  - `/evidence`
+### 已经具备最小闭环，但还不够强
 
-### CLI 层（控制面）
+- [~] 文献调研闭环
+  - 已有 literature search / paper reading / notes / claims
+  - 还缺高质量去重、打分、evidence matrix、related-work 产物
+- [~] 证据链
+  - 已有 claim/evidence graph 与查询
+  - 还缺更严格的 claim-evidence validator 与冲突分析
+- [~] 实验执行
+  - 已有 local / command / notebook / external / file-watch execution binding
+  - 还缺更强的外部 runner adapter、queue integration、notebook orchestration
+- [~] 写作链
+  - 已有 writing_tasks / review_and_followup / draft artifact
+  - 还缺章节级写作器、reviewer mode、submission packaging
+- [~] 长期陪伴
+  - 已有 project dashboard、blockers、remediation、proactive cycle
+  - 还缺更完整的 project-level timeline、reporting、复盘视图
 
-- 初始化与配置：`researchclaw init`, `researchclaw channels config`
-- 运维与诊断：`researchclaw daemon`, `researchclaw cron`, `researchclaw channels list`
-- 本地开发与调试：`researchclaw app` + console dev server
+### 仍然没有做完的关键能力
 
-## 架构路线（对齐现有基础）
+- [ ] evidence matrix 与跨论文证据聚合
+- [ ] 强约束的 claim-evidence validator
+- [ ] reproducibility gate
+- [ ] submission bundle / camera-ready packaging
+- [ ] 更系统的 execution backend catalog
+- [ ] 学科/场景化 research agent 编排模板
 
-### A. Channel Runtime（多通道入口）
+## 里程碑状态
 
-- 统一会话语义：不同渠道消息归一到统一 request/event
-- 队列与去重：保证同一会话不会重复响应、乱序响应
-- 主动推送能力：实验完成、心跳摘要、失败告警可回推到上次活跃渠道
+### M0：运行时基础设施
 
-### B. Control Plane（运行控制面）
+状态：已完成到可用阶段。
 
-- 常驻状态可观测：runner/channels/cron/mcp 健康状态
-- 配置热更新：模型、通道、定时任务变更尽量无感生效
-- 故障恢复：重启后会话与关键任务状态可恢复
-- Gateway Lite：把 runtime / ingress / dispatch / health 边界从 `_app.py` 和 routers 中抽出，但保持单体部署
+范围：
 
-### F. Gateway Lite（单体内网关边界）
+- gateway-lite 单体边界
+- control plane
+- channels
+- providers / skills / MCP / automation / cron
 
-- 统一 runtime access：runner / channels / cron / mcp / automation store 通过统一 gateway runtime 暴露
-- 统一 ingress 语义：automation trigger、channel ingress、manual run、future webhook 使用一致的入口模型
-- 统一 dispatch 语义：channel / user / session / agent 路由收敛到同层
-- 统一 health contract：控制面和观测页共享一套 runtime snapshot
-- 保持单体：当前不拆独立 gateway 进程，不引入额外部署复杂度
+### M1：Research 状态层
 
-### C. Research Workflow Engine（科研流程引擎）
+状态：已完成到 Alpha 阶段。
 
-- 从“单轮问答”升级为“阶段化科研工作流”
-- 阶段：
-  - 文献检索与筛选
-  - 研究问题与假设生成
-  - 实验计划与执行
-  - 统计分析与结论校验
-  - 论文草稿与审稿修订
+范围：
 
-### D. Evidence & Memory（证据与记忆层）
+- project / workflow / task / note / claim / evidence / experiment / artifact schema
+- 持久化 store
+- API 与 console 基本可视化
 
-- 产物结构化落盘（project/question/hypothesis/experiment/result/draft）
-- claim-evidence 绑定（每个结论可追溯到实验与引用）
-- 长会话压缩与跨会话记忆，避免上下文漂移
+### M2：结构化 research workflow
 
-### E. Scheduler & Autopilot（主动推进）
+状态：已完成最小闭环。
 
-- heartbeat 驱动“低频自检 + 高价值提醒”
-- cron 驱动定时任务（论文摘要、实验巡检、截止日提醒）
-- 支持“被动响应 + 主动推进”双模式
+范围：
 
-## 里程碑与验收标准（按 IM Agent 目标重排）
+- 结构化 stage worker
+- workflow 持续推进
+- claim/evidence/notes/experiments 回写
+- blocker 与 remediation
 
-### M1（2026-03-07 ~ 2026-04-15）：IM 基础设施稳态
-- [ ] 通道会话统一协议（session/user/message/event）
-- [ ] 多通道稳定性增强（去重、合并、限流、错误隔离）
-- [ ] 控制面状态页与诊断命令完善
-- 验收标准
-- [ ] 至少 2 个 IM 渠道 + Console 连续稳定运行 7 天
-- [ ] 消息重复响应率 < 1%，关键错误可观测
+### M3：实验执行与结果接回
 
-### M2（2026-04-16 ~ 2026-06-01）：文献调研工作流（IM 内闭环）
-- [ ] 文献检索、去重、打分、证据提取流水线
-- [ ] 产出 evidence matrix 与 related-work 草案
-- [ ] IM 中支持“继续追问 + 缩小范围 + 一键导出”
-- 验收标准
-- [ ] 用户可仅在 IM 完成从主题到文献综述草稿
+状态：已完成最小主链，继续补强。
 
-### M3（2026-06-02 ~ 2026-08-01）：问题提出到实验编排
-- [ ] gap/question/hypothesis 结构化生成
-- [ ] 实验计划、运行、日志、元数据自动归档
-- [ ] 基线对比与消融流程标准化
-- 验收标准
-- [ ] 在 IM 发起实验后，Agent 可异步执行并主动回传结果
+已完成：
 
-### M4（2026-08-02 ~ 2026-10-01）：写作与证据一致性
-- [ ] 按论文结构生成方法/实验/结论草稿
-- [ ] claim-evidence 一致性检查器
-- [ ] 审稿人模式（质疑点、补实验建议、过度结论检测）
-- 验收标准
-- [ ] 生成稿件中核心结论可追溯到具体实验与引用
+- execution binding
+- external result ingest
+- local command/notebook launcher
+- result bundle ingest
+- contract validation
 
-### M5（2026-10-02 ~ 2026-12-01）：全流程自动化与提交准备
-- [ ] 提交前检查清单（引用、证据、复现、风险）
-- [ ] 复现材料打包（配置、seed、环境、日志、脚本）
-- [ ] 一键“从任务到 submission bundle”编排
-- 验收标准
-- [ ] 用户在 IM 发出高层目标后，系统可完成端到端交付并回传包
+待补强：
 
-## Epic 拆解（建议创建子 Issue）
+- 更强 execution adapters
+- runner preset / environment catalog
+- reproducibility 和 replay
 
-- [ ] EPIC: IM-native session protocol and channel reliability
-- [ ] EPIC: Gateway Lite runtime/ingress/dispatch boundary
-- [ ] EPIC: Research workflow state machine and artifact schema
-- [ ] EPIC: Literature triage and evidence matrix pipeline
-- [ ] EPIC: Hypothesis generation and experiment orchestration
-- [ ] EPIC: Claim-evidence validator and reviewer mode
-- [ ] EPIC: Scheduler/autopilot for proactive research progress
-- [ ] EPIC: Submission packaging and reproducibility gate
+### M4：Project 运维与主动推进
 
-## 建议标签与里程碑
+状态：已完成 Alpha 主链。
 
-- Labels: `roadmap`, `epic`, `im-first`, `channels`, `runtime`, `research-workflow`, `experiments`, `writing`, `reproducibility`
-- Milestones: `M1-IM-Runtime`, `M2-Survey`, `M3-Experiment`, `M4-Writing`, `M5-Submission`
+已完成：
 
-## KPI（按 IM Agent 形态）
+- project dashboard
+- execution health
+- recent blockers
+- per-task / per-workflow / per-project dispatch / execute / resume
 
-- IM 端到端任务完成率（topic -> draft/package）>= 70%
-- 主动推送成功率 >= 95%
-- 实验可重放成功率 >= 90%
-- 关键结论证据可回溯率 >= 95%
-- 人工接管率（需手动修复流程）逐季下降
+待补强：
 
-## 风险与缓解
+- project timeline
+- richer review surfaces
+- better reporting/export
 
-- [ ] 多通道行为不一致 -> 统一事件协议 + 渠道适配层测试矩阵
-- [ ] 长任务中断/漂移 -> 工作流状态机 + checkpoint + resume
-- [ ] 结论缺证据 -> 强制 claim-evidence gate
-- [ ] 主动任务扰民 -> 可配置静默时段、优先级和通知策略
-- [ ] 安全边界不足 -> 工具权限分级、敏感操作确认、审计日志
+### M5：高质量科研交付
 
-## 未来 2 周优先项（立即可执行）
+状态：未完成。
 
-- [ ] 完成“IM 主入口、CLI 控制面”的文档与命令语义对齐
-- [ ] 落地 Gateway Lite Phase 1：新增 `app/gateway/*`，把 runtime boot/shutdown 从 `_app.py` 抽出
-- [ ] 定义科研流程状态机与 artifact schema（最小可用版本）
-- [ ] 打通“文献调研 -> evidence matrix -> IM 回传”第一条闭环
-- [ ] 为通道可靠性建立回归用例（去重、并发、恢复）
+目标：
 
-加油，科研图景
+- evidence matrix
+- stronger validation
+- reviewer mode
+- submission bundle
+- reproducibility checklist
+
+## 下一阶段最重要的事
+
+### 1. 把“可运行闭环”升级成“高质量闭环”
+
+优先补：
+
+- evidence matrix
+- claim-evidence conflict detection
+- cross-paper synthesis ranking
+
+### 2. 把 execution binding 升级成更真实的执行后端
+
+优先补：
+
+- queue / remote executor adapter
+- notebook execution contract
+- richer result bundle schema registry
+
+### 3. 把写作与交付真正接上
+
+优先补：
+
+- section-level writing tasks
+- reviewer / revision loop
+- submission bundle 与 reproducibility gate
+
+### 4. 把 project dashboard 做成长期研究控制面
+
+优先补：
+
+- timeline / weekly summary
+- blocker drill-down
+- project report / export
+
+## 当前不优先做什么
+
+当前阶段不优先做：
+
+- 独立 gateway 进程
+- 多节点控制面
+- 通用 OpenAI facade gateway
+- 只靠 prompt、没有状态层的“伪 workflow”
+- 脱离科研闭环价值的表面 UI 美化

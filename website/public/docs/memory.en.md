@@ -1,28 +1,48 @@
-# Memory System
+# Memory
 
-ResearchClaw's Memory system manages conversation history and context, ensuring the AI assistant understands conversational continuity.
+ResearchClaw keeps a persistent research memory for the active runtime.
 
-## How It Works
+## What It Tracks
 
-Every conversation is recorded in Memory. When a new message arrives, the system loads relevant history as context to help the model understand and respond better.
+- recent conversation messages
+- session count
+- discussed papers
+- research notes
+- a compact summary of older conversation context
+- plus a separate structured research state for projects, workflows, claims, experiments, and artifacts
 
-## Message Storage
+## Storage
 
-Messages are stored in the `memory/` folder under the working directory, organized by session ID:
+The current implementation stores memory state under the working dir:
 
-```
-working/
+```text
+~/.researchclaw/
 └── memory/
-    ├── session_001.json
-    ├── session_002.json
-    └── ...
+    ├── memory_state.json
+    └── *.md                # optional notes / memory markdown files
 ```
 
-## Context Window
+This is different from older docs that described one JSON file per session.
 
-Due to LLM context window limitations, the Memory system automatically manages message truncation and compression.
+The structured Research OS state is stored separately:
 
-Related:
+```text
+~/.researchclaw/
+└── research/
+    └── state.json
+```
 
-- [Compact](./compact.md) — Conversation compression
-- [Commands](./commands.md) — Memory management commands
+## Related Runtime Features
+
+- `/history` shows memory stats
+- `/papers` lists recently discussed papers
+- `/refs` summarizes the BibTeX library
+- `memory_search()` searches the memory layer
+- workspace APIs can list and read memory markdown files
+- the Research APIs manage structured notes such as paper notes, experiment notes, writing notes, and decision logs
+
+## Notes
+
+- memory is local to the current runtime workspace
+- compaction is covered separately in [Compact](./compact.md)
+- chat/session memory and structured research state are related, but not the same storage layer

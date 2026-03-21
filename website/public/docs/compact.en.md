@@ -1,36 +1,47 @@
-# Compact (Conversation Compression)
+# Compact
 
-When conversation history becomes too long, the Compact mechanism automatically compresses old messages, retaining key information while saving context window space.
-
-## How It Works
-
-1. When message count or token count exceeds the threshold, Compact is triggered
-2. The system uses the LLM to summarize old messages
-3. The summary replaces original messages, freeing context space
-4. New messages continue to accumulate in the compressed context
-
-## Configuration
-
-Configure Compact parameters in `config.yaml`:
-
-```yaml
-memory:
-  compact:
-    enabled: true
-    max_messages: 50
-    summary_prompt: "Summarize the key points of the conversation above"
-```
+Compaction reduces old conversation context while keeping a summary.
 
 ## Manual Trigger
 
-You can also manually trigger compression in chat:
+In chat:
 
-```
+```text
 /compact
 ```
 
-## Notes
+You can inspect the current summary with:
 
-- Compact calls the LLM to generate summaries, incurring additional API costs
-- Compressed summaries may lose some detail
-- Adjust thresholds based on your use case
+```text
+/compact_str
+```
+
+## Automatic Trigger
+
+The current implementation uses a simple heuristic:
+
+- estimate tokens as `message_count * 300`
+- compare that with `max_input_tokens * RESEARCHCLAW_MEMORY_COMPACT_RATIO`
+- compact when the estimate crosses the threshold
+
+## Current Config Surface
+
+Compaction is not configured through `config.yaml`.
+
+Relevant env vars today are:
+
+- `RESEARCHCLAW_MEMORY_COMPACT_KEEP_RECENT`
+- `RESEARCHCLAW_MEMORY_COMPACT_RATIO`
+
+Defaults in code are:
+
+- keep recent messages: `3`
+- ratio: `0.7`
+
+## What Compaction Does
+
+- preserves the most recent messages
+- folds older messages into a compact summary
+- keeps the summary in persistent memory state
+
+The current implementation is heuristic and local; it is not a full evidence-preserving summarization pipeline.

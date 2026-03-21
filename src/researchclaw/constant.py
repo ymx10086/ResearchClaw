@@ -45,6 +45,14 @@ CUSTOMIZED_SKILLS_DIR: str = os.environ.get(
 
 # ── Research-specific directories ───────────────────────────────────────────
 
+RESEARCH_DIR: str = os.environ.get(
+    "RESEARCHCLAW_RESEARCH_DIR",
+    str(Path(WORKING_DIR) / "research"),
+)
+RESEARCH_STATE_FILE: str = os.environ.get(
+    "RESEARCHCLAW_RESEARCH_STATE_FILE",
+    "state.json",
+)
 MEMORY_DIR: str = os.environ.get(
     "RESEARCHCLAW_MEMORY_DIR",
     str(Path(WORKING_DIR) / "memory"),
@@ -64,6 +72,10 @@ EXPERIMENTS_DIR: str = os.environ.get(
 MD_FILES_DIR: str = os.environ.get(
     "RESEARCHCLAW_MD_FILES_DIR",
     str(Path(WORKING_DIR) / "md_files"),
+)
+DRAFTS_DIR: str = os.environ.get(
+    "RESEARCHCLAW_DRAFTS_DIR",
+    str(Path(WORKING_DIR) / "drafts"),
 )
 EXAMPLES_DIR: str = os.environ.get(
     "RESEARCHCLAW_EXAMPLES_DIR",
@@ -104,6 +116,19 @@ PAPER_DIGEST_HOUR: int = int(
 PAPER_DIGEST_ENABLED: bool = (
     os.environ.get("RESEARCHCLAW_PAPER_DIGEST_ENABLED", "false").lower()
     == "true"
+)
+
+# ── Research workflow automation defaults ──────────────────────────────────
+
+RESEARCH_FOLLOWUP_ENABLED: bool = (
+    os.environ.get("RESEARCHCLAW_RESEARCH_FOLLOWUP_ENABLED", "true").lower()
+    == "true"
+)
+RESEARCH_FOLLOWUP_INTERVAL_MINUTES: int = int(
+    os.environ.get("RESEARCHCLAW_RESEARCH_FOLLOWUP_INTERVAL_MINUTES", "30"),
+)
+RESEARCH_WORKFLOW_STALE_HOURS: int = int(
+    os.environ.get("RESEARCHCLAW_RESEARCH_WORKFLOW_STALE_HOURS", "24"),
 )
 
 # ── Server configuration ──────────────────────────────────────────────────

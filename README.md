@@ -1,10 +1,8 @@
 <div align="center">
 
-# 🔬 ResearchClaw
+# ResearchClaw
 
-**Your AI-Powered Research Assistant**
-
-An intelligent agent-based assistant designed specifically for academic researchers — powered by LLMs, grounded in the scientific workflow.
+Local-first Research OS for papers, workflows, experiments, channels, and automation.
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://python.org)
 [![License](https://img.shields.io/badge/license-Apache%202.0-green.svg)](LICENSE)
@@ -13,50 +11,59 @@ An intelligent agent-based assistant designed specifically for academic research
 
 </div>
 
----
+## What It Is
 
-## ✨ What is ResearchClaw?
+ResearchClaw is not just a chat wrapper. The current codebase is a local-first FastAPI application that combines:
 
-ResearchClaw is an AI research assistant that runs on **your own machine**. Built on the [AgentScope](https://github.com/modelscope/agentscope) framework, it uses a ReAct agent with specialized research tools to help you:
+- a long-running app runtime with control-plane APIs
+- a web console for chat, papers, research, channels, sessions, cron jobs, models, skills, workspace, environments, and MCP
+- multi-agent routing with per-agent workspaces and binding rules
+- a persistent research state layer for projects, workflows, tasks, notes, claims, evidences, experiments, artifacts, and drafts
+- built-in channels for `console`, `telegram`, `discord`, `dingtalk`, `feishu`, `imessage`, `qq`, and `voice`
+- model/provider management with multiple providers, multiple models per provider, and fallback chains
+- standard `SKILL.md` support, Skills Hub search/install APIs, MCP client management, and custom channels
+- automation triggers, cron jobs, heartbeat, proactive reminders, and runtime observability
+- paper search/download, BibTeX utilities, LaTeX helpers, data analysis, browser/file tools, and structured research memory
 
-- 📄 **Search & discover papers** — ArXiv, Semantic Scholar, Google Scholar
-- 📚 **Manage references** — BibTeX import/export, citation graph exploration
-- 🔍 **Read & summarize papers** — Extract key findings from PDFs
-- 📊 **Analyze data** — Statistical analysis, visualization, experiment tracking
-- ✍️ **Write & review** — LaTeX assistance, literature review generation
-- ⏰ **Stay updated** — Daily paper digests, deadline reminders, citation alerts
-- 🧠 **Build knowledge** — Persistent research notes and memory across sessions
+It is still an Alpha project, but it is no longer just a platform shell. The code now includes a minimal research workflow runtime, claim/evidence graph, experiment tracking, blocker remediation, and project dashboard. The biggest remaining gaps are evidence-matrix quality, stronger claim-evidence validation, richer external execution adapters, and submission/reproducibility packaging.
 
-## 🚀 Quick Start
+## Quick Start
 
-### 1) Install (from this repository)
+### 1) Clone and install from source
 
 ```bash
-pip install -e ".[dev]"
+git clone https://github.com/MingxinYang/ResearchClaw.git
+cd ResearchClaw
+pip install -e .
 ```
 
-Run this in the repository root.
-
-### 2) Initialize workspace
+### 2) Initialize the workspace
 
 ```bash
 researchclaw init --defaults --accept-security
 ```
 
-This creates `~/.researchclaw` and bootstrap files.
+This creates:
 
-### 3) Configure your model provider
+- working dir: `~/.researchclaw`
+- secret dir: `~/.researchclaw.secret`
+- bootstrap Markdown files such as `SOUL.md`, `AGENTS.md`, `PROFILE.md`, and `HEARTBEAT.md`
+
+### 3) Configure a model provider
 
 ```bash
 researchclaw models config
-# or:
-researchclaw models add openai --type openai --model gpt-4o --api-key sk-...
 ```
 
-The first provider you add is activated automatically. If you add more later,
-switch the active one from the Models page or rerun `researchclaw models config`.
+Or add one directly:
 
-### 4) Start service
+```bash
+researchclaw models add openai --type openai --model gpt-5 --api-key sk-...
+```
+
+Supported provider types in code today: `openai`, `anthropic`, `gemini`, `ollama`, `dashscope`, `deepseek`, `minimax`, `other`, `custom`.
+
+### 4) Start the service
 
 ```bash
 researchclaw app --host 127.0.0.1 --port 8088
@@ -64,272 +71,152 @@ researchclaw app --host 127.0.0.1 --port 8088
 
 Open [http://127.0.0.1:8088](http://127.0.0.1:8088).
 
-### 5) Frontend (Console) development
-
-Run backend first:
-
-```bash
-researchclaw app
-```
-
-In another terminal, start the frontend dev server:
+If the page says `Console not found`, build the frontend once:
 
 ```bash
 cd console
 npm install
-npm run dev
-```
-
-Then open the Vite URL (usually [http://localhost:5173](http://localhost:5173)).
-The frontend dev server proxies `/api` requests to `http://127.0.0.1:8088`.
-
-To build production frontend assets:
-
-```bash
-cd console
 npm run build
 ```
 
-`console/dist` will be served automatically by the backend when available.
+The backend automatically serves `console/dist` when it exists.
 
-### 6) One-liner install (macOS / Linux)
+### 5) Open the Research page
 
-```bash
-curl -fsSL https://researchclaw.github.io/install.sh | bash
+After startup, open the **Research** page in the console to:
+
+- create a project
+- inspect workflows, claims, and reminders
+- view execution health and recent blockers
+- dispatch, execute, or resume remediation work
+
+## What You Get Today
+
+### Runtime and control plane
+
+- FastAPI app with `/api/health`, `/api/version`, `/api/control/*`, `/api/automation/*`, `/api/providers`, `/api/skills`, `/api/mcp`, `/api/workspace`, and more
+- gateway-style runtime bootstrapping for runner, channels, cron, MCP, automation store, and config watcher
+- runtime status snapshots for agents, sessions, channels, cron, heartbeat, skills, automation runs, and research services
+
+### Research OS core
+
+- project abstraction with persistent `project -> workflow -> task -> artifact` relationships
+- workflow stages for `literature_search`, `paper_reading`, `note_synthesis`, `hypothesis_queue`, `experiment_plan`, `experiment_run`, `result_analysis`, `writing_tasks`, and `review_and_followup`
+- structured notes including paper notes, idea notes, experiment notes, writing notes, and decision logs
+- claim/evidence graph that can link papers, notes, experiments, PDF chunks, citations, generated tables, and artifacts
+- experiment tracking with execution bindings, heartbeat/result ingestion, contract validation, result bundle validation, and compare APIs
+- proactive workflow reminders plus remediation tasks for missing metrics, outputs, or artifact types
+- project dashboards and blocker panels, including batch dispatch/execute/resume actions in the console and APIs
+
+### Research tools and skills
+
+Built-in tools registered by the agent include:
+
+- `semantic_scholar_search`
+- `bibtex_search`, `bibtex_add_entry`, `bibtex_export`
+- `latex_template`, `latex_compile_check`
+- `data_describe`, `data_query`
+- `run_shell`, `read_file`, `write_file`, `edit_file`, `append_file`
+- `browse_url`, `browser_use`, `send_file`, `memory_search`
+- `skills_list`, `skills_activate`, `skills_read_file`
+
+Bundled skills currently shipped in `src/researchclaw/agents/skills/` include:
+
+- `arxiv`
+- `browser_visible`
+- `citation_network`
+- `cron`
+- `dingtalk_channel`
+- `docx`
+- `experiment_tracker`
+- `figure_generator`
+- `file_reader`
+- `himalaya`
+- `literature_review`
+- `news`
+- `paper_summarizer`
+- `pdf`
+- `pptx`
+- `research_notes`
+- `research_workflows`
+- `xlsx`
+
+### Workspace model
+
+Runtime data lives under the working directory, while secrets are stored separately:
+
+```text
+~/.researchclaw/
+├── config.json
+├── jobs.json
+├── chats.json
+├── research/
+│   └── state.json
+├── sessions/
+├── active_skills/
+├── customized_skills/
+├── papers/
+├── references/
+├── experiments/
+├── memory/
+├── md_files/
+├── custom_channels/
+└── researchclaw.log
+
+~/.researchclaw.secret/
+├── envs.json
+└── providers.json
 ```
 
-### Local CI checks
+Provider credentials and persisted environment variables are intentionally kept out of the working directory.
 
-Run the same checks used by GitHub Actions before pushing:
+## Development
+
+Backend checks:
 
 ```bash
-scripts/check-ci.sh
+pip install -e ".[dev]"
+PYTHONPATH=src pytest -q
 ```
 
-If dependencies are already installed, use:
+Console build:
+
+```bash
+npm --prefix console run build
+```
+
+Website build:
+
+```bash
+corepack pnpm --dir website run build
+```
+
+Repo-wide helper:
 
 ```bash
 scripts/check-ci.sh --skip-install
 ```
 
-## 🚢 Deployment
+## Docs
 
-### Single-machine deployment (recommended baseline)
+Main documentation files in this repository:
 
-1. Set persistent paths and bind address.
-2. Start with a process manager.
+- [Quick start](website/public/docs/quickstart.en.md)
+- [Deployment](website/public/docs/deployment.en.md)
+- [Console](website/public/docs/console.en.md)
+- [Channels](website/public/docs/channels.en.md)
+- [Skills](website/public/docs/skills.en.md)
+- [MCP](website/public/docs/mcp.en.md)
+- [Memory](website/public/docs/memory.en.md)
+- [Config and working dir](website/public/docs/config.en.md)
+- [CLI](website/public/docs/cli.en.md)
+- [FAQ](website/public/docs/faq.en.md)
+- [Roadmap](ROADMAP.md)
 
-```bash
-export RESEARCHCLAW_WORKING_DIR=/data/researchclaw
-export RESEARCHCLAW_SECRET_DIR=/data/researchclaw.secret
-export RESEARCHCLAW_HOST=0.0.0.0
-export RESEARCHCLAW_PORT=8088
-export RESEARCHCLAW_AUTOMATION_TOKEN=change-me
+## Status
 
-researchclaw app --host 0.0.0.0 --port 8088
-```
+The current codebase is best described as:
 
-Health check endpoint: `GET /api/health`
-
-### Docker deployment (self-build)
-
-```bash
-docker build -f deploy/Dockerfile -t researchclaw:local .
-docker run -d \
-  --name researchclaw \
-  -p 8088:8088 \
-  -e PORT=8088 \
-  -e RESEARCHCLAW_WORKING_DIR=/app/working \
-  -e RESEARCHCLAW_SECRET_DIR=/app/working.secret \
-  -e RESEARCHCLAW_AUTOMATION_TOKEN=change-me \
-  -v researchclaw-working:/app/working \
-  -v researchclaw-secret:/app/working.secret \
-  researchclaw:local
-```
-
-### Production checklist
-
-- Put ResearchClaw behind Nginx/Caddy and enable HTTPS.
-- Persist both working dir and secret dir.
-- Set `RESEARCHCLAW_AUTOMATION_TOKEN` before exposing automation APIs.
-- Restrict inbound IPs for admin/internal endpoints when possible.
-- Monitor `/api/health` and `/api/control/status`.
-
-## 📝 Recent Updates
-
-### 2026-03-11
-
-- Added automation trigger APIs for external systems:
-  token-protected `/api/automation/triggers/agent` supports async execution, stored run history, and optional multi-channel fan-out delivery (`dispatches` / `fanout_channels`).
-- Expanded control-plane observability:
-  `/api/control/status` now includes runtime snapshots for runner sessions, channel queues/workers, cron runtime stats, and automation success/failure counters.
-- Added model fallback + usage observability:
-  streaming and non-streaming chat now support fallback chains, and control plane exposes usage/fallback counters via `/api/control/usage` and `runtime.runner.usage`.
-- Upgraded Console Status page with operational metrics:
-  registered channel count, queue backlog, in-progress keys, and automation success/failure cards.
-- Added channel operations APIs and console controls:
-  custom channel plugin install/remove (`/api/control/channels/custom/*`), account mapping management (`/api/control/channels/accounts`), and routing bindings management (`/api/control/bindings`).
-- Added a richer model/provider configuration UI:
-  multiple preset platforms, per-provider `base_url`, selectable preset models, and manual model entry in the same card.
-- Extended provider storage and APIs to support multiple models per provider while keeping backward compatibility with the old single-model format.
-- Improved web console stability:
-  fixed `/models` static asset fallback handling, `HEAD /` support, provider names containing `/`, and a React rendering error on object-valued workspace fields.
-- Hardened skill compatibility and routing:
-  `SKILL.md` now recognizes OpenClaw/ClawHub-style metadata such as `user-invocable` and `disable-model-invocation`, and Python skills can be loaded from normalized runtime exports like `tools`, `TOOLS`, `register()`, and `get_tools()`.
-- Fixed experiment tracker skill argument compatibility so extra fields such as `status` and alternate `experiment_id` casing no longer crash tool execution.
-- Refreshed README and website docs to match current runtime behavior, with a dedicated deployment guide (single-machine, Docker self-build, and production checklist).
-
-## 🏗️ Architecture
-
-```
-User ─→ Console (Web UI) / CLI / Slack / Email
-          │
-          ▼
-     ResearchClaw App (FastAPI + Uvicorn)
-          │
-          ▼
-     ScholarAgent (ReActAgent)
-     ├── Research Tools: ArXiv, Semantic Scholar, PDF Reader, BibTeX, LaTeX
-     ├── Data Tools: pandas, matplotlib, scipy analysis
-     ├── General Tools: Shell, File I/O, Browser, Memory Search
-     ├── Skills: Paper Summarizer, Literature Review, Experiment Tracker, ...
-     ├── Memory: Research Memory + Knowledge Base + Auto-compaction
-     ├── Model: OpenAI / Anthropic / Gemini / DashScope / Local models
-     └── Crons: Daily Paper Digest, Deadline Reminder, Citation Alerts
-```
-
-## 🔧 Built-in Research Tools
-
-| Tool | Description |
-|------|-------------|
-| `arxiv_search` | Search and download papers from ArXiv |
-| `semantic_scholar_search` | Query Semantic Scholar for papers, authors, citations |
-| `paper_reader` | Extract text, figures, and tables from PDF papers |
-| `bibtex_manager` | Parse, generate, and manage BibTeX references |
-| `latex_helper` | LaTeX syntax assistance and template generation |
-| `data_analysis` | Statistical analysis with pandas, numpy, scipy |
-| `plot_generator` | Create publication-quality figures with matplotlib |
-| `shell` | Execute shell commands |
-| `file_io` | Read, write, and edit files |
-| `browser_control` | Web browsing and information gathering |
-| `memory_search` | Search through research notes and conversation history |
-| `get_current_time` | Get current date and time |
-
-## 📦 Extensible Skills
-
-ResearchClaw ships with research-focused skills that can be customized:
-
-- **arxiv** — Advanced ArXiv search with category filters and alerts
-- **paper_summarizer** — Multi-level paper summarization (abstract → detailed)
-- **literature_review** — Generate structured literature reviews
-- **citation_network** — Explore citation graphs and find related work
-- **experiment_tracker** — Log experiments, parameters, and results
-- **figure_generator** — Create publication-ready figures
-- **research_notes** — Structured note-taking with tagging
-- **pdf** — Advanced PDF processing and annotation
-
-### Standard Skill Support
-
-ResearchClaw now supports standard SKILL-based skills beyond its built-ins.
-
-- Preferred skill format: one directory per skill, with a required `SKILL.md`
-- Optional extra files: `references/` and `scripts/`
-- Supported discovery locations:
-  - project-local `skills/` (OpenClaw-style)
-  - project-local `.agents/skills/`
-  - project-local `.researchclaw/skills/`
-  - user-level `~/.agents/skills/`
-  - user-level `~/.researchclaw/skills/`
-- Built-in Python skills now also ship with `SKILL.md` so they follow the same contract
-
-At runtime, ResearchClaw discovers these skills, syncs them into `active_skills/`, and exposes:
-
-- `skills_list()` to inspect available skills
-- `skills_activate(name)` to load the full `SKILL.md` plus bundled file inventory
-- `skills_read_file(name, path)` to read `SKILL.md`, `references/*`, or `scripts/*`
-
-## ⚙️ Configuration
-
-ResearchClaw stores all data locally in `~/.researchclaw/`:
-
-```
-~/.researchclaw/
-├── config.json          # Main configuration
-├── .env                 # API keys and environment variables
-├── jobs.json            # Scheduled tasks (paper digests, reminders)
-├── chats.json           # Conversation history
-├── active_skills/       # Currently active skills
-├── customized_skills/   # Your custom skills
-├── memory/              # Research notes and knowledge base
-├── papers/              # Downloaded papers cache
-├── references/          # BibTeX library
-└── experiments/         # Experiment tracking data
-```
-
-### LLM Provider Setup
-
-ResearchClaw supports multiple LLM providers:
-
-```bash
-# Set up with OpenAI
-researchclaw models add openai --type openai --model gpt-4o --api-key sk-...
-
-# Or Anthropic
-researchclaw models add anthropic --type anthropic --model claude-3-5-sonnet --api-key sk-ant-...
-
-# Or Google Gemini (Gemini API / AI Studio key)
-researchclaw models add gemini --type gemini --model gemini-2.5-flash --api-key AIza... --base-url https://generativelanguage.googleapis.com/v1beta/openai/
-
-# Or use local models via Ollama
-researchclaw models add ollama --type ollama --model qwen3:8b --base-url http://localhost:11434/v1
-```
-
-The web UI also includes a `Google Gemini` preset in the Models page.
-The first provider added via CLI becomes the active provider automatically.
-
-## 🤖 Agent Commands
-
-In the chat interface, use these commands:
-
-| Command | Description |
-|---------|-------------|
-| `/new` | Start a new conversation |
-| `/compact` | Compress conversation memory |
-| `/clear` | Clear all history |
-| `/history` | Show conversation statistics |
-| `/papers` | List recently discussed papers |
-| `/refs` | Show current reference library |
-
-## 📋 CLI Reference
-
-```bash
-researchclaw init          # Interactive setup wizard
-researchclaw app           # Start the web server
-researchclaw models list   # List model providers
-researchclaw channels list # List channel configuration
-researchclaw env list      # List persisted environment variables
-researchclaw skills list   # List available skills
-researchclaw cron list     # List scheduled jobs via API
-researchclaw daemon status # Runtime status from control plane
-```
-
-## 🛡️ Privacy & Security
-
-- **All data stays local** — your papers, notes, and API keys never leave your machine
-- **No telemetry** — ResearchClaw does not collect usage data
-- **You control the LLM** — choose your provider, use local models for sensitive research
-
-## 🤝 Contributing
-
-Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-## 📄 License
-
-Apache License 2.0 — see [LICENSE](LICENSE) for details.
-
-## 🙏 Acknowledgements
-
-ResearchClaw's channel, scheduling, and console interaction design are inspired by the architecture of [CoPaw](https://github.com/agentscope-ai/CoPaw).
-Thanks to the CoPaw project for providing a practical and well-validated reference implementation.
-
-![微信二维码](imgs/wx-20260317.jpg)
+- already strong on runtime infrastructure, control plane, channels, and provider/skill compatibility
+- already usable for persistent research projects, workflow execution, experiment tracking, claim/evidence linking, and blocker handling
+- still incomplete as a full autonomous research platform: evidence-matrix quality, rigorous validators, deeper execution backends, and submission packaging remain ahead

@@ -47,6 +47,8 @@ def test_gateway_runtime_snapshot_and_health_flags() -> None:
         "cron_manager": False,
         "config_watcher": False,
         "automation_store": False,
+        "research_service": False,
+        "research_runtime": False,
     }
 
 

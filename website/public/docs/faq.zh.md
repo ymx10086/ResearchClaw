@@ -1,45 +1,39 @@
-# 常见问题（FAQ）
+# 常见问题
 
-<details>
-<summary>支持哪些模型提供商？</summary>
+下面的回答按当前仓库代码状态编写。
 
-支持 OpenAI、Anthropic、DashScope、DeepSeek、Ollama，以及自定义 OpenAI 兼容提供商。
+### 现在已经比较接近可用产品的部分是什么？
 
-</details>
+当前最成熟的是运行时平台层和有状态的 research foundation：
 
-<details>
-<summary>数据默认存储在哪里？</summary>
+- app 启停与控制面 API
+- channels、providers、skills、MCP、automation、console
+- project / workflow / task 状态层
+- claim / evidence graph
+- experiment tracking、result bundle ingest、blocker remediation
 
-默认分为两部分：
+真正还没做完的是更高层的科研质量问题：evidence matrix 打分、更严格的 claim validator、更丰富的外部执行适配器，以及 submission packaging。
+
+### 当前支持哪些 provider？
+
+代码里支持的 provider type 有：`openai`、`anthropic`、`gemini`、`ollama`、`dashscope`、`deepseek`、`minimax`、`other`、`custom`。
+
+### 当前内置哪些频道？
+
+`console`、`telegram`、`discord`、`dingtalk`、`feishu`、`imessage`、`qq`、`voice`。
+
+### 数据默认存在哪里？
 
 - 工作数据：`~/.researchclaw`
-- 密钥数据（环境变量/模型提供商）：`~/.researchclaw.secret`
+- 密钥数据：`~/.researchclaw.secret`
 
-</details>
+其中 `envs.json` 和 `providers.json` 都在 secret dir 下。
 
-<details>
-<summary>可以部署到服务器吗？</summary>
+research workflow 的状态默认在 `~/.researchclaw/research/state.json`，除非你覆盖了 research path。
 
-可以。你可以选择：
+### 为什么访问 `/` 会提示 `Console not found`？
 
-- 单机部署：`researchclaw app --host 0.0.0.0 --port 8088`
-- Docker 自建镜像：使用仓库内 `deploy/Dockerfile`
-
-完整步骤见 [部署指南](./deployment.md)。
-
-</details>
-
-<details>
-<summary>自动化触发接口怎么做鉴权？</summary>
-
-在服务端设置 `RESEARCHCLAW_AUTOMATION_TOKEN`，请求侧通过 `Authorization: Bearer <token>`（或 `x-researchclaw-token`）携带相同 token。
-
-</details>
-
-<details>
-<summary>为什么访问 `/` 提示 "Console not found"？</summary>
-
-后端可在无前端构建产物时启动。请执行：
+后端可以在没有预构建 console 的情况下启动。先构建一次前端：
 
 ```bash
 cd console
@@ -47,14 +41,30 @@ npm install
 npm run build
 ```
 
-</details>
+### automation trigger 怎么做鉴权？
 
-<details>
-<summary>频道配置后无法连通，怎么排查？</summary>
+在服务端设置 `RESEARCHCLAW_AUTOMATION_TOKEN`。请求方需要通过 `Authorization: Bearer <token>`、`x-researchclaw-token` 或 `x-researchclaw-automation-token` 发送同一个 token。
 
-1. 核对平台凭证。
-2. 检查机器人权限和回调/webhook 配置。
-3. 确认服务网络可访问平台 API。
-4. 更新频道凭证后重启服务。
+### 为什么新 clone 下来的仓库直接跑 `pytest` 可能失败？
 
-</details>
+如果还没做 editable install，Python 可能找不到 `researchclaw` 包。可以执行：
+
+```bash
+pip install -e ".[dev]"
+```
+
+或者：
+
+```bash
+PYTHONPATH=src pytest -q
+```
+
+### Console 里已经有研究工作流控制面了吗？
+
+有。当前 Console 已经有专门的 Research 页面，包含：
+
+- project dashboard
+- workflow 执行
+- execution health
+- recent blockers
+- remediation drill-down 和 batch actions
