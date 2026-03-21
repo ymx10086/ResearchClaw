@@ -1,57 +1,40 @@
 # Channels
 
-Channels connect ResearchClaw to messaging platforms so the same agent can be reached from multiple entry points.
+Channels let the same runtime reach users from multiple entry points.
 
 ## Built-in Channels
 
 | Channel    | Notes                        |
 | ---------- | ---------------------------- |
-| `console`  | Built-in web console channel |
+| `console`  | built-in web console channel |
 | `telegram` | Telegram bot                 |
 | `discord`  | Discord bot                  |
 | `dingtalk` | DingTalk bot                 |
 | `feishu`   | Feishu bot                   |
+| `imessage` | macOS-only local integration |
 | `qq`       | QQ channel integration       |
-| `imessage` | macOS-only local deployment  |
 | `voice`    | Twilio voice channel         |
 
-## Configure via CLI
+## Basic Config Shape
 
-```bash
-researchclaw channels config
-researchclaw channels list
-```
-
-## Configure via `config.json`
-
-Channel config lives under `channels` in `~/.researchclaw/config.json`:
+Channel configuration lives in `config.json`:
 
 ```json
 {
   "channels": {
     "console": { "enabled": true, "bot_prefix": "[BOT] " },
-    "dingtalk": {
-      "enabled": true,
-      "client_id": "your-client-id",
-      "client_secret": "your-client-secret",
-      "bot_prefix": "[BOT] "
-    },
-    "available": ["console", "dingtalk"]
+    "telegram": { "enabled": false, "bot_token": "" },
+    "available": ["console"]
   }
 }
 ```
 
-## Multi-account Channels
+## Channel Accounts
 
-You can configure per-channel account aliases with `channel_accounts`.
-Each account is materialized as `channel:account_id` at runtime.
+The runtime also supports per-channel account aliases through `channel_accounts`.
 
 ```json
 {
-  "channels": {
-    "telegram": { "enabled": true, "bot_prefix": "[BOT] " },
-    "available": ["console", "telegram", "telegram:lab"]
-  },
   "channel_accounts": {
     "telegram": {
       "lab": { "enabled": true, "bot_prefix": "[LAB] " }
@@ -60,29 +43,37 @@ Each account is materialized as `channel:account_id` at runtime.
 }
 ```
 
-## Multi-channel Delivery
+At runtime that can materialize as `telegram:lab`.
 
-Automation trigger API supports one-to-many delivery:
+## Multi-Agent Routing
 
-- explicit `dispatches`
-- `fanout_channels`
-- fallback to `last_dispatch`
+Bindings route traffic to a specific agent by channel, account, user, or session match.
 
-See [Deployment](./deployment.md) and protect automation routes with `RESEARCHCLAW_AUTOMATION_TOKEN`.
+```json
+{
+  "bindings": [
+    {
+      "agent_id": "research",
+      "match": {
+        "channel": "telegram",
+        "account_id": "lab"
+      }
+    }
+  ]
+}
+```
 
-## Notes
+## Custom Channels
 
-- Channel credential changes can be applied via Control hot reload (`POST /api/control/reload`).
-- Validate each platform's callback/webhook settings and permissions.
-- Keep channel secrets in the secret store / envs, not in public repos.
+You can add custom channels in two ways:
 
-## Control APIs
+- CLI: `researchclaw channels install` / `researchclaw channels remove`
+- control-plane APIs: `/api/control/channels/custom/*`
 
-- `GET /api/control/channels`
-- `GET /api/control/channels/runtime`
-- `GET /api/control/channels/catalog`
-- `GET /api/control/channels/custom`
-- `POST /api/control/channels/custom/install`
-- `DELETE /api/control/channels/custom/{key}`
-- `GET /api/control/channels/accounts`
-- `PUT /api/control/channels/accounts`
+The runtime loads custom channel code from `custom_channels/`.
+
+## Operational Notes
+
+- `last_dispatch` is persisted and reused by heartbeat or automation fan-out fallbacks
+- channel changes can be applied via control reload
+- keep credentials in the secret store or persisted envs whenever possible

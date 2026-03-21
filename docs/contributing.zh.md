@@ -1,66 +1,61 @@
 # 贡献指南
 
-感谢你对 ResearchClaw 的贡献兴趣！
+这是仓库级贡献文档的简版摘要。
 
-## 开发环境
+## 环境准备
 
-### 后端（Python）
+### 后端
 
 ```bash
-# 克隆仓库
 git clone https://github.com/MingxinYang/ResearchClaw.git
 cd ResearchClaw
-
-# 创建虚拟环境
 python -m venv .venv
 source .venv/bin/activate
-
-# 安装开发依赖
 pip install -e ".[dev]"
 ```
 
-### 控制台（前端）
+### Console
 
 ```bash
 cd console
 npm install
-npm run dev
 ```
 
-### 官网（前端）
+### Website
 
 ```bash
 cd website
-npm install
-npm run dev
+corepack pnpm install
 ```
 
-## 贡献流程
+## 建议检查项
 
-1. Fork 仓库
-2. 创建特性分支：`git checkout -b feature/my-feature`
-3. 提交修改：`git commit -m "feat: add my feature"`
-4. 推送分支：`git push origin feature/my-feature`
-5. 创建 Pull Request
+```bash
+PYTHONPATH=src pytest -q
+npm --prefix console run build
+corepack pnpm --dir website run build
+scripts/check-ci.sh --skip-install
+```
 
-## 代码规范
+## 文档规则
 
-- Python 代码遵循 PEP 8
-- TypeScript 代码使用 ESLint + Prettier
-- Commit 信息遵循 Conventional Commits 规范
+- `*.en.md` 和 `*.zh.md` 尽量保持同步
+- 不要手改 `website/dist/`
+- 新增 docs slug 时记得更新 `website/src/pages/Docs.tsx`
+- FAQ 页面使用 `###` 标题，不使用 `<details>`
 
-## Skill 贡献
+## Skills 规则
 
-开发自定义 Skill：
+当前 skill 契约以 `SKILL.md` 为主，不要再写把 `skill.json` 说成必需格式的新文档。
 
-1. 参考 [Skills 文档](./skills.md) 了解 Skill 结构
-2. 在 `skills/` 目录下创建新 Skill
-3. 编写 `skill.json` 和处理逻辑
-4. 测试确保功能正常
-5. 提交 PR 或发布到独立仓库
+## PR 标题
 
-## 问题反馈
+建议使用 Conventional Commits 风格：
 
-- 使用 GitHub Issues 报告 Bug
-- 提供复现步骤和环境信息
-- 附上相关的日志输出
+```text
+docs(readme): align quick start with current runtime
+fix(channels): avoid duplicate batching
+feat(models): add provider preset
+```
+
+更完整的版本见仓库级 [贡献指南](./contributing.md)。

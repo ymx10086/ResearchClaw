@@ -1,52 +1,72 @@
-# CLI 命令行
+# CLI
 
-ResearchClaw 提供用于初始化、运行和运维的命令行接口。
+ResearchClaw 提供用于初始化、启动运行时和本地运维的命令行工具。
 
-## 基本用法
-
-```bash
-researchclaw [全局选项] <命令> [子命令/参数]
-```
-
-## 全局选项
-
-| 选项         | 说明                                     |
-| ------------ | ---------------------------------------- |
-| `--host`     | 供 CLI 访问服务 API 时使用的默认主机地址 |
-| `--port`     | 供 CLI 访问服务 API 时使用的默认端口     |
-| `--version`  | 查看版本                                 |
-| `-h, --help` | 查看帮助                                 |
-
-## 核心命令
-
-| 命令        | 作用                         |
-| ----------- | ---------------------------- |
-| `init`      | 初始化工作目录和引导文件     |
-| `app`       | 启动 FastAPI 服务            |
-| `models`    | 管理模型提供商和本地模型     |
-| `channels`  | 管理频道配置                 |
-| `env`       | 管理持久化环境变量           |
-| `skills`    | 查看/配置技能启用状态        |
-| `cron`      | 通过 HTTP API 管理定时任务   |
-| `daemon`    | 运行态管理（状态/重启/日志） |
-| `papers`    | 检索与管理论文               |
-| `chats`     | 通过 HTTP API 管理会话       |
-| `clean`     | 清理工作目录                 |
-| `uninstall` | 卸载本地运行环境与命令包装   |
-
-## 常用示例
+## 全局用法
 
 ```bash
-researchclaw init --defaults --accept-security
-researchclaw app --host 0.0.0.0 --port 8088
-researchclaw models list
-researchclaw channels list
-researchclaw env set OPENAI_API_KEY sk-...
-researchclaw cron list
-researchclaw daemon status
+researchclaw [--host HOST] [--port PORT] <command> ...
 ```
+
+## 顶层命令
+
+| 命令        | 作用                               |
+| ----------- | ---------------------------------- |
+| `init`      | 初始化工作目录和引导 Markdown 文件 |
+| `app`       | 启动 FastAPI 服务                  |
+| `models`    | 管理 provider 和本地模型           |
+| `channels`  | 管理频道配置和自定义频道           |
+| `env`       | 管理持久化环境变量                 |
+| `skills`    | 列出并配置启用中的 skills          |
+| `papers`    | 检索或下载论文                     |
+| `cron`      | 通过运行中的 API 管理定时任务      |
+| `chats`     | 通过运行中的 API 管理会话          |
+| `daemon`    | 查看本地运行信息和日志             |
+| `clean`     | 清空 working dir                   |
+| `uninstall` | 卸载本地运行环境                   |
+
+## 常用子命令
+
+### `models`
+
+- `researchclaw models list`
+- `researchclaw models config`
+- `researchclaw models add ...`
+- `researchclaw models remove ...`
+- `researchclaw models download ...`
+- `researchclaw models local`
+
+### `channels`
+
+- `researchclaw channels list`
+- `researchclaw channels config`
+- `researchclaw channels install <path-or-key>`
+- `researchclaw channels remove <key>`
+
+### `skills`
+
+- `researchclaw skills list`
+- `researchclaw skills config`
+
+### `env`
+
+- `researchclaw env list`
+- `researchclaw env set KEY VALUE`
+- `researchclaw env delete KEY`
+
+### `cron`
+
+- `researchclaw cron list`
+- `researchclaw cron get JOB_ID`
+- `researchclaw cron create ...`
+- `researchclaw cron pause JOB_ID`
+- `researchclaw cron resume JOB_ID`
+- `researchclaw cron run JOB_ID`
+- `researchclaw cron state JOB_ID`
+- `researchclaw cron delete JOB_ID`
 
 ## 说明
 
-- `cron`、`daemon`、`chats` 等命令依赖正在运行的 HTTP 服务，请先启动 `researchclaw app`。
-- 与部署相关的启动参数与生产建议，请参考 [部署指南](./deployment.md)。
+- `cron` 和 `chats` 依赖 HTTP 服务处于运行状态
+- `models`、`channels`、`skills`、`env`、`papers` 主要是本地操作流程
+- `daemon restart` 并不直接持有 app 进程，只会输出重启建议，除非运行时显式绑定了 restart callback

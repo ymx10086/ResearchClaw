@@ -1,35 +1,38 @@
 # Chat Commands
 
-ResearchClaw supports slash commands inside chat messages.
+ResearchClaw parses slash commands inside chat messages.
 
-## Available Commands
+## Main Commands
 
-| Command                 | Description                      |
-| ----------------------- | -------------------------------- |
-| `/new` or `/start`      | Start a new session              |
-| `/compact`              | Compact conversation memory      |
-| `/clear`                | Clear history and summaries      |
-| `/history`              | Show conversation statistics     |
-| `/papers`               | List recently discussed papers   |
-| `/refs`                 | Show reference library summary   |
-| `/skills`               | List active skills               |
-| `/skills debug [query]` | Show skill routing debug details |
-| `/compact_str`          | Show current compact summary     |
-| `/daemon status`        | Show runtime daemon status       |
-| `/daemon logs [n]`      | Show daemon logs                 |
-| `/help`                 | Show command help                |
+| Command                 | Behavior                                             |
+| ----------------------- | ---------------------------------------------------- |
+| `/new` or `/start`      | start a new research session                         |
+| `/compact`              | compact conversation memory                          |
+| `/clear`                | clear memory, summaries, discussed papers, and notes |
+| `/history`              | show memory statistics                               |
+| `/papers`               | list recently discussed papers                       |
+| `/refs`                 | summarize the current BibTeX library                 |
+| `/skills`               | list active skills                                   |
+| `/skills debug [query]` | inspect skill-selection details                      |
+| `/compact_str`          | show the current compact summary                     |
+| `/help`                 | show command help                                    |
 
-## Usage
+## Daemon-Style Commands
 
-Type slash commands directly in any conversation:
+The chat parser also recognizes daemon-style commands:
 
-```text
-/help
-/skills
-/skills debug summarize arxiv papers this week
-```
+- `/daemon status`
+- `/daemon logs [n]`
+- `/daemon reload-config`
+- `/daemon version`
 
-## Notes
+Short aliases are also parsed:
 
-- Unknown slash commands fall back to normal natural-language handling.
-- `/daemon restart` is intentionally restricted in chat path; use CLI instead.
+- `/status`
+- `/logs`
+- `/reload-config`
+- `/version`
+
+## Important Note About Restart
+
+`/daemon restart` is recognized, but the chat path does not own the app lifecycle. In practice it returns restart guidance rather than force-restarting the service.

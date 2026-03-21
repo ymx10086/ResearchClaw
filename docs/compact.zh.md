@@ -1,36 +1,47 @@
-# Compact 对话压缩
+# Compact
 
-当对话历史过长时，Compact 机制会自动压缩旧消息，保留关键信息同时节省上下文窗口空间。
-
-## 工作原理
-
-1. 当消息数量或 Token 数超过阈值时，触发 Compact
-2. 系统使用 LLM 对旧消息进行摘要
-3. 摘要替换原始消息，释放上下文空间
-4. 新消息继续在压缩后的上下文中积累
-
-## 配置
-
-在 `config.yaml` 中配置 Compact 参数：
-
-```yaml
-memory:
-  compact:
-    enabled: true
-    max_messages: 50
-    summary_prompt: "请总结以上对话的关键内容"
-```
+Compact 用来压缩较早的对话上下文，同时保留摘要。
 
 ## 手动触发
 
-你也可以在对话中手动触发压缩：
+在对话中执行：
 
-```
+```text
 /compact
 ```
 
-## 注意事项
+查看当前摘要：
 
-- Compact 会调用 LLM 生成摘要，产生额外的 API 费用
-- 压缩后的摘要可能丢失部分细节信息
-- 建议根据使用场景调整阈值
+```text
+/compact_str
+```
+
+## 自动触发
+
+当前实现采用一个简单启发式：
+
+- 用 `message_count * 300` 估算 token
+- 再与 `max_input_tokens * RESEARCHCLAW_MEMORY_COMPACT_RATIO` 比较
+- 超过阈值就执行 compact
+
+## 当前配置入口
+
+Compact 不是通过 `config.yaml` 配置的。
+
+当前相关环境变量是：
+
+- `RESEARCHCLAW_MEMORY_COMPACT_KEEP_RECENT`
+- `RESEARCHCLAW_MEMORY_COMPACT_RATIO`
+
+代码默认值为：
+
+- 保留最近消息数：`3`
+- 比例：`0.7`
+
+## Compact 实际会做什么
+
+- 保留最近的消息
+- 将更早的消息折叠成 compact summary
+- 把摘要保存到持久化 memory state 中
+
+当前实现是启发式、本地式的压缩，还不是完整的证据保真摘要流水线。

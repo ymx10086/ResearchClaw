@@ -1,12 +1,10 @@
-# MCP (Model Context Protocol)
+# MCP
 
-ResearchClaw supports MCP clients so the agent can use external tools and data services.
+ResearchClaw supports MCP clients so the agent can call external tools and services.
 
-## Where MCP Config Lives
+## Config Location
 
-MCP client definitions are stored in `~/.researchclaw/config.json` under `mcp.clients`.
-
-## Example
+MCP clients are stored under `config.json`:
 
 ```json
 {
@@ -21,26 +19,40 @@ MCP client definitions are stored in `~/.researchclaw/config.json` under `mcp.cl
         "env": {
           "API_KEY": "xxx"
         }
-      },
-      "http-tools": {
-        "name": "HTTP Tools",
-        "enabled": true,
-        "transport": "streamable_http",
-        "url": "http://127.0.0.1:3000"
       }
     }
   }
 }
 ```
 
-## Supported Transport Types
+## Supported Transports
 
 - `stdio`
-- `streamable_http` (also accepts `http` alias)
+- `streamable_http`
+- `http` alias
 - `sse`
 
-## Operational Notes
+## Management Surfaces
 
-- MCP services are deployed separately from ResearchClaw.
-- When MCP config changes, runtime clients are hot-reloaded.
-- Keep MCP credentials in secret env vars where possible.
+Console:
+
+- the `MCP` page can add, edit, toggle, and delete clients
+
+API:
+
+- `GET /api/mcp`
+- `POST /api/mcp`
+- `PUT /api/mcp/{client_key}`
+- `PATCH /api/mcp/{client_key}/toggle`
+- `DELETE /api/mcp/{client_key}`
+
+## Runtime Behavior
+
+- MCP config changes are saved and then hot-reloaded
+- the runner refreshes MCP clients after changes
+- MCP servers are external processes or services; ResearchClaw only manages the client definitions
+
+## Notes
+
+- keep sensitive MCP env vars in the secret env store where possible
+- if an MCP client fails, check both the MCP server process and the ResearchClaw runtime logs

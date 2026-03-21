@@ -1,43 +1,65 @@
 # Console
 
-ResearchClaw includes a built-in web console for day-to-day operations.
+ResearchClaw ships a runtime console that is served by the backend when `console/dist` is available.
 
 ## Access
 
-After service startup, open `http://<host>:<port>` (default `http://127.0.0.1:8088`).
+Start the service and open:
 
-## Core Areas
+```text
+http://127.0.0.1:8088
+```
 
-### Chat
+## Main Pages
 
-- Talk with the Scholar agent
-- Manage multi-session conversations
-- Review message history
+- **Chat**: primary conversation UI
+- **Papers**: paper search, local paper library, BibTeX references
+- **Research**: project dashboards, workflows, execution health, blockers, claim graph, and remediation actions
+- **Channels**: channel catalog, enablement, account mappings, bindings
+- **Sessions**: inspect and delete routed sessions
+- **Cron Jobs**: inspect, create, run, pause, resume, stop jobs
+- **Heartbeat**: view heartbeat settings and current state
+- **Status**: runtime health, usage, queue stats, automation counters
+- **Workspace**: inspect working-dir files and key relations
+- **Skills**: list, enable, disable, install from hub
+- **Agent Config**: inspect current agent-facing settings
+- **Models**: configure providers, active model, model presets, local downloads
+- **Environments**: manage persisted environment variables
+- **MCP**: add, edit, toggle, and delete MCP clients
 
-### Settings
+## Research Page Highlights
 
-- Configure model providers and models
-- Manage channel enablement and credentials
-- Manage persisted environment variables
-- Manage skills (enable/disable)
+The Research page is the main UI for the current Research OS layer. It includes:
 
-### Status / Control Plane
+- project overview and aggregated counts
+- workflow lists and manual workflow execution
+- execution health across workflows, experiments, bundles, and remediation pressure
+- recent blockers with task-level and workflow-level actions
+- remediation detail panels with per-task dispatch/execute and batch operations
+- claim graph viewing for evidence inspection
 
-- Runtime health and uptime
-- Model usage metrics (requests / success / fallback / token estimate)
-- Channel runtime queue/worker stats
-- Cron runtime stats
-- Automation run statistics (queued/running/succeeded/failed)
-- Agent list and session observability
+## Development Mode
+
+Run the backend first, then:
+
+```bash
+cd console
+npm install
+npm run dev
+```
+
+The dev server proxies `/api` to `http://127.0.0.1:8088`.
 
 ## Related APIs
 
 - `GET /api/control/status`
 - `GET /api/control/usage`
-- `GET /api/control/channels/runtime`
-- `GET /api/control/automation/runs`
-- `GET /api/control/agents`
-- `GET /api/control/sessions`
-- `POST /api/control/reload`
-
-For production access patterns, see [Deployment](./deployment.md).
+- `GET /api/research/projects/{project_id}/dashboard`
+- `POST /api/research/projects/{project_id}/blockers/dispatch`
+- `POST /api/research/projects/{project_id}/blockers/execute`
+- `POST /api/research/projects/{project_id}/blockers/resume`
+- `POST /api/research/workflows/{workflow_id}/execute`
+- `GET /api/providers`
+- `GET /api/skills`
+- `GET /api/mcp`
+- `GET /api/workspace`

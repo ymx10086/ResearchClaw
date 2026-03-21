@@ -1,66 +1,97 @@
 # Skills
 
-Skills 是 ResearchClaw 的可扩展技能系统，为 AI 助手提供专业的科研能力。
+ResearchClaw 当前采用 `SKILL.md` 优先的技能系统。
 
-## 内置 Skills
+## Skill 是什么
 
-ResearchClaw 内置了多种科研相关技能：
+一个 skill 可以是：
 
-- **论文搜索**：在 ArXiv、Semantic Scholar 等平台搜索论文
-- **论文追踪**：定期追踪指定领域或关键词的最新论文
-- **文献管理**：管理 BibTeX 文件、生成引用
-- **天气查询**：查询天气信息（日常辅助）
+- 纯文档型操作手册
+- 带 Python 可执行能力的技能模块
 
-## Skill 结构
+当前推荐的标准结构是：
 
-每个 Skill 是一个独立的 Python 模块，包含：
-
-```
-my_skill/
-├── __init__.py
-├── skill.json          # 技能元信息
-├── handler.py          # 主逻辑
-└── requirements.txt    # 依赖（可选）
+```text
+my-skill/
+├── SKILL.md
+├── references/
+├── scripts/
+└── __init__.py 或 main.py   # 可选
 ```
 
-### skill.json
+## 仓库内置 Skills
 
-```json
-{
-  "name": "my_skill",
-  "version": "1.0.0",
-  "description": "A custom research skill",
-  "author": "Your Name",
-  "tags": ["research", "papers"]
-}
+当前仓库自带这些 skills：
+
+- `arxiv`
+- `browser_visible`
+- `citation_network`
+- `cron`
+- `dingtalk_channel`
+- `docx`
+- `experiment_tracker`
+- `figure_generator`
+- `file_reader`
+- `himalaya`
+- `literature_review`
+- `news`
+- `paper_summarizer`
+- `pdf`
+- `pptx`
+- `research_notes`
+- `research_workflows`
+- `xlsx`
+
+## 发现目录
+
+运行时会扫描：
+
+- `skills/`
+- `.agents/skills/`
+- `.researchclaw/skills/`
+- `~/.agents/skills/`
+- `~/.researchclaw/skills/`
+
+仓库内置 skills 也会被同步到 active skill 区域。
+
+## 运行时存储
+
+- 已启用的 skills 位于 `active_skills/`
+- 本地自定义拷贝位于 `customized_skills/`
+
+## 如何管理 Skills
+
+CLI：
+
+```bash
+researchclaw skills list
+researchclaw skills config
 ```
 
-## 安装 Skill
+API：
 
-### 从 GitHub 安装
+- `GET /api/skills`
+- `GET /api/skills/active`
+- `POST /api/skills/enable`
+- `POST /api/skills/disable`
+- `POST /api/skills/install`
+- `GET /api/skills/hub/search`
 
-在对话中发送：
+Agent tools：
 
-```
-安装 skill https://github.com/user/repo
-```
+- `skills_list()`
+- `skills_activate(name)`
+- `skills_read_file(name, path)`
 
-### 手动安装
+运行时现在还内置了一个专门的 `research_workflows` skill 模块，用来暴露结构化工具，覆盖：
 
-将 Skill 文件夹放入工作目录的 `skills/` 文件夹中。
+- projects 与 dashboard
+- workflows 与 tasks
+- notes、claims、evidence、experiments
+- remediation 查询与 task 执行
 
-## 定时任务
+## 说明
 
-Skills 支持 Cron 定时任务：
-
-```python
-# 在 skill.json 中配置
-{
-  "cron": "0 9 * * *",  # 每天早上 9 点执行
-  "cron_prompt": "搜索昨天发布的 LLM Agent 相关论文"
-}
-```
-
-## 自定义开发
-
-参考 [CONTRIBUTING](./contributing.md) 了解如何开发自定义 Skill。
+- 当前契约是 `SKILL.md`，不要再依赖旧的 `skill.json` 文档
+- 可选的 `references/` 和 `scripts/` 可以通过运行时 skill tools 读取
+- 一些科研 skill 目前仍然只是轻量封装，但 `research_workflows` 已经是接入 Research OS 状态层的核心桥接模块

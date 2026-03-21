@@ -1,29 +1,29 @@
 # Community
 
-Welcome to the ResearchClaw community!
+ResearchClaw is developed in the open on GitHub.
 
-## Get Involved
+## Main Links
 
-### GitHub
+- Repository: <https://github.com/MingxinYang/ResearchClaw>
+- Issues: <https://github.com/MingxinYang/ResearchClaw/issues>
 
-- [Repository](https://github.com/MingxinYang/ResearchClaw) — Source code, Issues, Pull Requests
-- Submit Issues to report bugs or suggest features
-- Submit Pull Requests to contribute code
+## Good Ways to Contribute
 
-### Discussions
+- report bugs with a minimal reproduction
+- improve docs that drifted behind the code
+- contribute provider, channel, MCP, or control-plane fixes
+- add tests around routing, automation, or runtime reliability
 
-- GitHub Discussions — Ask questions, share experiences, discuss features
-- Share your custom Skills with the community
+## Skills and Extensions
 
-## Code of Conduct
+If you build a reusable skill or custom channel, document:
 
-We are committed to fostering a friendly, inclusive community. When participating:
+- the required secrets
+- the expected runtime environment
+- the trust assumptions
 
-- Be respectful
-- Communicate kindly
-- Stay focused on technical discussion
-- Help newcomers get started
+That matters more than marketing copy.
 
-## Contributing
+## More
 
-Want to contribute code? See the [Contributing Guide](./contributing.md).
+See the full [Contributing Guide](./contributing.md).

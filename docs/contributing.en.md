@@ -1,66 +1,61 @@
 # Contributing
 
-Thank you for your interest in contributing to ResearchClaw!
+This page is the short version of the repository contributor guide.
 
-## Development Setup
+## Setup
 
-### Backend (Python)
+### Backend
 
 ```bash
-# Clone the repository
 git clone https://github.com/MingxinYang/ResearchClaw.git
 cd ResearchClaw
-
-# Create virtual environment
 python -m venv .venv
 source .venv/bin/activate
-
-# Install dev dependencies
 pip install -e ".[dev]"
 ```
 
-### Console (Frontend)
+### Console
 
 ```bash
 cd console
 npm install
-npm run dev
 ```
 
-### Website (Frontend)
+### Website
 
 ```bash
 cd website
-npm install
-npm run dev
+corepack pnpm install
 ```
 
-## Contribution Workflow
+## Recommended Checks
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/my-feature`
-3. Commit changes: `git commit -m "feat: add my feature"`
-4. Push branch: `git push origin feature/my-feature`
-5. Create a Pull Request
+```bash
+PYTHONPATH=src pytest -q
+npm --prefix console run build
+corepack pnpm --dir website run build
+scripts/check-ci.sh --skip-install
+```
 
-## Code Standards
+## Docs Rules
 
-- Python code follows PEP 8
-- TypeScript code uses ESLint + Prettier
-- Commit messages follow Conventional Commits
+- keep `*.en.md` and `*.zh.md` in sync
+- do not edit `website/dist/`
+- update `website/src/pages/Docs.tsx` when adding a new docs slug
+- FAQ pages use `###` headings, not `<details>`
 
-## Skill Contributions
+## Skills Rules
 
-To develop custom Skills:
+Use `SKILL.md` as the primary skill contract. Do not write new docs that make `skill.json` sound mandatory.
 
-1. See [Skills documentation](./skills.md) for skill structure
-2. Create a new skill in the `skills/` directory
-3. Write `skill.json` and handler logic
-4. Test thoroughly
-5. Submit a PR or publish to a standalone repository
+## PR Titles
 
-## Bug Reports
+Use Conventional Commits style:
 
-- Use GitHub Issues to report bugs
-- Provide reproduction steps and environment info
-- Include relevant log output
+```text
+docs(readme): align quick start with current runtime
+fix(channels): avoid duplicate batching
+feat(models): add provider preset
+```
+
+For the full version, see the repository-level [Contributing Guide](./contributing.md).
